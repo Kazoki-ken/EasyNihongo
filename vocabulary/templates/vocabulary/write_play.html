@@ -182,6 +182,20 @@
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} rounded-4 shadow-sm text-center fw-bold animate-fade-in">
                     {{ message }}
+                    {% if 'success' in message.tags %}
+                       <i class="bi bi-volume-up-fill text-success ms-2"
+                          style="font-size: 1.5rem; cursor: pointer; vertical-align: middle;"
+                          onclick="speak('{{ message.message|slice:"8:"|escapejs }}')">
+                       </i>
+                       <script>
+                           document.addEventListener('DOMContentLoaded', function() {
+                               // 8-belgidan keyingi qismni (yaponcha so'zni) o'qiymiz
+                               // Chunki message "To'g'ri! SO'Z" formatida keladi
+                               // "To'g'ri! " -> 8 ta belgi
+                               speak('{{ message.message|slice:"8:"|escapejs }}');
+                           });
+                       </script>
+                    {% endif %}
                 </div>
             {% endfor %}
         </div>
