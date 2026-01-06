@@ -1,0 +1,43 @@
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+
+    {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link rounded-circle border-0 shadow-sm me-1" href="?{{ param_name }}={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.topic %}&topic={{ request.GET.topic }}{% endif %}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link rounded-circle border-0 shadow-sm me-1">&laquo;</span>
+      </li>
+    {% endif %}
+
+    {% for i in page_obj.paginator.page_range %}
+      {% if page_obj.number == i %}
+        <li class="page-item active">
+          <span class="page-link rounded-circle border-0 shadow-sm me-1 bg-primary">{{ i }}</span>
+        </li>
+      {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link rounded-circle border-0 shadow-sm me-1 text-dark" href="?{{ param_name }}={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.topic %}&topic={{ request.GET.topic }}{% endif %}">{{ i }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link rounded-circle border-0 shadow-sm ms-1" href="?{{ param_name }}={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.topic %}&topic={{ request.GET.topic }}{% endif %}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link rounded-circle border-0 shadow-sm ms-1">&raquo;</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}

@@ -71,6 +71,8 @@
             </div>
             {% endfor %}
         </div>
+        <!-- Pagination for User Words -->
+        {% include "vocabulary/includes/pagination.html" with page_obj=user_words param_name="user_page" %}
     {% endif %}
 
 
@@ -106,6 +108,8 @@
             </div>
             {% endfor %}
         </div>
+        <!-- Pagination for Saved Words -->
+        {% include "vocabulary/includes/pagination.html" with page_obj=saved_words param_name="saved_page" %}
     {% endif %}
 
     {% if not user_words and not saved_words %}
