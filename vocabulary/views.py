@@ -265,6 +265,28 @@ def delete_word(request, word_id):
 def profile_view(request):
     return render(request, 'vocabulary/profile.html')
 
+@login_required
+def leaderboard(request):
+    # Top 20 foydalanuvchi: Streak bo'yicha saralangan
+    # Agar streak bir xil bo'lsa, total_daily_progress bo'yicha
+    # Bu yerda total_daily_progress hisoblanmaydi (property), shuning uchun oddiyroq streak bo'yicha qilamiz.
+
+    top_profiles = Profile.objects.select_related('user').order_by('-streak', '-daily_test_count')[:20]
+
+    # Foydalanuvchining o'z o'rni
+    user_rank = 0
+    all_profiles = Profile.objects.order_by('-streak')
+    # Optimization: Bu katta bazada sekin ishlashi mumkin, lekin hozircha yetarli
+    for index, p in enumerate(all_profiles):
+        if p.user == request.user:
+            user_rank = index + 1
+            break
+
+    return render(request, 'vocabulary/leaderboard.html', {
+        'top_profiles': top_profiles,
+        'user_rank': user_rank
+    })
+
 def register_view(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
