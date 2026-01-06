@@ -203,8 +203,8 @@
     <a href="{% url 'games_menu' %}" class="nav-item-custom {% if 'game' in request.path %}active{% endif %}">
         <i class="bi bi-controller"></i><span>O'yinlar</span>
     </a>
-    <a href="{% url 'leaderboard' %}" class="nav-item-custom {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}">
-        <i class="bi bi-trophy"></i><span>Reyting</span>
+    <a href="#" class="nav-item-custom opacity-50">
+        <i class="bi bi-robot"></i><span>AI Chat</span>
     </a>
     <a href="{% url 'profile' %}" class="nav-item-custom {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
         <i class="bi bi-person"></i><span>Profil</span>
