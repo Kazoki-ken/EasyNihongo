@@ -67,6 +67,40 @@
         </div>
     </div>
 
+<style>
+    /* Dark Mode uchun maxsus stillar */
+    body.dark-mode .table {
+        color: #f8f9fa;
+        border-color: #333;
+    }
+    body.dark-mode .table-hover tbody tr:hover {
+        color: #f8f9fa;
+        background-color: #2c2c2c;
+    }
+    body.dark-mode .bg-light {
+        background-color: #2c2c2c !important;
+        color: #f8f9fa;
+    }
+    /* Mobile uchun ixchamlash */
+    @media (max-width: 576px) {
+        .container {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+        .table th, .table td {
+            padding: 0.75rem 0.5rem !important;
+            font-size: 0.9rem;
+        }
+        /* User iconkasini kichraytirish */
+        .rounded-circle {
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 0.9rem !important;
+            margin-right: 0.5rem !important;
+        }
+    }
+</style>
+
     {% if user_rank > 20 %}
     <div class="mt-4 text-center">
         <div class="d-inline-block bg-white shadow-sm rounded-pill px-4 py-2 border">
