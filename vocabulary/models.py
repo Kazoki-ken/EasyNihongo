@@ -13,11 +13,9 @@ class Topic(models.Model):
         return self.name
 
 
-# 1. SO'ZLAR MODELI (O'zgarishsiz qoldi)
+# 1. SO'ZLAR MODELI
 class Word(models.Model):
-    # ESKI: topic = models.CharField(...)  <-- BUNI OLIB TASHLAYMIZ
-    
-    # YANGI: Bitta so'z ko'p mavzuga tegishli bo'lishi mumkin
+    # Bitta so'z ko'p mavzuga tegishli bo'lishi mumkin
     topics = models.ManyToManyField(Topic, related_name='words', blank=True)
     
     japanese_word = models.CharField(max_length=100)
@@ -33,16 +31,13 @@ class Word(models.Model):
     class Meta:
         verbose_name_plural = "Words"
 
-# ... Profile va Signallar o'zgarishsiz qoladi ...
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     
-    # ... (Eski fieldlar: is_premium, expiry_date, streak, tree_state turaversin) ...
     streak = models.IntegerField(default=0)
     last_login_date = models.DateField(null=True, blank=True)
     tree_state = models.IntegerField(default=1)
     
-    # --- YANGILANGAN QISM: O'YINLAR STATISTIKASI ---
     # Har bir o'yin uchun alohida hisoblagich (Maksimum 3 tadan)
     daily_test_count = models.IntegerField(default=0)
     daily_match_count = models.IntegerField(default=0)
