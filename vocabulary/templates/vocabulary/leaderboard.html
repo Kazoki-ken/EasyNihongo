@@ -80,12 +80,21 @@
         color: #f8f9fa;
     }
     body.dark-mode .table {
-        color: #f8f9fa;
+        color: #f8f9fa !important;
         border-color: #333;
+        --bs-table-color: #f8f9fa;
+        --bs-table-bg: #1e1e1e;
+        background-color: #1e1e1e !important;
     }
-    body.dark-mode .table-hover tbody tr:hover {
-        color: #f8f9fa;
-        background-color: #2c2c2c;
+    body.dark-mode .table th,
+    body.dark-mode .table td {
+        background-color: #1e1e1e !important;
+        color: #f8f9fa !important;
+        border-bottom-color: #333;
+    }
+    body.dark-mode .table-hover tbody tr:hover td {
+        background-color: #2c2c2c !important;
+        color: #f8f9fa !important;
     }
     body.dark-mode .bg-light {
         background-color: #2c2c2c !important;
