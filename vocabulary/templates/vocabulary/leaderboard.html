@@ -3,6 +3,12 @@
 {% block content %}
 <div class="container py-5" style="padding-bottom: 100px;">
 
+    <div class="mb-4">
+        <a href="{% url 'profile' %}" class="text-decoration-none text-muted d-inline-flex align-items-center">
+            <i class="bi bi-arrow-left me-2"></i> Orqaga
+        </a>
+    </div>
+
     <div class="text-center mb-5">
         <h2 class="fw-bold text-primary display-6">🏆 Reyting</h2>
         <p class="text-muted">Eng faol o'quvchilar ro'yxati</p>
@@ -19,7 +25,7 @@
                             <th class="border-0 py-3 ps-4" style="width: 50px;">#</th>
                             <th class="border-0 py-3">Foydalanuvchi</th>
                             <th class="border-0 py-3 text-center">🔥 Streak</th>
-                            <th class="border-0 py-3 text-center">Daraja</th>
+                            <th class="border-0 py-3 text-center d-none d-sm-table-cell">Daraja</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,7 +56,7 @@
                                     {{ profile.streak }} kun
                                 </span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center d-none d-sm-table-cell">
                                 {% if profile.streak > 30 %}
                                     <span class="badge bg-danger rounded-pill">Sensei</span>
                                 {% elif profile.streak > 7 %}
@@ -69,6 +75,10 @@
 
 <style>
     /* Dark Mode uchun maxsus stillar */
+    body.dark-mode .card {
+        background-color: #1e1e1e !important;
+        color: #f8f9fa;
+    }
     body.dark-mode .table {
         color: #f8f9fa;
         border-color: #333;
@@ -80,6 +90,9 @@
     body.dark-mode .bg-light {
         background-color: #2c2c2c !important;
         color: #f8f9fa;
+    }
+    body.dark-mode .text-dark {
+        color: #f8f9fa !important;
     }
     /* Mobile uchun ixchamlash */
     @media (max-width: 576px) {
