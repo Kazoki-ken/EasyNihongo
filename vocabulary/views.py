@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 
 from .models import Word, Profile, Topic
@@ -108,8 +109,14 @@ def dashboard(request):
         # ManyToMany filtrlash
         words = words.filter(topics__name=topic_filter)
     
+    # --- PAGINATION (DASHBOARD) ---
+    words = words.order_by('created_at').distinct()
+    paginator = Paginator(words, 20) # Sahifasiga 20 ta
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'words': words.order_by('created_at').distinct(), # distinct() takrorlanishni oldini oladi
+        'words': page_obj, # Endi to'liq ro'yxat emas, sahifa obyekti
         'topics': topics,
         'selected_topic': topic_filter,
         'title': 'Darslik Lugʻati',
@@ -119,11 +126,20 @@ def dashboard(request):
 @login_required
 def my_vocabulary(request):
     # 1. Foydalanuvchi O'ZI QO'SHGAN so'zlar (Author = User)
-    user_words = Word.objects.filter(author=request.user).order_by('-created_at')
+    user_words_qs = Word.objects.filter(author=request.user).order_by('-created_at')
     
     # 2. Foydalanuvchi SAQLAB QO'YGAN so'zlar (Likes/Saves)
-    # Eslatma: related_name='saved_words' deb yozgan edik models.py da
-    saved_words = request.user.saved_words.all().order_by('-created_at')
+    saved_words_qs = request.user.saved_words.all().order_by('-created_at')
+
+    # --- PAGINATION (USER WORDS) ---
+    user_paginator = Paginator(user_words_qs, 20)
+    user_page_number = request.GET.get('user_page')
+    user_words = user_paginator.get_page(user_page_number)
+
+    # --- PAGINATION (SAVED WORDS) ---
+    saved_paginator = Paginator(saved_words_qs, 20)
+    saved_page_number = request.GET.get('saved_page')
+    saved_words = saved_paginator.get_page(saved_page_number)
 
     return render(request, 'vocabulary/my_vocabulary.html', {
         'user_words': user_words,
@@ -139,16 +155,41 @@ def categories_view(request):
 @login_required
 def topic_words(request, topic_name):
     # Mavzu nomi bo'yicha so'zlarni olish
-    words = Word.objects.filter(author__isnull=True, topics__name=topic_name).order_by('created_at').distinct()
+    words_qs = Word.objects.filter(author__isnull=True, topics__name=topic_name).order_by('created_at').distinct()
+
+    # --- PAGINATION (TOPIC WORDS) ---
+    paginator = Paginator(words_qs, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # "Hammasini saqlash" tugmasi holatini tekshirish
+    # DIQQAT: Bu yerda endi faqat joriy sahifadagi so'zlarni emas,
+    # balki UMUMIY ro'yxatni tekshirishimiz kerak bo'lishi mumkin,
+    # lekin vizual jihatdan sahifadagi so'zlar saqlanganligini ko'rsatish kifoya qiladi
+    # yoki backendda to'liq tekshirish qoldiramiz.
+
+    # Hozircha "Hammasini saqlash" mantiqi frontendda tugma bosilganda serverga murojaat qiladi.
+    # Shuning uchun bu yerda 'words_all_saved' ni faqat joriy sahifa uchun hisoblash maqsadga muvofiq,
+    # yoki butun QuerySet uchun. Keling butun QuerySet uchun qilamiz.
     
     words_all_saved = True
-    for w in words:
-        if request.user not in w.saves.all():
-            words_all_saved = False
-            break
+    # Optimization: exists() ishlatish samarasiz bo'lishi mumkin loop ichida,
+    # lekin hozircha oddiy yondashuv:
+    # Agar bitta bo'lsa ham saqlanmagan so'z bo'lsa -> False
+    # (Bu yerda Paginator bo'lgani uchun loopni butun 'words_qs' bo'ylab aylanish og'ir bo'lishi mumkin
+    # Agar so'zlar ko'p bo'lsa. Lekin "save_all" funksiyasi baribir hammasini o'zgartiradi).
+
+    # Keling, optimizatsiya qilamiz:
+    # Foydalanuvchi saqlagan so'zlar ID larini olamiz
+    saved_ids = request.user.saved_words.values_list('id', flat=True)
+
+    # Mavzudagi barcha so'zlar ichida saved_ids da YO'Q bo'lgan so'z bormi?
+    # exclude(id__in=saved_ids).exists() -> Agar True bo'lsa, demak hammasi saqlanmagan.
+    has_unsaved = words_qs.exclude(id__in=saved_ids).exists()
+    words_all_saved = not has_unsaved
             
     context = {
-        'words': words,
+        'words': page_obj, # Sahifalangan obyekt
         'topic_name': topic_name,
         'words_all_saved': words_all_saved
     }

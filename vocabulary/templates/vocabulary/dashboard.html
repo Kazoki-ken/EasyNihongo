@@ -101,6 +101,10 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% include "vocabulary/includes/pagination.html" with page_obj=words param_name="page" %}
+
 </div>
 
 <script>
