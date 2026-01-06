@@ -1,0 +1,57 @@
+{% extends 'vocabulary/base.html' %}
+{% block content %}
+<div class="container text-center py-5">
+    
+    <div class="mb-4 animate-bounce">
+        <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 rounded-circle mb-3"
+             style="width: 120px; height: 120px;">
+            <i class="bi bi-journal-x text-warning" style="font-size: 4rem;"></i>
+        </div>
+    </div>
+
+    <h2 class="fw-bold text-dark mb-3">So'z yetarli emas 😔</h2>
+    
+    <div class="sakura-card p-4 mx-auto mb-4 bg-white shadow-sm" style="max-width: 400px; border-radius: 20px;">
+        <p class="text-muted mb-3">
+            Ushbu o'yinni boshlash uchun lug'atingizda kamida <strong>{{ threshold }} ta</strong> so'z bo'lishi kerak.
+        </p>
+        
+        <div class="d-flex justify-content-between px-4 py-2 bg-light rounded-3">
+            <span class="text-secondary small fw-bold">Hozirgi so'zlar:</span>
+            <span class="text-danger fw-bold">{{ count }} / {{ threshold }}</span>
+        </div>
+    </div>
+
+    <div class="d-grid gap-3 col-md-6 mx-auto">
+        <a href="{% url 'add_word' %}" class="btn btn-primary py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center">
+            <div class="bg-white bg-opacity-25 rounded-circle p-1 me-2">
+                <i class="bi bi-plus-lg"></i>
+            </div>
+            Yangi so'z qo'shish
+        </a>
+
+        <a href="{% url 'categories' %}" class="btn btn-outline-primary py-3 rounded-pill fw-bold bg-white border-0 shadow-sm d-flex align-items-center justify-content-center">
+            <div class="bg-primary bg-opacity-10 rounded-circle p-1 me-2 text-primary">
+                <i class="bi bi-collection-fill"></i>
+            </div>
+            Bo'limlardan tanlash
+        </a>
+        
+        <a href="{% url 'games_menu' %}" class="btn btn-link text-muted text-decoration-none mt-2">
+            O'yinlar menyusiga qaytish
+        </a>
+    </div>
+
+</div>
+
+<style>
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-20px);}
+        60% {transform: translateY(-10px);}
+    }
+    .animate-bounce {
+        animation: bounce 2s infinite;
+    }
+</style>
+{% endblock %}

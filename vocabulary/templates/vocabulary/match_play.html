@@ -1,0 +1,250 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* HEADER */
+    .game-header {
+        background: white;
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        padding: 0 20px;
+        height: 70px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* --- TUZATILGAN X TUGMASI STILI --- */
+    .close-btn-custom {
+        width: 40px;
+        height: 40px;
+        display: flex;             /* Flexbox yoqamiz */
+        align-items: center;       /* Vertikal markazlash */
+        justify-content: center;   /* Gorizontal markazlash */
+        border-radius: 50%;        /* Dumoloq shakl */
+        background-color: #f8f9fa; /* Orqa fon */
+        color: #6c757d;            /* Ikonka rangi */
+        border: none;              /* Chegarani olib tashlaymiz */
+        padding: 0 !important;     /* MUHIM: Ortiqcha bo'shliqlarni yo'qotish */
+        transition: all 0.2s;
+    }
+    .close-btn-custom:active {
+        background-color: #e9ecef;
+        transform: scale(0.95);
+    }
+    /* Ikonkaning o'zini biroz kattalashtirib, chiroyli qilamiz */
+    .close-btn-custom i {
+        font-size: 1.3rem;
+        line-height: 1;
+    }
+    /* ---------------------------------- */
+
+    .round-badge {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 800;
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        border: 1px solid #e9ecef;
+    }
+
+    /* O'YIN MAYDONI */
+    .game-container {
+        padding: 15px;
+        max-width: 500px;
+        margin: 0 auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    /* KARTOCHKA */
+    .match-card {
+        background: white;
+        border-radius: 16px;
+        height: 75px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 5px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        font-weight: 700;
+        color: #495057;
+        font-size: 0.9rem;
+        user-select: none;
+        transition: transform 0.1s;
+    }
+
+    .match-card.selected {
+        background-color: #e7f1ff;
+        border-color: #0d6efd;
+        color: #0d6efd;
+        transform: translateY(-2px);
+    }
+
+    .match-card.matched {
+        opacity: 0;
+        transform: scale(0.5);
+        pointer-events: none;
+        transition: all 0.4s ease;
+    }
+
+    .match-card.error {
+        background-color: #f8d7da !important;
+        border-color: #dc3545 !important;
+        animation: shake 0.4s;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    .fade-enter { animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="game-header">
+    <button type="button" class="close-btn-custom shadow-sm" data-bs-toggle="modal" data-bs-target="#exitModal">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    
+    <div class="round-badge">
+        Raund <span id="current-round">1</span> / <span id="total-rounds">{{ total_rounds }}</span>
+    </div>
+
+    <div class="text-primary fw-bold small">
+        <span id="pairs-found">0</span>/5
+    </div>
+</div>
+
+<div class="game-container">
+    <div class="cards-grid" id="game-board">
+        </div>
+</div>
+
+<script id="cards-data" type="application/json">
+    {{ cards_json|safe }}
+</script>
+
+<div class="modal fade" id="exitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 rounded-4 shadow-lg p-3 text-center">
+            <div class="mb-3 mt-2">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10" 
+                      style="width: 80px; height: 80px;">
+                    <i class="bi bi-pause-fill text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold">O'yinni tugatamizmi?</h5>
+            <p class="text-muted small">Progress saqlanmaydi.</p>
+            <div class="d-grid gap-2 mt-2">
+                <a href="{% url 'games_menu' %}" class="btn btn-danger rounded-pill">Ha, chiqish</a>
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Davom etish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const allCardsData = JSON.parse(document.getElementById('cards-data').textContent);
+    const totalRounds = parseInt("{{ total_rounds }}");
+    const cardsPerRound = 10;
+
+    let currentRound = 1;
+    let roundMatches = 0;
+    let firstCard = null;
+    let isProcessing = false;
+
+    startRound();
+
+    function startRound() {
+        const board = document.getElementById('game-board');
+        const pairsLabel = document.getElementById('pairs-found');
+        const roundLabel = document.getElementById('current-round');
+        
+        board.innerHTML = '';
+        roundMatches = 0;
+        pairsLabel.innerText = '0';
+        roundLabel.innerText = currentRound;
+        board.classList.remove('fade-enter');
+        void board.offsetWidth;
+        board.classList.add('fade-enter');
+
+        const startIndex = (currentRound - 1) * cardsPerRound;
+        const endIndex = startIndex + cardsPerRound;
+        let roundCards = allCardsData.slice(startIndex, endIndex);
+
+        roundCards.sort(() => Math.random() - 0.5);
+
+        roundCards.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'match-card';
+            cardEl.setAttribute('data-id', card.id);
+            cardEl.innerText = card.text;
+            cardEl.onclick = function() { selectCard(this); };
+            board.appendChild(cardEl);
+        });
+    }
+
+    function selectCard(card) {
+        if (isProcessing || card.classList.contains('matched') || card === firstCard) return;
+        card.classList.add('selected');
+        if (!firstCard) { firstCard = card; } else { checkMatch(firstCard, card); }
+    }
+
+    function checkMatch(card1, card2) {
+        isProcessing = true;
+        const id1 = card1.getAttribute('data-id');
+        const id2 = card2.getAttribute('data-id');
+
+        if (id1 === id2) {
+            setTimeout(() => {
+                card1.classList.remove('selected'); card2.classList.remove('selected');
+                card1.classList.add('matched'); card2.classList.add('matched');
+                roundMatches++;
+                document.getElementById('pairs-found').innerText = roundMatches;
+                firstCard = null; isProcessing = false;
+                if (roundMatches === 5) { setTimeout(() => { nextRound(); }, 500); }
+            }, 300);
+        } else {
+            setTimeout(() => { card1.classList.add('error'); card2.classList.add('error'); }, 200);
+            setTimeout(() => {
+                card1.classList.remove('selected', 'error'); card2.classList.remove('selected', 'error');
+                firstCard = null; isProcessing = false;
+            }, 800);
+        }
+    }
+
+    function nextRound() {
+        if (currentRound < totalRounds) { currentRound++; startRound(); } 
+        else { window.location.href = "{% url 'match_result' %}"; }
+    }
+</script>
+
+{% endblock %}

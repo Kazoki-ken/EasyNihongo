@@ -1,0 +1,90 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+<div class="container text-center py-5" style="padding-top: 100px;">
+    
+    <div class="mb-4 animate-pop">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle" style="width: 100px; height: 100px;">
+            {% if accuracy >= 80 %}
+                <i class="bi bi-trophy-fill text-warning" style="font-size: 3.5rem;"></i>
+            {% elif accuracy >= 60 %}
+                <i class="bi bi-pencil-fill text-primary" style="font-size: 3.5rem;"></i>
+            {% else %}
+                <i class="bi bi-emoji-frown-fill text-secondary" style="font-size: 3.5rem;"></i>
+            {% endif %}
+        </div>
+    </div>
+    
+    <h2 class="fw-bold mb-4 text-dark">
+        {% if accuracy >= 80 %} Ajoyib natija! 🎉
+        {% elif accuracy >= 60 %} Yaxshi urinish! 👍
+        {% else %} Mashq qilish kerak! 💪 {% endif %}
+    </h2>
+
+    {% if saved or count < 3 %}
+        <div class="card p-3 mb-4 mx-auto shadow-sm border-0 rounded-4" 
+             style="max-width: 350px; background: {% if saved %}#d1e7dd{% else %}#fff3cd{% endif %};">
+            
+            <div class="d-flex align-items-center justify-content-center">
+                {% if saved %}
+                    <i class="bi bi-check-circle-fill text-success fs-3 me-3"></i>
+                    <div class="text-start">
+                        <h6 class="fw-bold text-success mb-0">Tabriklaymiz!</h6>
+                        <small class="text-success text-opacity-75">{{ message }}</small>
+                    </div>
+                {% else %}
+                    <i class="bi bi-info-circle-fill text-warning fs-3 me-3"></i>
+                    <div class="text-start">
+                        <h6 class="fw-bold text-warning-emphasis mb-0">Ma'lumot</h6>
+                        <small class="text-warning-emphasis text-opacity-75">{{ message }}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card p-4 mb-4 mx-auto border-0 shadow-sm rounded-5" style="max-width: 350px;">
+        <div class="row align-items-center">
+            <div class="col-6 border-end">
+                <h2 class="text-success fw-bold mb-0 display-4">{{ stats.correct }}</h2>
+                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">TO'G'RI</small>
+            </div>
+            <div class="col-6">
+                <h2 class="text-danger fw-bold mb-0 display-4">{{ stats.wrong }}</h2>
+                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">XATO</small>
+            </div>
+        </div>
+        <hr class="my-4 opacity-10">
+        <div class="d-flex justify-content-between align-items-center px-2">
+            <div class="text-muted small">
+                Jami: <span class="fw-bold text-dark">{{ stats.total_questions }}</span>
+            </div>
+            <span class="badge {% if accuracy >= 60 %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-10 text-dark border px-3 py-2 rounded-pill">
+                Aniqlik: {{ accuracy }}%
+            </span>
+        </div>
+    </div>
+    
+    <div class="d-grid gap-3 col-md-6 mx-auto px-4" style="max-width: 400px;">
+        <a href="{% url 'write_setup' %}" class="btn btn-primary py-3 rounded-pill fw-bold shadow-sm btn-hover-effect">
+            <i class="bi bi-arrow-repeat me-2"></i> Yana o'ynash
+        </a>
+        <a href="{% url 'games_menu' %}" class="btn btn-light py-3 rounded-pill fw-bold text-muted shadow-sm btn-hover-effect">
+            <i class="bi bi-controller me-2"></i> O'yinlar menyusi
+        </a>
+    </div>
+</div>
+
+<style>
+    @keyframes pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        70% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+        animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-hover-effect { transition: transform 0.2s; }
+    .btn-hover-effect:active { transform: scale(0.96); }
+</style>
+{% endblock %}

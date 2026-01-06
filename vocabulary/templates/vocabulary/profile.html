@@ -1,0 +1,203 @@
+{% extends 'vocabulary/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <div class="position-relative d-inline-block mb-3">
+            <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center overflow-hidden mx-auto profile-avatar-box">
+                <i class="bi bi-person-fill text-secondary profile-avatar-icon"></i>
+            </div>
+        </div>
+        <h4 class="fw-bold mb-1 text-dark">{{ user.username }}</h4>
+        <p class="text-muted small">Sakura Akademiyasi Talabasi</p>
+    </div>
+
+    <div class="px-2 mb-4">
+        <div class="sakura-card mb-3 overflow-hidden">
+            <a href="{% url 'add_word' %}" class="btn btn-link text-decoration-none text-dark p-3 d-flex align-items-center justify-content-between w-100 border-0">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <span class="fw-bold ms-3">Yangi so'z qo'shish</span>
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+            </a>
+        </div>
+
+        <div class="sakura-card overflow-hidden">
+            <a href="{% url 'my_vocabulary' %}" class="btn btn-link text-decoration-none text-dark p-3 d-flex align-items-center justify-content-between w-100 border-0">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-journal-bookmark-fill"></i>
+                    </div>
+                    <span class="fw-bold ms-3">Mening Lug'atim</span>
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="container px-2">
+        <div class="row g-2"> 
+           <div class="col-3">
+            <button id="theme-toggle-btn" class="w-100 h-100 p-0 border-0 bg-transparent" style="outline: none;">
+                <div class="grid-btn-card">
+                    <div class="mini-icon bg-secondary bg-opacity-10">
+                        <i id="theme-icon" class="bi bi-moon-fill text-secondary"></i>
+                    </div>
+                    <span class="grid-text">Rejim</span>
+                </div>
+            </button>
+        </div>
+            <div class="col-3">
+                <div class="grid-btn-card locked opacity-50">
+                    <i class="bi bi-lock-fill lock-icon"></i>
+                    <div class="mini-icon bg-primary bg-opacity-10">
+                        <i class="bi bi-robot text-primary"></i>
+                    </div>
+                    <span class="grid-text">AI Chat</span>
+                </div>
+            </div>
+
+            <div class="col-3">
+                <div class="grid-btn-card locked opacity-50">
+                    <i class="bi bi-lock-fill lock-icon"></i>
+                    <div class="mini-icon bg-success bg-opacity-10">
+                        <i class="bi bi-trophy text-success"></i>
+                    </div>
+                    <span class="grid-text">Reyting</span>
+                </div>
+            </div>
+
+            <div class="col-3">
+                <div class="grid-btn-card locked opacity-50">
+                    <i class="bi bi-lock-fill lock-icon"></i>
+                    <div class="mini-icon bg-light">
+                        <i class="bi bi-question-circle text-muted"></i>
+                    </div>
+                    <span class="grid-text">Yordam</span>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="text-center mt-4 mb-5">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link text-danger text-decoration-none fw-bold" style="font-size: 0.9rem;">
+                    <i class="bi bi-box-arrow-left me-2"></i>Tizimdan chiqish
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ----------------------------------------------------
+       1. AVATAR & ASOSIY TUGMALAR (KATTA)
+       ---------------------------------------------------- */
+    .profile-avatar-box {
+        width: 100px; height: 100px;
+        border: 4px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .profile-avatar-icon { font-size: 3.5rem; }
+
+    /* Asosiy menyu ikonkalari (Yangi so'z, Lug'atim) */
+    .icon-box {
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    /* ----------------------------------------------------
+       2. GRID TUGMALAR (4 TASI BIR QATORDA) - MAXSUS CSS
+       Base.html dagi .sakura-card dan MUSTAQIL
+       ---------------------------------------------------- */
+    .grid-btn-card {
+      background: white;
+        border-radius: 18px;
+        width: 100%; /* <--- MANA SHU QATORNI QO'SHING */
+        height: 100px; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+        position: relative;
+        transition: transform 0.1s;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    /* Kichik Ikonka aylanasi (PC) */
+    .mini-icon {
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 8px;
+        font-size: 1.3rem;
+    }
+
+    .grid-text {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: #333;
+    }
+
+    .lock-icon {
+        position: absolute;
+        top: 6px; right: 8px;
+        font-size: 0.7rem;
+        color: #adb5bd;
+    }
+
+    /* ----------------------------------------------------
+       3. MOBIL MOSLASHUV (570px dan kichik)
+       Bu yerda base.html ga bo'ysunmaymiz, o'z qoidamiz bor
+       ---------------------------------------------------- */
+    @media (max-width: 570px) {
+        /* Grid tugmalarini ixchamlashtiramiz */
+        .grid-btn-card {
+            height: 80px !important; /* Balandlikni kamaytiramiz */
+            border-radius: 14px !important;
+        }
+        
+        .mini-icon {
+            width: 35px !important;  /* Ikonka fonini kichraytiramiz */
+            height: 35px !important;
+            font-size: 1rem !important; /* Ikonkani o'zini kichraytiramiz */
+            margin-bottom: 4px !important;
+        }
+
+        .grid-text {
+            font-size: 0.65rem !important; /* Matnni kichraytiramiz */
+        }
+
+        .lock-icon {
+            font-size: 0.6rem !important;
+            top: 4px !important; right: 5px !important;
+        }
+
+        /* Avatar sal kichrayadi */
+        .profile-avatar-box { width: 80px; height: 80px; }
+        .profile-avatar-icon { font-size: 2.5rem; }
+    }
+
+    /* ----------------------------------------------------
+       4. DARK MODE (MUSTAQIL)
+       ---------------------------------------------------- */
+    body.dark-mode .grid-btn-card {
+        background-color: #1e1e1e !important;
+        border: 1px solid #333;
+    }
+    body.dark-mode .grid-text { color: #f8f9fa !important; }
+    body.dark-mode .bg-light { background-color: rgba(255,255,255,0.05) !important; }
+    
+    /* Active effekt */
+    .btn:active .grid-btn-card { transform: scale(0.95); }
+
+</style>
+{% endblock %}

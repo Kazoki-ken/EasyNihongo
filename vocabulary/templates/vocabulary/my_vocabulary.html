@@ -1,0 +1,144 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    /* PC holati */
+    .my-vocab-container {
+        padding-top: 90px;
+        padding-bottom: 3rem;
+    }
+    .japan-word { font-size: 1.5rem; }
+    .section-title {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #6c757d;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    /* TELEFON holati */
+    @media (max-width: 576px) {
+        .my-vocab-container { padding-top: 20px !important; }
+        .japan-word { font-size: 1.2rem !important; }
+        .sakura-card { padding: 15px !important; }
+        h4 { font-size: 1.3rem !important; }
+    }
+</style>
+
+<div class="container my-vocab-container">
+   <br>
+ <div class="mb-2">
+        <a href="{% url 'profile' %}" class="text-decoration-none text-muted d-inline-block">
+            <i class="bi bi-arrow-left"></i> Orqaga
+        </a>
+    </div>
+    <div class="d-flex align-items-center justify-content-between mb-2">
+       <h8 class="fw-bold m-0 text-dark">🎒 Mening Lug'atim</h8> 
+        
+        <a href="{% url 'add_word' %}" class="btn btn-primary rounded-pill px-3 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> So'z qo'shish
+        </a>
+    </div>
+
+    {% if user_words %}
+        <div class="section-title">Men qo'shgan so'zlar</div>
+        <div class="row g-3">
+            {% for word in user_words %}
+            <div class="col-12">
+                <div class="sakura-card p-3 bg-white shadow-sm rounded-4 border-0 border-start border-4 border-primary position-relative">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center mb-1">
+                            <h5 class="fw-bold text-dark mb-0 me-2 japan-word">{{ word.japanese_word }}</h5>
+                            <i class="bi bi-volume-up-fill text-secondary" style="cursor: pointer;" onclick="speak('{{ word.japanese_word|escapejs }}')"></i>
+                        </div>
+                        
+                        {% if word.hiragana %}
+                        <p class="text-muted small mb-1 fst-italic">({{ word.hiragana }})</p>
+                        {% endif %}
+
+                        <p class="mb-2 text-dark small"><strong>Ma'nosi:</strong> {{ word.meaning }}</p>
+
+                        <div class="border-top pt-2 d-flex justify-content-end">
+                            <a href="{% url 'delete_word' word.id %}" class="text-danger text-decoration-none" onclick="return confirm('Bu so\'zni o\'chirmoqchimisiz?')">
+                                <i class="bi bi-trash3-fill"></i> O'chirish
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
+    {% if saved_words %}
+        <div class="section-title">Saqlangan so'zlar</div>
+        <div class="row g-3">
+            {% for word in saved_words %}
+            <div class="col-12" id="saved-card-{{ word.id }}">
+                <div class="sakura-card p-3 bg-white shadow-sm rounded-4 border-0 border-start border-4 border-danger position-relative">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center mb-1">
+                            <h5 class="fw-bold text-dark mb-0 me-2 japan-word">{{ word.japanese_word }}</h5>
+                            <i class="bi bi-volume-up-fill text-secondary" style="cursor: pointer;" onclick="speak('{{ word.japanese_word|escapejs }}')"></i>
+                        </div>
+
+                        {% if word.hiragana %}
+                        <p class="text-muted small mb-1 fst-italic">({{ word.hiragana }})</p>
+                        {% endif %}
+
+                        <p class="mb-2 text-dark small"><strong>Ma'nosi:</strong> {{ word.meaning }}</p>
+
+                        <div class="border-top pt-2 d-flex justify-content-between align-items-center">
+                            <button class="btn p-0 text-decoration-none d-flex align-items-center save-btn" 
+                                    data-word-id="{{ word.id }}" 
+                                    style="border: none; background: none;">
+                                <i class="bi bi-heart-fill text-danger fs-5 me-2 heart-icon-{{ word.id }}"></i>
+                                <span class="small text-muted save-text-{{ word.id }}">Saqlangan</span>
+                            </button>
+                            <small class="text-muted" style="font-size: 0.7rem;">{{ word.topic|default:"Darslikdan" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if not user_words and not saved_words %}
+        <div class="text-center py-5 mt-5">
+            <i class="bi bi-folder2-open text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3">Hozircha lug'atingiz bo'sh.</p>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    document.querySelectorAll('.save-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const wordId = this.getAttribute('data-word-id');
+            const icon = document.querySelector(`.heart-icon-${wordId}`);
+            const text = document.querySelector(`.save-text-${wordId}`);
+            
+            fetch(`/toggle_save/${wordId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.saved) {
+                        icon.classList.remove('bi-heart', 'text-secondary');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                        text.textContent = "Saqlangan";
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart', 'text-secondary');
+                        text.textContent = "Saqlash";
+                    }
+                });
+        });
+    });
+</script>
+
+{% endblock %}

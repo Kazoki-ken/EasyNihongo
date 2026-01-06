@@ -1,0 +1,231 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    /* 1. PROGRESS BAR */
+    .progress-container {
+        height: 6px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        width: 100px;
+    }
+    .progress-fill {
+        height: 100%;
+        background-color: #0d6efd;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+
+    /* 2. SAVOL KARTOCHKASI */
+    .question-card {
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        padding: 40px 20px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    /* 3. JAVOB TUGMALARI */
+    .answer-btn {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        padding: 18px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #495057;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        position: relative;
+        overflow: hidden;
+    }
+    .answer-btn:active {
+        transform: scale(0.97);
+    }
+
+    /* TO'G'RI/XATO RANGLARI */
+    .correct-answer {
+        background-color: #d1e7dd !important;
+        border-color: #198754 !important;
+        color: #0f5132 !important;
+        box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.2) !important;
+    }
+    .wrong-answer {
+        background-color: #f8d7da !important;
+        border-color: #dc3545 !important;
+        color: #842029 !important;
+        opacity: 1 !important;
+    }
+    .blur-mode {
+        opacity: 0.5;
+        filter: blur(2px);
+        pointer-events: none;
+        transform: scale(0.95);
+    }
+
+    /* Header qismi */
+    .game-header {
+        background: white;
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+
+    /* --- YANGI QO'SHILGAN STYLES --- */
+
+    /* 1. X tugmasini markazlash uchun */
+    .close-btn-custom {
+        width: 40px; 
+        height: 40px;
+        display: flex;             /* Markazlash siri */
+        align-items: center;       /* Vertikal markaz */
+        justify-content: center;   /* Gorizontal markaz */
+        padding: 0;                /* Ortiqcha joyni yo'qotish */
+    }
+
+    /* 2. Hiraganani yashirish (VJR-VJR effekt) */
+    .secret-blur {
+        filter: blur(8px);       /* Xira qilish */
+        cursor: pointer;
+        transition: all 0.3s ease;
+        user-select: none;       /* Nusxalab ololmasligi uchun */
+        background: #f8f9fa;     /* Orqasiga fon beramiz */
+        padding: 2px 10px;
+        border-radius: 8px;
+    }
+    /* Bossaganda ochiladi */
+    .secret-blur:active, .secret-blur.revealed {
+        filter: blur(0);
+        background: transparent;
+    }
+</style>
+
+<div class="game-header sticky-top d-flex justify-content-between align-items-center">
+    
+    <button type="button" class="btn btn-light rounded-circle close-btn-custom" data-bs-toggle="modal" data-bs-target="#exitModal">
+        <i class="bi bi-x-lg text-secondary" style="font-size: 1.2rem;"></i>
+    </button>
+
+    <div class="d-flex flex-column align-items-center">
+        {% if stats.limit != 'infinite' %}
+            <div class="progress-container mb-1">
+                <div class="progress-fill" style="width: {% widthratio stats.total_questions stats.limit 100 %}%;"></div>
+            </div>
+            <small class="text-muted fw-bold mt-1" style="font-size: 0.75rem;">{{ stats.total_questions }} / {{ stats.limit }}</small>
+        {% else %}
+            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Cheksiz</span>
+        {% endif %}
+    </div>
+
+    <div class="d-flex gap-2">
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1">
+            <i class="bi bi-check-lg"></i> {{ stats.correct }}
+        </span>
+        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1">
+            <i class="bi bi-x-lg"></i> {{ stats.wrong }}
+        </span>
+    </div>
+</div>
+
+<div class="container pb-5" style="max-width: 600px;">
+    
+    <div class="question-card text-center animate-fade-in">
+        <div class="mb-2">
+            <span class="text-muted text-uppercase small fw-bold tracking-wide">Tarjimani toping</span>
+        </div>
+        <h1 class="display-3 fw-bold text-dark mb-2" style="font-family: 'Nunito', sans-serif;">
+            {{ question.japanese_word }}
+        </h1>
+        
+        <div class="d-inline-block" onclick="this.querySelector('.secret-blur').classList.add('revealed')">
+            <p class="text-primary fs-4 fst-italic mb-0 secret-blur" title="Ko'rish uchun bosing">
+                ({{ question.hiragana }})
+            </p>
+        </div>
+        <p class="text-muted small mt-2">(Ko'rish uchun ustiga bosing)</p>
+
+    </div>
+
+    <div class="d-grid gap-3">
+        {% for variant in variants %}
+        <button onclick="handleAnswer(this, '{{ variant.id }}', '{{ question.id }}')" 
+                class="btn w-100 answer-btn text-start d-flex justify-content-between align-items-center"
+                id="btn-{{ variant.id }}">
+            <span>{{ variant.meaning }}</span>
+            <i class="bi bi-chevron-right text-muted small opacity-50 icon-indicator"></i>
+        </button>
+        {% endfor %}
+    </div>
+
+</div>
+
+<div class="modal fade" id="exitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 rounded-4 shadow-lg p-3 text-center">
+            <div class="mb-3 mt-2">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10" 
+                      style="width: 80px; height: 80px;">
+                    <i class="bi bi-pause-fill text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold">Chiqib ketasizmi?</h5>
+            <p class="text-muted small">Natijalaringiz saqlanib qolinadi.</p>
+            <div class="d-grid gap-2 mt-2">
+                <a href="{% url 'test_result' %}" class="btn btn-primary rounded-pill">Ha, tugatish</a>
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Davom etish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isAnswered = false;
+
+    function handleAnswer(btn, variantId, correctId) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        // Javob berilganda Hiraganani ochib yuboramiz (o'rganish uchun)
+        const secretText = document.querySelector('.secret-blur');
+        if(secretText) secretText.classList.add('revealed');
+
+        const isCorrect = (variantId === correctId);
+        const allButtons = document.querySelectorAll('.answer-btn');
+        const correctBtn = document.getElementById('btn-' + correctId);
+
+        if (isCorrect) {
+            btn.classList.add('correct-answer');
+            btn.querySelector('.icon-indicator').className = 'bi bi-check-circle-fill text-success fs-5';
+        } else {
+            btn.classList.add('wrong-answer');
+            btn.querySelector('.icon-indicator').className = 'bi bi-x-circle-fill text-danger fs-5';
+            if (correctBtn) {
+                correctBtn.classList.add('correct-answer');
+                correctBtn.querySelector('.icon-indicator').className = 'bi bi-check-circle-fill text-success fs-5';
+            }
+        }
+
+        allButtons.forEach(b => {
+            b.style.pointerEvents = 'none';
+            if (b !== btn && b !== correctBtn) {
+                b.classList.add('blur-mode');
+            }
+        });
+
+        setTimeout(() => {
+            const nextUrl = `?check_answer=true&is_correct=${isCorrect}`;
+            window.location.href = nextUrl;
+        }, 300);
+    }
+</script>
+
+{% endblock %}

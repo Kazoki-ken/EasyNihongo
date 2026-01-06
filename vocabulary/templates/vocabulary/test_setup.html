@@ -1,0 +1,113 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    /* PC va Telefon uchun joylashuv */
+    .game-setup-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding-top: 90px;
+        padding-bottom: 3rem;
+    }
+    @media (max-width: 576px) {
+        .game-setup-container {
+            padding-top: 30px !important;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+    }
+
+    /* Kartochka-tugma stili */
+    .option-card-btn {
+        transition: all 0.2s ease-in-out;
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-align: left; /* Yozuv chapda tursin */
+    }
+    .option-card-btn:hover, .option-card-btn:focus {
+        transform: translateY(-3px); /* Hover bo'lganda ko'tarilish */
+        border-color: #0d6efd;
+        background-color: #f8f9fa !important;
+    }
+    .icon-box {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+</style>
+
+<div class="container game-setup-container">
+    
+    <div class="text-center mb-5">
+        
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 mb-3" 
+             style="width: 80px; height: 80px;">
+                      <i class="bi bi-patch-question-fill text-primary" style="font-size: 2.5rem;"></i>
+        </div>
+
+        <h2 class="fw-bold text-dark">Nechta savol yechamiz?</h2>
+        <p class="text-muted">O'zingizga mos rejimni tanlang</p>
+    </div>
+
+    <form method="POST" action="{% url 'test_start' %}">
+        {% csrf_token %}
+        
+        <div class="d-grid gap-3">
+            
+            <button type="submit" name="limit" value="10" class="btn card p-3 shadow-sm rounded-4 option-card-btn bg-white">
+                <div class="d-flex align-items-center w-100">
+                    <div class="icon-box bg-info bg-opacity-10 me-3">
+                        <i class="bi bi-1-circle-fill text-info fs-4"></i>
+                        <i class="bi bi-0-circle-fill text-info fs-4" style="margin-left: -5px;"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">10 ta savol</h5>
+                        <small class="text-muted">Tezkor mashq</small>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                </div>
+            </button>
+
+            <button type="submit" name="limit" value="30" class="btn card p-3 shadow-sm rounded-4 option-card-btn bg-white">
+                <div class="d-flex align-items-center w-100">
+                    <div class="icon-box bg-primary bg-opacity-10 me-3">
+                        <i class="bi bi-3-circle-fill text-primary fs-4"></i>
+                        <i class="bi bi-0-circle-fill text-primary fs-4" style="margin-left: -5px;"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">30 ta savol</h5>
+                        <small class="text-muted">O'rtacha qiyinlik</small>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                </div>
+            </button>
+
+            <button type="submit" name="limit" value="infinite" class="btn card p-3 shadow-sm rounded-4 option-card-btn bg-white">
+                <div class="d-flex align-items-center w-100">
+                    <div class="icon-box bg-danger bg-opacity-10 me-3">
+                        <i class="bi bi-infinity text-danger fs-3"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">Cheksiz rejim</h5>
+                        <small class="text-muted">Xato qilguncha davom etadi</small>
+                    </div>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                </div>
+            </button>
+
+        </div>
+    </form>
+
+    <div class="text-center mt-5">
+        <a href="{% url 'games_menu' %}" class="text-decoration-none text-muted d-inline-flex align-items-center py-2 px-4 rounded-pill bg-light">
+            <i class="bi bi-arrow-left me-2"></i> O'yinlardan chiqish
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

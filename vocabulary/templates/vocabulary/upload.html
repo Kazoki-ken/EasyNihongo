@@ -1,0 +1,37 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="sakura-card p-4">
+                <h3 class="text-center fw-bold mb-4">📥 Exceldan So'z Yuklash</h3>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="alert alert-info small">
+                    <strong>Excel fayl shakli shunday bo'lishi shart:</strong><br>
+                    1-qator: <code>Japanese</code>, <code>Hiragana</code>, <code>Meaning</code>, <code>Topics</code>
+                </div>
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Excel faylni tanlang (.xlsx)</label>
+                        <input type="file" name="excel_file" class="form-control" required accept=".xlsx">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Yuklash</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'profile' %}" class="text-decoration-none">Ortga qaytish</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

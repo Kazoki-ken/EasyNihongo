@@ -1,0 +1,132 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    /* 1. PC uchun asl holat */
+    .dashboard-container {
+        padding-top: 90px;
+        padding-bottom: 3rem;
+    }
+    .japan-word {
+        font-size: 1.5rem; /* PC da katta */
+    }
+
+    /* 2. TELEFON UCHUN O'ZGARISHLAR */
+    @media (max-width: 576px) {
+        .dashboard-container {
+            padding-top: 20px !important; /* Tepasidagi bo'sh joyni yo'qotdik */
+        }
+        .japan-word {
+            font-size: 1.2rem !important; /* So'zlarni kichraytirdik */
+        }
+        .sakura-card {
+            padding: 15px !important; /* Kartochka ichini ixchamladik */
+        }
+        h4 {
+            font-size: 1.2rem !important; /* "Darslik Lug'ati" so'zini kichraytirdik */
+            margin-bottom: 10px !important;
+        }
+        /* Qidiruv qutisini ixchamlash */
+        .form-control {
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+            font-size: 0.9rem !important;
+        }
+    }
+</style>
+
+<div class="container dashboard-container">
+    
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="fw-bold m-0 text-dark">📚 Darslik Lug'ati</h4>
+    </div>
+
+    <form method="get" action="" class="mb-4">
+        <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border">
+            <input type="text" name="q" class="form-control border-0 ps-4" 
+                   placeholder="So'z qidirish..." 
+                   value="{{ request.GET.q|default:'' }}">
+            <button class="btn btn-white border-0 pe-4" type="submit">
+                <i class="bi bi-search text-primary"></i>
+            </button>
+        </div>
+    </form>
+
+    <div class="row g-3">
+        {% for word in words %}
+        <div class="col-12">
+            <div class="sakura-card p-3 bg-white shadow-sm rounded-4 border-0 position-relative">
+                
+                <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center mb-1">
+                        <h5 class="fw-bold text-primary mb-0 me-2 japan-word">
+                            {{ word.japanese_word }}
+                        </h5>
+                        
+                        <i class="bi bi-volume-up-fill text-secondary" 
+                           style="cursor: pointer; font-size: 1.2rem;" 
+                           onclick="speak('{{ word.japanese_word|escapejs }}')">
+                        </i>
+                    </div>
+
+                    {% if word.hiragana %}
+                    <p class="text-muted small mb-1 fst-italic">({{ word.hiragana }})</p>
+                    {% endif %}
+
+                    <p class="mb-3 text-dark small"><strong>Ma'nosi:</strong> {{ word.meaning }}</p>
+
+                    <div class="border-top pt-2 d-flex justify-content-between align-items-center">
+                        <button class="btn p-0 text-decoration-none d-flex align-items-center save-btn" 
+                                data-word-id="{{ word.id }}" 
+                                style="border: none; background: none;">
+                            
+                            <i class="bi {% if request.user in word.saves.all %}bi-heart-fill text-danger{% else %}bi-heart text-secondary{% endif %} fs-5 me-2 heart-icon-{{ word.id }}"></i>
+                            
+                            <span class="small text-muted save-text-{{ word.id }}">
+                                {% if request.user in word.saves.all %}Saqlangan{% else %}Saqlash{% endif %}
+                            </span>
+                        </button>
+
+                        <small class="text-muted" style="font-size: 0.7rem;">
+                            {{ word.created_at|date:"d.m.y" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <p class="text-muted mt-2">So'zlar topilmadi.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.save-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const wordId = this.getAttribute('data-word-id');
+            const icon = document.querySelector(`.heart-icon-${wordId}`);
+            const text = document.querySelector(`.save-text-${wordId}`);
+
+            // Serverga so'rov yuborish
+            fetch(`/toggle_save/${wordId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.saved) {
+                        icon.classList.remove('bi-heart', 'text-secondary');
+                        icon.classList.add('bi-heart-fill', 'text-danger');
+                        text.textContent = "Saqlangan";
+                    } else {
+                        icon.classList.remove('bi-heart-fill', 'text-danger');
+                        icon.classList.add('bi-heart', 'text-secondary');
+                        text.textContent = "Saqlash";
+                    }
+                })
+                .catch(error => console.error('Xatolik:', error));
+        });
+    });
+</script>
+
+{% endblock %}

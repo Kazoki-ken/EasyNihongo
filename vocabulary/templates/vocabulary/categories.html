@@ -1,0 +1,46 @@
+{% extends 'vocabulary/base.html' %}
+{% block content %}
+<div class="container text-center" style="padding-top: 40px;">
+    <div class="mb-4">
+        <h3 class="fw-bold text-dark">📚 O'quv Bo'limlari</h3>
+        <p class="text-muted small">O'rganmoqchi bo'lgan darsingizni tanlang</p>
+    </div>
+
+    <div class="row g-3 px-2 pb-5">
+        
+        <div class="col-12">
+            <a href="{% url 'dashboard' %}" class="text-decoration-none">
+                <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center bg-primary text-white border-0">
+                    
+                    <div class="bg-white bg-opacity-25 rounded-circle mb-3 d-flex align-items-center justify-content-center" 
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-collection-fill text-white" style="font-size: 1.5rem;"></i>
+                    </div>
+                    
+                    <span class="fw-bold text-white text-truncate w-100">Hamma so'zlar</span>
+                </div>
+            </a>
+        </div>
+        {% for topic in topics %}
+       <div class="col-6">
+            <a href="{% url 'topic_words' topic %}" class="text-decoration-none">
+                <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+                    
+                    <div class="bg-light rounded-circle mb-3 d-flex align-items-center justify-content-center"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-journal-bookmark text-primary" style="font-size: 1.5rem;"></i>
+                    </div>
+                    
+                    <span class="fw-bold text-dark text-truncate w-100">{{ topic }}</span>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 py-5">
+            <p class="text-muted">Hozircha bo'limlar yo'q.</p>
+        </div>
+        {% endfor %}
+        
+    </div>
+</div>
+{% endblock %}

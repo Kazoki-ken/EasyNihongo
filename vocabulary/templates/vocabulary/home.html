@@ -1,0 +1,124 @@
+{% extends 'vocabulary/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4 text-center">
+
+    <h1 class="fw-bold mb-2" style="font-family: 'Nunito', sans-serif;">日進月歩</h1>
+    <p class="text-muted small mb-5">Kun hikmati: "Har kuni o'sish"</p>
+
+    <div class="tree-wrapper mb-5 position-relative">
+        
+        {% if user.profile.tree_state == 1 %}
+            <div class="animate-breathe">
+                <img src="{% static 'vocabulary/images/sakura_tree.png' %}" 
+                     alt="Sakura Tree" class="img-fluid tree-normal" style="max-height: 250px;">
+            </div>
+            <div class="mt-3">
+                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">
+                    <i class="bi bi-flower1 me-1"></i> Daraxtingiz gullamoqda!
+                </span>
+            </div>
+
+        {% elif user.profile.tree_state == 2 %}
+            <div class="animate-shake">
+                <img src="{% static 'vocabulary/images/sakura_tree.png' %}" 
+                     alt="Withered Tree" class="img-fluid tree-withered" style="max-height: 250px;">
+            </div>
+            <div class="mt-3">
+                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-bold">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Barglar to'kilmoqda...
+                </span>
+                <p class="text-muted small mt-2">Daraxtni saqlab qolish uchun bugun 9 ball to'plang!</p>
+            </div>
+
+        {% else %}
+            <div>
+                <img src="{% static 'vocabulary/images/sakura_tree.png' %}" 
+                     alt="Dead Tree" class="img-fluid tree-dead" style="max-height: 250px;">
+            </div>
+            <div class="mt-3">
+                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold">
+                    <i class="bi bi-x-circle me-1"></i> Daraxt quridi
+                </span>
+                <p class="text-muted small mt-2">Uni tiriltirish uchun bugungi barcha vazifalarni bajaring!</p>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <div class="sakura-card p-4 mx-auto shadow-sm" style="max-width: 400px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-dark">Kunlik Maqsad</span>
+            
+            {% if user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count >= 9 %}
+                <span class="badge bg-success rounded-pill">Bajarildi ✅</span>
+            {% else %}
+                <span class="badge bg-primary rounded-pill">
+                    {{ user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count }} / 9 Ball
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="progress mb-4" style="height: 10px; border-radius: 5px;">
+            <div class="progress-bar bg-sakura" role="progressbar" 
+                 style="width: {% widthratio user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count 9 100 %}%;" 
+                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
+
+        <div class="row text-center">
+            <div class="col-6 border-end">
+                <h3 class="fw-bold mb-0 text-dark counter-anim">{{ user.profile.streak }}</h3>
+                <small class="text-muted fw-bold" style="font-size: 0.7rem;">🔥 KUN</small>
+            </div>
+            <div class="col-6">
+                <h3 class="fw-bold mb-0 text-dark counter-anim">{{ total_words }}</h3> 
+                <small class="text-muted fw-bold" style="font-size: 0.7rem;">❤️ SO'ZLAR</small>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* 1. SOG'LOM DARAXT (Nafas olish animatsiyasi) */
+    .tree-normal {
+        filter: brightness(1.05) contrast(1.05);
+    }
+    @keyframes breathe {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    .animate-breathe {
+        animation: breathe 3s infinite ease-in-out;
+    }
+
+    /* 2. KASAL DARAXT (Sarg'aygan va xira) */
+    .tree-withered {
+        filter: sepia(0.8) hue-rotate(-30deg) saturate(1.5) opacity(0.8);
+        transition: all 0.5s ease;
+    }
+    @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-2px) rotate(-1deg); }
+        75% { transform: translateX(2px) rotate(1deg); }
+        100% { transform: translateX(0); }
+    }
+    .animate-shake {
+        animation: shake 4s infinite; /* Shamolda qaltirash */
+    }
+
+    /* 3. QURIGAN DARAXT (Oq-qora va juda xira) */
+    .tree-dead {
+        filter: grayscale(100%) contrast(1.2) opacity(0.6);
+        transform: scale(0.95); /* Kichrayib qolgan */
+    }
+
+    /* Progress bar rangi (Sakura pushti) */
+    .bg-sakura {
+        background-color: #ff8fab !important;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'vocabulary/base.html' %}
+{% block content %}
+<div class="container text-center" style="padding-top: 50px; padding-bottom: 80px;">
+    
+    {% if error %}
+        <div class="alert alert-warning mt-5">{{ error }}</div>
+        <a href="{% url 'add_word' %}" class="btn btn-primary mt-3">So'z qo'shish</a>
+    {% else %}
+
+        <div class="mb-5 animate-fade-in">
+            <span class="badge bg-light text-primary mb-3 px-3 py-2 rounded-pill shadow-sm">Test O'yini</span>
+            <h1 class="display-1 fw-bold text-dark mb-2" style="font-family: 'Nunito', sans-serif;">
+                {{ question.japanese_word }}
+            </h1>
+            <p class="text-muted fs-4">({{ question.hiragana }})</p>
+        </div>
+
+        <div class="row g-3 px-2">
+            {% for variant in variants %}
+            <div class="col-12 col-md-6">
+                <a href="?next_question=true" 
+                   class="btn btn-white w-100 py-4 shadow-sm fw-bold fs-5 text-dark variant-btn"
+                   onclick="checkAnswer(this, '{{ variant.id }}', '{{ question.id }}')">
+                    {{ variant.meaning }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+
+    {% endif %}
+</div>
+
+<style>
+    .variant-btn {
+        background: white;
+        border-radius: 20px;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+    }
+    .variant-btn:active {
+        transform: scale(0.95);
+        background-color: #f8f9fa;
+    }
+    /* Animatsiyalar JS orqali qo'shiladi keyingi bosqichda */
+</style>
+
+<script>
+    function checkAnswer(btn, variantId, correctId) {
+        // Oddiy tekshirish vizualizatsiyasi
+        if (variantId === correctId) {
+            btn.style.backgroundColor = "#d1e7dd"; // Yashil
+            btn.style.borderColor = "#198754";
+            btn.innerHTML += " ✅";
+        } else {
+            btn.style.backgroundColor = "#f8d7da"; // Qizil
+            btn.style.borderColor = "#dc3545";
+            btn.innerHTML += " ❌";
+        }
+    }
+</script>
+{% endblock %}

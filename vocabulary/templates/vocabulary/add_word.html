@@ -1,0 +1,37 @@
+{% extends 'vocabulary/base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="sakura-card p-4 shadow-sm border-0 mx-auto" style="max-width: 500px;">
+        <h4 class="fw-bold text-center mb-4">✨ Yangi so'z qo'shish</h4>
+        
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0"><i class="bi bi-pencil-square"></i></span>
+                    {{ field }}
+                </div>
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 mt-4 fw-bold shadow">
+                Lug'atga qo'shish
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Inputlarni yumshoq qilish */
+    input, textarea, select {
+        border: none !important;
+        background-color: #f8f9fa !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+    }
+    input:focus {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1) !important;
+    }
+</style>
+{% endblock %}

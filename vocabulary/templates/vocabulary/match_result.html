@@ -1,0 +1,84 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+<div class="container text-center py-5" style="padding-top: 100px;">
+    
+    <div class="mb-4 animate-pop">
+        <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 rounded-circle" style="width: 100px; height: 100px;">
+            <i class="bi bi-trophy-fill text-success" style="font-size: 3.5rem;"></i>
+        </div>
+    </div>
+    
+    <h2 class="fw-bold mb-4 text-dark">O'yin tugadi!</h2>
+
+    {% if count < 3 or saved %}
+        <div class="card p-3 mb-4 mx-auto shadow-sm border-0 rounded-4" 
+             style="max-width: 350px; background: {% if saved %}#d1e7dd{% else %}#fff3cd{% endif %};">
+            
+            <div class="d-flex align-items-center justify-content-center">
+                {% if saved %}
+                    <i class="bi bi-check-circle-fill text-success fs-3 me-3"></i>
+                    <div class="text-start">
+                        <h6 class="fw-bold text-success mb-0">Tabriklaymiz!</h6>
+                        <small class="text-success text-opacity-75">+1 Ball daraxtga qo'shildi</small>
+                    </div>
+                {% else %}
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-3 me-3"></i>
+                    <div class="text-start">
+                        <h6 class="fw-bold text-warning-emphasis mb-0">Limit tugagan</h6>
+                        <small class="text-warning-emphasis text-opacity-75">{{ message }}</small>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if saved %}
+            <div class="mt-2 border-top border-success border-opacity-25 pt-2">
+                <span class="badge bg-success bg-opacity-75 rounded-pill">Bugungi limit: {{ count }} / 3</span>
+            </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="card p-4 mb-4 mx-auto border-0 shadow-sm rounded-5" style="max-width: 350px;">
+        
+        <h6 class="text-muted text-uppercase fw-bold small mb-3">Sizning natijangiz</h6>
+        
+        <div class="row align-items-center justify-content-center">
+            <div class="col-12">
+                <h1 class="text-primary fw-bold mb-0 display-4">
+                   <i class="bi bi-check2-all"></i> Bajarildi
+                </h1>
+                <p class="text-muted mt-2">Barcha juftliklar topildi!</p>
+            </div>
+        </div>
+        
+    </div>
+    
+    <div class="d-grid gap-3 col-md-6 mx-auto px-4" style="max-width: 400px;">
+        <a href="{% url 'match_setup' %}" class="btn btn-primary py-3 rounded-pill fw-bold shadow-sm btn-hover-effect">
+            <i class="bi bi-arrow-repeat me-2"></i> Yana o'ynash
+        </a>
+        <a href="{% url 'games_menu' %}" class="btn btn-light py-3 rounded-pill fw-bold text-muted shadow-sm btn-hover-effect">
+            <i class="bi bi-house-door me-2"></i> O'yinlar menyusi
+        </a>
+    </div>
+
+</div>
+
+<style>
+    @keyframes pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        70% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+        animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-hover-effect {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-hover-effect:active {
+        transform: scale(0.96);
+    }
+</style>
+{% endblock %}

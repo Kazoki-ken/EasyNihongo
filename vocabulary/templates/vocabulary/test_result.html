@@ -1,0 +1,94 @@
+{% extends 'vocabulary/base.html' %}
+{% block content %}
+<div class="container text-center py-5">
+    
+    <div class="mb-3 animate-pop">
+        <i class="bi bi-controller text-secondary" style="font-size: 4rem;"></i>
+    </div>
+    
+    <h2 class="fw-bold mb-4 text-dark">O'yin tugadi</h2>
+
+    {% if user.profile.daily_test_count < 3 or stats.saved %}
+        
+        <div class="sakura-card p-3 mb-4 mx-auto shadow-sm" style="max-width: 350px; background: {% if stats.saved %}#d1e7dd{% else %}#fff3cd{% endif %}; border: none;">
+            <div class="d-flex align-items-center justify-content-center">
+                {% if stats.saved %}
+                    <i class="bi bi-check-circle-fill text-success fs-3 me-3"></i>
+                    <div class="text-start">
+                        <h6 class="fw-bold text-success mb-0">Tabriklaymiz!</h6>
+                        <small class="text-muted text-success">+1 Ball daraxtga qo'shildi</small>
+                    </div>
+                {% else %}
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-3 me-3"></i>
+                    <div class="text-start">
+                        <h6 class="fw-bold text-warning-emphasis mb-0">Ball berilmadi</h6>
+                        <small class="text-warning-emphasis" style="font-size: 0.75rem; line-height: 1.1;">{{ message }}</small>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if stats.saved %}
+            <div class="mt-2 border-top border-success border-opacity-25 pt-2">
+                <span class="badge bg-success bg-opacity-75 rounded-pill">Bugungi limit: {{ user.profile.daily_test_count }} / 3</span>
+            </div>
+            {% endif %}
+        </div>
+
+    {% endif %}
+
+    <div class="sakura-card p-4 mb-4 mx-auto bg-white" style="max-width: 350px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        
+        <div class="row align-items-center">
+            <div class="col-6 border-end">
+                <h2 class="text-success fw-bold mb-0 display-4">{{ stats.correct }}</h2>
+                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">TO'G'RI</small>
+            </div>
+            <div class="col-6">
+                <h2 class="text-danger fw-bold mb-0 display-4">{{ stats.wrong }}</h2>
+                <small class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">XATO</small>
+            </div>
+        </div>
+        
+        <hr class="my-4 opacity-10">
+        
+        <div class="text-muted">
+            Jami savollar: <span class="fw-bold text-dark">{{ stats.total_questions }}</span>
+        </div>
+        <div class="mt-2">
+             <span class="badge {% if accuracy >= 60 %}bg-success{% else %}bg-secondary{% endif %} bg-opacity-10 text-dark border">
+                 Aniqlik: {{ accuracy }}%
+             </span>
+        </div>
+    </div>
+    
+    <div class="d-grid gap-3 col-md-6 mx-auto px-4">
+        <a href="{% url 'test_setup' %}" class="btn btn-primary py-3 rounded-pill fw-bold shadow-sm btn-hover-effect">
+            <i class="bi bi-arrow-repeat me-2"></i> Yana o'ynash
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-light py-3 rounded-pill fw-bold text-muted shadow-sm btn-hover-effect">
+            <i class="bi bi-house-door me-2"></i> Bosh sahifaga qaytish
+        </a>
+    </div>
+
+</div>
+
+<style>
+    /* Pop Animatsiyasi */
+    @keyframes pop {
+        0% { transform: scale(0.5); opacity: 0; }
+        70% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+        animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Tugma effekti */
+    .btn-hover-effect {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-hover-effect:active {
+        transform: scale(0.96);
+    }
+</style>
+{% endblock %}

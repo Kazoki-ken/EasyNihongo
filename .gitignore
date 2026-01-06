@@ -1,0 +1,15 @@
+# Django narsalari
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+
+# Virtual muhit (Buni yuklash mumkin emas!)
+venv/
+env/
+.env
+
+# Operatsion tizim fayllari
+.DS_Store

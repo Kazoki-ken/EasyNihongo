@@ -1,0 +1,224 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* HEADER */
+    .game-header {
+        background: white;
+        border-bottom-left-radius: 25px;
+        border-bottom-right-radius: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        padding: 0 20px;
+        height: 70px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    /* X TUGMASI (Markazlashgan) */
+    .close-btn-custom {
+        width: 40px; 
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #f8f9fa;
+        color: #6c757d;
+        border: none;
+        padding: 0 !important;
+        transition: all 0.2s;
+    }
+    .close-btn-custom:active {
+        background-color: #e9ecef;
+        transform: scale(0.95);
+    }
+    .close-btn-custom i {
+        font-size: 1.3rem;
+        line-height: 1;
+    }
+
+    /* SAVOL KARTASI */
+    .question-card {
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        padding: 40px 20px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(0,0,0,0.02);
+        text-align: center;
+    }
+
+    /* INPUT MAYDONI */
+    .custom-input-group {
+        background: white;
+        border-radius: 20px;
+        padding: 5px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        border: 1px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .custom-input-group:focus-within {
+        border-color: #198754;
+        box-shadow: 0 4px 20px rgba(25, 135, 84, 0.15);
+    }
+    
+    .custom-input {
+        border: none;
+        background: transparent;
+        padding: 15px;
+        font-size: 1.2rem;
+        width: 100%;
+        outline: none;
+        color: #495057;
+        font-weight: 600;
+    }
+
+    .submit-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 15px;
+        border: none;
+        background-color: #198754;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s;
+        margin-left: 5px;
+    }
+    .submit-btn:active {
+        transform: scale(0.9);
+    }
+
+    /* Progress bar */
+    .progress-pill {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #6c757d;
+    }
+</style>
+
+<div class="game-header">
+    <button type="button" class="close-btn-custom shadow-sm" data-bs-toggle="modal" data-bs-target="#exitModal">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    
+    <div class="progress-pill">
+        {% if limit != 'infinite' %}
+            {{ stats.total_questions|add:"1" }} / {{ limit }}
+        {% else %}
+            <i class="bi bi-infinity fs-5" style="vertical-align: middle;"></i>
+        {% endif %}
+    </div>
+
+    <div class="d-flex gap-2">
+        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1">
+            <i class="bi bi-check-lg"></i> {{ stats.correct }}
+        </span>
+        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1">
+            <i class="bi bi-x-lg"></i> {{ stats.wrong }}
+        </span>
+    </div>
+</div>
+
+<div class="container py-4 flex-grow-1 d-flex flex-column justify-content-center" style="max-width: 600px;">
+    
+    <div class="question-card animate-fade-in">
+        <div class="mb-3">
+            <span class="text-success text-uppercase small fw-bold tracking-wide bg-success bg-opacity-10 px-3 py-1 rounded-pill">
+                Tarjimasini yozing
+            </span>
+        </div>
+        
+        <h1 class="display-4 fw-bold text-dark mb-0" style="font-family: 'Nunito', sans-serif;">
+            {{ word.meaning }}
+        </h1>
+    </div>
+
+    <form method="post" autocomplete="off" id="answerForm">
+        
+        {% csrf_token %}
+        
+        <input type="hidden" name="word_id" value="{{ word.id }}">
+
+        <div class="custom-input-group mb-3">
+            <input type="text" 
+                   name="user_answer" 
+                   class="custom-input" 
+                   placeholder="Yaponchasi..." 
+                   required
+                   id="answerInput">
+            
+            <button type="submit" class="submit-btn shadow-sm">
+                <i class="bi bi-send-fill fs-5"></i>
+            </button>
+        </div>
+        
+        <div class="text-center text-muted small opacity-75">
+            Masalan: <strong>Konnichiwa</strong> yoki <strong>こんにちは</strong>
+        </div>
+    </form>
+
+    {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} rounded-4 shadow-sm text-center fw-bold animate-fade-in">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+
+<div class="modal fade" id="exitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 rounded-4 shadow-lg p-3 text-center">
+            <div class="mb-3 mt-2">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10" 
+                     style="width: 80px; height: 80px;">
+                    <i class="bi bi-pause-fill text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold">O'yinni tugatamizmi?</h5>
+            <p class="text-muted small">Progress saqlanmaydi.</p>
+            <div class="d-grid gap-2 mt-2">
+                <a href="{% url 'write_result' %}" class="btn btn-primary rounded-pill">Ha, natijani ko'rsat</a>
+                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Davom etish</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Sahifa ochilganda klaviatura chiqishi uchun fokus
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('answerInput');
+        if(input) {
+            // Biroz kechikish bilan fokus berish (mobil qurilmalar uchun yaxshiroq)
+            setTimeout(() => {
+                input.focus();
+            }, 300);
+        }
+    });
+</script>
+
+{% endblock %}
