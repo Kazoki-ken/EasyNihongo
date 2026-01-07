@@ -13,13 +13,24 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Word, Profile, Topic
+from .models import Word, Profile, Topic, WeeklyStats
 from .forms import UserRegisterForm, WordForm
 
 # =========================================================
 # 1. YORDAMCHI FUNKSIYALAR (HELPERS)
 # DIQQAT: Bularning tepasiga @login_required QO'YMANG!
 # =========================================================
+
+def get_weekly_stats(user):
+    """Joriy hafta uchun statistika obyektini qaytaradi yoki yaratadi"""
+    today = timezone.now().date()
+    start_week = today - timedelta(days=today.weekday()) # Dushanba
+    stats, created = WeeklyStats.objects.get_or_create(
+        user=user,
+        start_date=start_week,
+        defaults={'end_date': start_week + timedelta(days=6)}
+    )
+    return stats
 
 def check_daily_progress(user):
     """
@@ -228,6 +239,12 @@ def add_word(request):
             word = form.save(commit=False)
             word.author = request.user
             word.save()
+
+            # Haftalik statistikaga qo'shish
+            stats = get_weekly_stats(request.user)
+            stats.words_learned += 1
+            stats.save()
+
             return redirect('my_vocabulary')
     else:
         form = WordForm()
@@ -247,6 +264,11 @@ def toggle_save(request, word_id):
     else:
         word.saves.add(request.user)
         saved = True # Hozir saqlandi
+
+        # Haftalik statistikaga qo'shish
+        stats = get_weekly_stats(request.user)
+        stats.words_learned += 1
+        stats.save()
     
     # Biz sahifani yangilamaymiz, faqat natijani yuboramiz
     return JsonResponse({'saved': saved})
@@ -263,7 +285,8 @@ def delete_word(request, word_id):
 
 @login_required
 def profile_view(request):
-    return render(request, 'vocabulary/profile.html')
+    weekly_stats = get_weekly_stats(request.user)
+    return render(request, 'vocabulary/profile.html', {'weekly_stats': weekly_stats})
 
 @login_required
 def leaderboard(request):
@@ -355,6 +378,13 @@ def test_play(request):
             stats['correct'] += 1
         else:
             stats['wrong'] += 1
+
+        # Haftalik statistika (Har bir savol uchun)
+        w_stats = get_weekly_stats(request.user)
+        w_stats.total_questions += 1
+        if is_correct:
+            w_stats.correct_answers += 1
+        w_stats.save()
         
         request.session['test_stats'] = stats
         request.session.modified = True
@@ -486,6 +516,11 @@ def match_play(request):
 
 @login_required
 def match_result(request):
+    # Haftalik statistika: O'yin soni (Match uchun)
+    w_stats = get_weekly_stats(request.user)
+    w_stats.games_played += 1
+    w_stats.save()
+
     profile = request.user.profile
     today = timezone.now().date()
     
@@ -615,6 +650,13 @@ def write_play(request):
             stats['wrong'] += 1
             messages.error(request, f"Xato! To'g'ri javob: {target_word.japanese_word}")
             
+        # Haftalik statistika
+        w_stats = get_weekly_stats(request.user)
+        w_stats.total_questions += 1
+        if is_correct:
+            w_stats.correct_answers += 1
+        w_stats.save()
+
         request.session['write_stats'] = stats
         
         # Limit tekshiruvi (Agar 'infinite' bo'lmasa)
