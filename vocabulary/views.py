@@ -292,6 +292,7 @@ def register_view(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             form.save() # Yangi foydalanuvchini saqlaymiz
+            messages.success(request, "Siz muvaffaqiyatli ro'yxatdan o'tdingiz! Endi kirishingiz mumkin.")
             return redirect('login') # Muvaffaqiyatli bo'lsa, kirish sahifasiga
     else:
         form = UserRegisterForm()
