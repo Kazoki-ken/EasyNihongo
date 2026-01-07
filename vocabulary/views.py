@@ -421,6 +421,14 @@ def test_result(request):
     
     message = ""
     if stats['total_questions'] > 0:
+        # Haftalik statistika: O'yin sonini oshiramiz
+        if not stats.get('saved_stats', False):
+             w_stats = get_weekly_stats(request.user)
+             w_stats.games_played += 1
+             w_stats.save()
+             stats['saved_stats'] = True
+             request.session['test_stats'] = stats
+
         profile = request.user.profile
         # KUN YANGILANGAN BO'LSA NOLLASH
         today = timezone.now().date()
@@ -703,6 +711,11 @@ def write_result(request):
     stats = request.session.get('write_stats', {'correct':0, 'wrong':0, 'total_questions':0})
     limit = request.session.get('write_limit', '5')
     
+    # Haftalik statistika: O'yin sonini oshiramiz
+    w_stats = get_weekly_stats(request.user)
+    w_stats.games_played += 1
+    w_stats.save()
+
     profile = request.user.profile
     
     # 2. KUN YANGILANGAN BO'LSA NOLLASH (Test o'yinidagi kabi)
