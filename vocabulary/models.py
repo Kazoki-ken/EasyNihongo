@@ -52,6 +52,29 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username} profili"
 
+# 2. HAFTALIK STATISTIKA MODELI (Yangi)
+class WeeklyStats(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='weekly_stats')
+    start_date = models.DateField() # Haftaning birinchi kuni (Dushanba)
+    end_date = models.DateField()   # Haftaning oxirgi kuni (Yakshanba)
+
+    words_learned = models.IntegerField(default=0) # Yangi qo'shilgan/saqlangan so'zlar
+    games_played = models.IntegerField(default=0)  # O'ynalgan o'yinlar soni
+    correct_answers = models.IntegerField(default=0) # To'g'ri javoblar
+    total_questions = models.IntegerField(default=0) # Jami savollar (Aniqlikni hisoblash uchun)
+
+    class Meta:
+        unique_together = ('user', 'start_date') # Bir hafta uchun bitta statistika
+
+    @property
+    def accuracy(self):
+        if self.total_questions > 0:
+            return int((self.correct_answers / self.total_questions) * 100)
+        return 0
+
+    def __str__(self):
+        return f"{self.user.username} - {self.start_date} haftasi"
+
 # 3. SIGNALLAR (Profilni avtomatik yaratish)
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
