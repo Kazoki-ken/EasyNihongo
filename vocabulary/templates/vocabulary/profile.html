@@ -25,7 +25,10 @@
                 <div class="row text-center g-2">
                     <div class="col-4">
                         <div class="bg-white bg-opacity-25 rounded-3 p-2 mobile-compact-box">
-                            <div class="h4 fw-bold mb-0 mobile-compact-number">{{ weekly_stats.words_learned }}</div>
+                            <div class="h4 fw-bold mb-0 mobile-compact-number">
+                                {{ weekly_stats.words_learned }}
+                                {% if weekly_stats.words_learned < 0 %} 😢{% endif %}
+                            </div>
                             <small style="font-size: 0.7rem;">Yangi so'z</small>
                         </div>
                     </div>

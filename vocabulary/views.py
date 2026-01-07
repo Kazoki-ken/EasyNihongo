@@ -210,19 +210,41 @@ def topic_words(request, topic_name):
 def save_all_topic_words(request, topic_name):
     words = Word.objects.filter(author__isnull=True, topics__name=topic_name).distinct()
     
-    all_saved = True
-    for word in words:
-        if request.user not in word.saves.all():
-            all_saved = False
-            break
+    # 1. Hamma so'zlar saqlanganmi?
+    # Optimization: exists() bilan tekshiramiz
+    user_saved_ids = request.user.saved_words.values_list('id', flat=True)
+    has_unsaved = words.exclude(id__in=user_saved_ids).exists()
 
-    if not all_saved:
-        for word in words:
+    saved = False
+
+    if has_unsaved:
+        # 2. HAMMASINI SAQLASH (ADD)
+        # Faqat hali saqlanmagan so'zlarni topamiz (takroriy qo'shmaslik uchun)
+        new_words_to_add = words.exclude(id__in=user_saved_ids)
+        count_new = new_words_to_add.count()
+
+        for word in new_words_to_add:
             word.saves.add(request.user)
-        saved = True 
+
+        # Statistikaga qo'shish
+        if count_new > 0:
+            stats = get_weekly_stats(request.user)
+            stats.words_learned += count_new
+            stats.save()
+
+        saved = True
     else:
+        # 3. HAMMASINI O'CHIRISH (REMOVE)
+        count_removed = words.count()
         for word in words:
             word.saves.remove(request.user)
+
+        # Statistikadan ayirish
+        if count_removed > 0:
+            stats = get_weekly_stats(request.user)
+            stats.words_learned -= count_removed
+            stats.save()
+
         saved = False 
 
     return JsonResponse({'saved': saved})
@@ -261,6 +283,11 @@ def toggle_save(request, word_id):
     if request.user in word.saves.all():
         word.saves.remove(request.user)
         saved = False # Hozir o'chirildi
+
+        # Statistikadan ayirish
+        stats = get_weekly_stats(request.user)
+        stats.words_learned -= 1
+        stats.save()
     else:
         word.saves.add(request.user)
         saved = True # Hozir saqlandi
