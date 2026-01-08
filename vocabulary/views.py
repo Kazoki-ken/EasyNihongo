@@ -13,13 +13,41 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Word, Profile, Topic, WeeklyStats
+from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress
 from .forms import UserRegisterForm, WordForm
 
 # =========================================================
 # 1. YORDAMCHI FUNKSIYALAR (HELPERS)
 # DIQQAT: Bularning tepasiga @login_required QO'YMANG!
 # =========================================================
+
+def update_word_progress(user, word, is_correct):
+    """So'zning progressini yangilash (XP va Level)"""
+    progress, created = UserWordProgress.objects.get_or_create(user=user, word=word)
+
+    if is_correct:
+        progress.xp += 1
+        # Level Up logikasi: har 4 xp da 1 level
+        if progress.xp >= 4:
+            progress.level += 1
+            progress.xp = 0
+            # Keyingi takrorlash sanasi (hozircha oddiy mantiq)
+            days_to_add = 3 if progress.level == 2 else 7 if progress.level == 3 else 14
+            progress.next_review_date = timezone.now().date() + timedelta(days=days_to_add)
+    else:
+        # Jarima: -2 xp
+        progress.xp -= 2
+        if progress.xp < 0:
+            if progress.level > 1:
+                progress.level -= 1 # Level tushadi
+                progress.xp = 2 # Oldingi levelning o'rtasiga tushadi
+            else:
+                progress.xp = 0 # 1-leveldan pastga tushmaydi
+
+        # Xato qilsa, ertaga yana qaytarish kerak
+        progress.next_review_date = timezone.now().date() + timedelta(days=1)
+
+    progress.save()
 
 def get_weekly_stats(user):
     """Joriy hafta uchun statistika obyektini qaytaradi yoki yaratadi"""
@@ -136,10 +164,19 @@ def dashboard(request):
 
 @login_required
 def my_vocabulary(request):
-    # 1. Foydalanuvchi O'ZI QO'SHGAN so'zlar (Author = User)
+    # Progress ma'lumotlarini ham olamiz (prefetch_related)
+    # Lekin shablon ichida qulay bo'lishi uchun, keling, Word modeliga "user_progress" degan
+    # vaqtinchalik attribut qo'shib chiqamiz (yoki shablonda custom tag ishlatamiz).
+    # Eng osone: barcha progresslarni olib, lug'at (dict) ga aylantiramiz.
+
+    progress_map = {
+        p.word_id: p for p in UserWordProgress.objects.filter(user=request.user)
+    }
+
+    # 1. Foydalanuvchi O'ZI QO'SHGAN so'zlar
     user_words_qs = Word.objects.filter(author=request.user).order_by('-created_at')
     
-    # 2. Foydalanuvchi SAQLAB QO'YGAN so'zlar (Likes/Saves)
+    # 2. Foydalanuvchi SAQLAB QO'YGAN so'zlar
     saved_words_qs = request.user.saved_words.all().order_by('-created_at')
 
     # --- PAGINATION (USER WORDS) ---
@@ -147,10 +184,18 @@ def my_vocabulary(request):
     user_page_number = request.GET.get('user_page')
     user_words = user_paginator.get_page(user_page_number)
 
+    # Har bir so'zga progressni biriktiramiz (User Words)
+    for word in user_words:
+        word.user_progress = progress_map.get(word.id)
+
     # --- PAGINATION (SAVED WORDS) ---
     saved_paginator = Paginator(saved_words_qs, 20)
     saved_page_number = request.GET.get('saved_page')
     saved_words = saved_paginator.get_page(saved_page_number)
+
+    # Har bir so'zga progressni biriktiramiz (Saved Words)
+    for word in saved_words:
+        word.user_progress = progress_map.get(word.id)
 
     return render(request, 'vocabulary/my_vocabulary.html', {
         'user_words': user_words,
@@ -400,6 +445,16 @@ def test_play(request):
     
     if request.GET.get('check_answer'):
         is_correct = request.GET.get('is_correct') == 'true'
+        word_id = request.GET.get('word_id')
+
+        # SRS (Aqlli Takrorlash)
+        if word_id:
+            try:
+                word_obj = Word.objects.get(id=word_id)
+                update_word_progress(request.user, word_obj, is_correct)
+            except Word.DoesNotExist:
+                pass
+
         stats['total_questions'] += 1
         if is_correct:
             stats['correct'] += 1
@@ -428,7 +483,22 @@ def test_play(request):
     if len(my_vocabulary) < 4:
         return redirect('test_setup')
         
-    correct_word = random.choice(my_vocabulary)
+    # SRS Mantiq: Bugungi takrorlash kerak bo'lgan so'zlarni olamiz
+    today = timezone.now().date()
+    due_ids = UserWordProgress.objects.filter(
+        user=request.user,
+        next_review_date__lte=today
+    ).values_list('word_id', flat=True)
+
+    due_words = [w for w in my_vocabulary if w.id in due_ids]
+
+    # Agar takrorlash kerak bo'lgan so'zlar bo'lsa, ulardan birini tanlaymiz (70% ehtimol bilan)
+    # Yoki shunchaki ustunlik beramiz. Keling, agar bor bo'lsa, aniq o'shalardan so'raymiz.
+    if due_words:
+        correct_word = random.choice(due_words)
+    else:
+        correct_word = random.choice(my_vocabulary)
+
     wrong_words = random.sample([w for w in my_vocabulary if w != correct_word], 3)
     variants = wrong_words + [correct_word]
     random.shuffle(variants)
@@ -551,6 +621,13 @@ def match_play(request):
 
 @login_required
 def match_result(request):
+    # 1. Sessiyani tekshirish (Refresh himoyasi)
+    if not request.session.get('match_playing'):
+        return redirect('games_menu')
+
+    # O'yin tugadi, sessiyani tozalaymiz
+    del request.session['match_playing']
+
     # Haftalik statistika: O'yin soni (Match uchun)
     w_stats = get_weekly_stats(request.user)
     w_stats.games_played += 1
@@ -685,6 +762,9 @@ def write_play(request):
             stats['wrong'] += 1
             messages.error(request, f"Xato! To'g'ri javob: {target_word.japanese_word}")
             
+        # Aqlli Takrorlash (Spaced Repetition)
+        update_word_progress(request.user, target_word, is_correct)
+
         # Haftalik statistika
         w_stats = get_weekly_stats(request.user)
         w_stats.total_questions += 1
@@ -714,8 +794,20 @@ def write_play(request):
     if len(all_words) < 5:
          return redirect('write_setup')
 
-    # Tasodifiy so'z tanlash
-    word = random.choice(all_words)
+    # SRS Mantiq: Bugungi takrorlash kerak bo'lgan so'zlarni olamiz
+    today = timezone.now().date()
+    due_ids = UserWordProgress.objects.filter(
+        user=request.user,
+        next_review_date__lte=today
+    ).values_list('word_id', flat=True)
+
+    due_words = [w for w in all_words if w.id in due_ids]
+
+    # Tasodifiy so'z tanlash (SRS ustunligi bilan)
+    if due_words:
+        word = random.choice(due_words)
+    else:
+        word = random.choice(all_words)
 
     context = {
         'word': word,

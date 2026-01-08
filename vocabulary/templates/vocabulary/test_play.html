@@ -226,7 +226,7 @@
         });
 
         setTimeout(() => {
-            const nextUrl = `?check_answer=true&is_correct=${isCorrect}`;
+            const nextUrl = `?check_answer=true&is_correct=${isCorrect}&word_id=${correctId}`;
             window.location.href = nextUrl;
         }, 300);
     }

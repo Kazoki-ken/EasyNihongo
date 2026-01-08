@@ -75,7 +75,22 @@ class WeeklyStats(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.start_date} haftasi"
 
-# 3. SIGNALLAR (Profilni avtomatik yaratish)
+# 3. AQLLI TAKRORLASH MODELI (Spaced Repetition)
+class UserWordProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='word_progress')
+    word = models.ForeignKey(Word, on_delete=models.CASCADE, related_name='progress')
+
+    xp = models.IntegerField(default=0) # 0-4 gacha
+    level = models.IntegerField(default=1) # 1=Yangi, 2=Oson, 3=Yaxshi, 4=Zo'r, 5=Master
+    next_review_date = models.DateField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('user', 'word')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.word.japanese_word} (Lvl: {self.level})"
+
+# 4. SIGNALLAR (Profilni avtomatik yaratish)
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
