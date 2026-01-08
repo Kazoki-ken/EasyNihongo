@@ -204,9 +204,21 @@ def my_vocabulary(request):
 ########################################
 @login_required
 def categories_view(request):
-    # Barcha mavzularni chiqaramiz
+    query = request.GET.get('q')
     topics = Topic.objects.all()
-    return render(request, 'vocabulary/categories.html', {'topics': topics})
+
+    if query:
+        topics = topics.filter(name__icontains=query)
+
+    # --- PAGINATION (TOPICS) ---
+    # 10 ta bo'limdan chiqaramiz
+    paginator = Paginator(topics, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'vocabulary/categories.html', {
+        'page_obj': page_obj
+    })
 ###########################################
 @login_required
 def topic_words(request, topic_name):
