@@ -193,18 +193,24 @@
 
 <script>
     let isAnswered = false;
+    // Reviewer feedback: Ensure correctId is explicitly defined or handled safely.
+    // Ideally it is passed as argument, but adding global ref for clarity/fallback.
+    const currentQuestionId = "{{ question.id }}";
 
     function handleAnswer(btn, variantId, correctId) {
         if (isAnswered) return;
         isAnswered = true;
 
+        // Fallback if argument is somehow missing (though onclick passes it)
+        const targetId = correctId || currentQuestionId;
+
         // Javob berilganda Hiraganani ochib yuboramiz (o'rganish uchun)
         const secretText = document.querySelector('.secret-blur');
         if(secretText) secretText.classList.add('revealed');
 
-        const isCorrect = (variantId === correctId);
+        const isCorrect = (variantId === targetId);
         const allButtons = document.querySelectorAll('.answer-btn');
-        const correctBtn = document.getElementById('btn-' + correctId);
+        const correctBtn = document.getElementById('btn-' + targetId);
 
         if (isCorrect) {
             btn.classList.add('correct-answer');
@@ -226,7 +232,7 @@
         });
 
         setTimeout(() => {
-            const nextUrl = `?check_answer=true&is_correct=${isCorrect}&word_id=${correctId}`;
+            const nextUrl = `?check_answer=true&is_correct=${isCorrect}&word_id=${targetId}`;
             window.location.href = nextUrl;
         }, 300);
     }
