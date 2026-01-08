@@ -13,6 +13,7 @@ urlpatterns = [
     # 3. Shaxsiy Lug'at va Profil
     path('my-vocabulary/', views.my_vocabulary, name='my_vocabulary'),
     path('profile/', views.profile_view, name='profile'),
+    path('leaderboard/', views.leaderboard, name='leaderboard'), # <-- Reyting
     
     # 4. Ro'yxatdan o'tish va Admin qismi
     path('accounts/register/', views.register_view, name='register'),

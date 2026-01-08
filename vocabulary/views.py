@@ -2,25 +2,35 @@ import random
 import re
 import json
 from datetime import timedelta
+import pandas as pd
+
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from .models import Word, Profile
-from .models import Topic
-from .forms import UserRegisterForm, WordForm
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse # <-- Buni qo'shish esdan chiqmasin!
+from django.http import JsonResponse
 from django.contrib import messages
-
-import pandas as pd
+from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Word, Topic
+
+from .models import Word, Profile, Topic, WeeklyStats
+from .forms import UserRegisterForm, WordForm
 
 # =========================================================
 # 1. YORDAMCHI FUNKSIYALAR (HELPERS)
 # DIQQAT: Bularning tepasiga @login_required QO'YMANG!
 # =========================================================
+
+def get_weekly_stats(user):
+    """Joriy hafta uchun statistika obyektini qaytaradi yoki yaratadi"""
+    today = timezone.now().date()
+    start_week = today - timedelta(days=today.weekday()) # Dushanba
+    stats, created = WeeklyStats.objects.get_or_create(
+        user=user,
+        start_date=start_week,
+        defaults={'end_date': start_week + timedelta(days=6)}
+    )
+    return stats
 
 def check_daily_progress(user):
     """
@@ -110,8 +120,14 @@ def dashboard(request):
         # ManyToMany filtrlash
         words = words.filter(topics__name=topic_filter)
     
+    # --- PAGINATION (DASHBOARD) ---
+    words = words.order_by('created_at').distinct()
+    paginator = Paginator(words, 20) # Sahifasiga 20 ta
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'words': words.order_by('created_at').distinct(), # distinct() takrorlanishni oldini oladi
+        'words': page_obj, # Endi to'liq ro'yxat emas, sahifa obyekti
         'topics': topics,
         'selected_topic': topic_filter,
         'title': 'Darslik Lugʻati',
@@ -121,11 +137,20 @@ def dashboard(request):
 @login_required
 def my_vocabulary(request):
     # 1. Foydalanuvchi O'ZI QO'SHGAN so'zlar (Author = User)
-    user_words = Word.objects.filter(author=request.user).order_by('-created_at')
+    user_words_qs = Word.objects.filter(author=request.user).order_by('-created_at')
     
     # 2. Foydalanuvchi SAQLAB QO'YGAN so'zlar (Likes/Saves)
-    # Eslatma: related_name='saved_words' deb yozgan edik models.py da
-    saved_words = request.user.saved_words.all().order_by('-created_at')
+    saved_words_qs = request.user.saved_words.all().order_by('-created_at')
+
+    # --- PAGINATION (USER WORDS) ---
+    user_paginator = Paginator(user_words_qs, 20)
+    user_page_number = request.GET.get('user_page')
+    user_words = user_paginator.get_page(user_page_number)
+
+    # --- PAGINATION (SAVED WORDS) ---
+    saved_paginator = Paginator(saved_words_qs, 20)
+    saved_page_number = request.GET.get('saved_page')
+    saved_words = saved_paginator.get_page(saved_page_number)
 
     return render(request, 'vocabulary/my_vocabulary.html', {
         'user_words': user_words,
@@ -141,16 +166,41 @@ def categories_view(request):
 @login_required
 def topic_words(request, topic_name):
     # Mavzu nomi bo'yicha so'zlarni olish
-    words = Word.objects.filter(author__isnull=True, topics__name=topic_name).order_by('created_at').distinct()
+    words_qs = Word.objects.filter(author__isnull=True, topics__name=topic_name).order_by('created_at').distinct()
+
+    # --- PAGINATION (TOPIC WORDS) ---
+    paginator = Paginator(words_qs, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # "Hammasini saqlash" tugmasi holatini tekshirish
+    # DIQQAT: Bu yerda endi faqat joriy sahifadagi so'zlarni emas,
+    # balki UMUMIY ro'yxatni tekshirishimiz kerak bo'lishi mumkin,
+    # lekin vizual jihatdan sahifadagi so'zlar saqlanganligini ko'rsatish kifoya qiladi
+    # yoki backendda to'liq tekshirish qoldiramiz.
+
+    # Hozircha "Hammasini saqlash" mantiqi frontendda tugma bosilganda serverga murojaat qiladi.
+    # Shuning uchun bu yerda 'words_all_saved' ni faqat joriy sahifa uchun hisoblash maqsadga muvofiq,
+    # yoki butun QuerySet uchun. Keling butun QuerySet uchun qilamiz.
     
     words_all_saved = True
-    for w in words:
-        if request.user not in w.saves.all():
-            words_all_saved = False
-            break
+    # Optimization: exists() ishlatish samarasiz bo'lishi mumkin loop ichida,
+    # lekin hozircha oddiy yondashuv:
+    # Agar bitta bo'lsa ham saqlanmagan so'z bo'lsa -> False
+    # (Bu yerda Paginator bo'lgani uchun loopni butun 'words_qs' bo'ylab aylanish og'ir bo'lishi mumkin
+    # Agar so'zlar ko'p bo'lsa. Lekin "save_all" funksiyasi baribir hammasini o'zgartiradi).
+
+    # Keling, optimizatsiya qilamiz:
+    # Foydalanuvchi saqlagan so'zlar ID larini olamiz
+    saved_ids = request.user.saved_words.values_list('id', flat=True)
+
+    # Mavzudagi barcha so'zlar ichida saved_ids da YO'Q bo'lgan so'z bormi?
+    # exclude(id__in=saved_ids).exists() -> Agar True bo'lsa, demak hammasi saqlanmagan.
+    has_unsaved = words_qs.exclude(id__in=saved_ids).exists()
+    words_all_saved = not has_unsaved
             
     context = {
-        'words': words,
+        'words': page_obj, # Sahifalangan obyekt
         'topic_name': topic_name,
         'words_all_saved': words_all_saved
     }
@@ -160,19 +210,41 @@ def topic_words(request, topic_name):
 def save_all_topic_words(request, topic_name):
     words = Word.objects.filter(author__isnull=True, topics__name=topic_name).distinct()
     
-    all_saved = True
-    for word in words:
-        if request.user not in word.saves.all():
-            all_saved = False
-            break
+    # 1. Hamma so'zlar saqlanganmi?
+    # Optimization: exists() bilan tekshiramiz
+    user_saved_ids = request.user.saved_words.values_list('id', flat=True)
+    has_unsaved = words.exclude(id__in=user_saved_ids).exists()
 
-    if not all_saved:
-        for word in words:
+    saved = False
+
+    if has_unsaved:
+        # 2. HAMMASINI SAQLASH (ADD)
+        # Faqat hali saqlanmagan so'zlarni topamiz (takroriy qo'shmaslik uchun)
+        new_words_to_add = words.exclude(id__in=user_saved_ids)
+        count_new = new_words_to_add.count()
+
+        for word in new_words_to_add:
             word.saves.add(request.user)
-        saved = True 
+
+        # Statistikaga qo'shish
+        if count_new > 0:
+            stats = get_weekly_stats(request.user)
+            stats.words_learned += count_new
+            stats.save()
+
+        saved = True
     else:
+        # 3. HAMMASINI O'CHIRISH (REMOVE)
+        count_removed = words.count()
         for word in words:
             word.saves.remove(request.user)
+
+        # Statistikadan ayirish
+        if count_removed > 0:
+            stats = get_weekly_stats(request.user)
+            stats.words_learned -= count_removed
+            stats.save()
+
         saved = False 
 
     return JsonResponse({'saved': saved})
@@ -189,6 +261,12 @@ def add_word(request):
             word = form.save(commit=False)
             word.author = request.user
             word.save()
+
+            # Haftalik statistikaga qo'shish
+            stats = get_weekly_stats(request.user)
+            stats.words_learned += 1
+            stats.save()
+
             return redirect('my_vocabulary')
     else:
         form = WordForm()
@@ -205,9 +283,19 @@ def toggle_save(request, word_id):
     if request.user in word.saves.all():
         word.saves.remove(request.user)
         saved = False # Hozir o'chirildi
+
+        # Statistikadan ayirish
+        stats = get_weekly_stats(request.user)
+        stats.words_learned -= 1
+        stats.save()
     else:
         word.saves.add(request.user)
         saved = True # Hozir saqlandi
+
+        # Haftalik statistikaga qo'shish
+        stats = get_weekly_stats(request.user)
+        stats.words_learned += 1
+        stats.save()
     
     # Biz sahifani yangilamaymiz, faqat natijani yuboramiz
     return JsonResponse({'saved': saved})
@@ -224,13 +312,37 @@ def delete_word(request, word_id):
 
 @login_required
 def profile_view(request):
-    return render(request, 'vocabulary/profile.html')
+    weekly_stats = get_weekly_stats(request.user)
+    return render(request, 'vocabulary/profile.html', {'weekly_stats': weekly_stats})
+
+@login_required
+def leaderboard(request):
+    # Top 20 foydalanuvchi: Streak bo'yicha saralangan
+    # Agar streak bir xil bo'lsa, total_daily_progress bo'yicha
+    # Bu yerda total_daily_progress hisoblanmaydi (property), shuning uchun oddiyroq streak bo'yicha qilamiz.
+
+    top_profiles = Profile.objects.select_related('user').order_by('-streak', '-daily_test_count')[:20]
+
+    # Foydalanuvchining o'z o'rni
+    user_rank = 0
+    all_profiles = Profile.objects.order_by('-streak')
+    # Optimization: Bu katta bazada sekin ishlashi mumkin, lekin hozircha yetarli
+    for index, p in enumerate(all_profiles):
+        if p.user == request.user:
+            user_rank = index + 1
+            break
+
+    return render(request, 'vocabulary/leaderboard.html', {
+        'top_profiles': top_profiles,
+        'user_rank': user_rank
+    })
 
 def register_view(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             form.save() # Yangi foydalanuvchini saqlaymiz
+            messages.success(request, "Siz muvaffaqiyatli ro'yxatdan o'tdingiz! Endi kirishingiz mumkin.")
             return redirect('login') # Muvaffaqiyatli bo'lsa, kirish sahifasiga
     else:
         form = UserRegisterForm()
@@ -293,6 +405,13 @@ def test_play(request):
             stats['correct'] += 1
         else:
             stats['wrong'] += 1
+
+        # Haftalik statistika (Har bir savol uchun)
+        w_stats = get_weekly_stats(request.user)
+        w_stats.total_questions += 1
+        if is_correct:
+            w_stats.correct_answers += 1
+        w_stats.save()
         
         request.session['test_stats'] = stats
         request.session.modified = True
@@ -329,6 +448,14 @@ def test_result(request):
     
     message = ""
     if stats['total_questions'] > 0:
+        # Haftalik statistika: O'yin sonini oshiramiz
+        if not stats.get('saved_stats', False):
+             w_stats = get_weekly_stats(request.user)
+             w_stats.games_played += 1
+             w_stats.save()
+             stats['saved_stats'] = True
+             request.session['test_stats'] = stats
+
         profile = request.user.profile
         # KUN YANGILANGAN BO'LSA NOLLASH
         today = timezone.now().date()
@@ -424,6 +551,11 @@ def match_play(request):
 
 @login_required
 def match_result(request):
+    # Haftalik statistika: O'yin soni (Match uchun)
+    w_stats = get_weekly_stats(request.user)
+    w_stats.games_played += 1
+    w_stats.save()
+
     profile = request.user.profile
     today = timezone.now().date()
     
@@ -553,6 +685,13 @@ def write_play(request):
             stats['wrong'] += 1
             messages.error(request, f"Xato! To'g'ri javob: {target_word.japanese_word}")
             
+        # Haftalik statistika
+        w_stats = get_weekly_stats(request.user)
+        w_stats.total_questions += 1
+        if is_correct:
+            w_stats.correct_answers += 1
+        w_stats.save()
+
         request.session['write_stats'] = stats
         
         # Limit tekshiruvi (Agar 'infinite' bo'lmasa)
@@ -599,6 +738,11 @@ def write_result(request):
     stats = request.session.get('write_stats', {'correct':0, 'wrong':0, 'total_questions':0})
     limit = request.session.get('write_limit', '5')
     
+    # Haftalik statistika: O'yin sonini oshiramiz
+    w_stats = get_weekly_stats(request.user)
+    w_stats.games_played += 1
+    w_stats.save()
+
     profile = request.user.profile
     
     # 2. KUN YANGILANGAN BO'LSA NOLLASH (Test o'yinidagi kabi)
@@ -704,1122 +848,6 @@ def upload_words(request):
             messages.error(request, f"Xatolik: {str(e)}")
             
     return render(request, 'vocabulary/upload.html')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import random
-# from datetime import timedelta
-# from django.utils import timezone
-# from django.shortcuts import render, redirect, get_object_or_404
-# from django.contrib.auth.decorators import login_required
-# from django.db.models import Q
-# from .models import Word, Profile
-# from .forms import UserRegisterForm, WordForm
-# import re # <-- BUNI ENG TEPAGA QO'SHISHNI UNUTMANG!
-
-# # =========================================================
-# # 1. YORDAMCHI FUNKSIYALAR (HELPERS)
-# # =========================================================
-
-# def check_daily_progress(user):
-#     """
-#     Foydalanuvchi kirganda yangi kunni tekshiradi.
-#     """
-#     if not hasattr(user, 'profile'):
-#         Profile.objects.create(user=user)
-        
-#     profile = user.profile
-#     today = timezone.now().date()
-    
-#     # Agar oxirgi kirgan sanasi bugun bo'lmasa (demak yangi kun)
-#     if profile.last_login_date != today:
-#         yesterday = today - timedelta(days=1)
-        
-#         # 1. STREAK MANTIQI
-#         if profile.last_login_date == yesterday:
-#             # Agar kecha kirgan bo'lsa, bugun davom etadi (+1)
-#             profile.streak += 1
-#         elif profile.last_login_date and profile.last_login_date < yesterday:
-#             # Agar kechadan oldin kirgan bo'lsa (uzilish), Streak kuyadi
-#             profile.streak = 1 # Bugungi kun 1-kun hisoblanadi
-#             profile.tree_state = 2 # Daraxt xavf ostida
-            
-#             if profile.last_login_date < (today - timedelta(days=2)):
-#                  profile.tree_state = 3 # Daraxt quridi
-#         else:
-#             # Agar umuman birinchi marta kirayotgan bo'lsa yoki streak 0 bo'lsa
-#             profile.streak += 1
-
-#         # 2. O'YINLARNI NOLLASH
-#         profile.daily_test_count = 0
-#         profile.daily_match_count = 0
-#         profile.daily_write_count = 0
-        
-#         # 3. SANANI YANGILASH
-#         profile.last_login_date = today
-#         profile.save()
-
-# # =========================================================
-# # 2. ASOSIY SAHIFALAR
-# # =========================================================
-
-# @login_required
-# def home(request):
-#     check_daily_progress(request.user)
-#     return render(request, 'vocabulary/home.html')
-
-# @login_required
-# def dashboard(request):
-#     query = request.GET.get('q')
-#     topic_filter = request.GET.get('topic')
-    
-#     # Faqat Admin so'zlarini olamiz
-#     words = Word.objects.filter(author__isnull=True)
-#     topics = Word.objects.filter(author__isnull=True).values_list('topic', flat=True).distinct()
-    
-#     if query:
-#         words = words.filter(
-#             Q(japanese_word__icontains=query) | 
-#             Q(hiragana__icontains=query) | 
-#             Q(meaning__icontains=query)
-#         )
-    
-#     if topic_filter:
-#         words = words.filter(topic=topic_filter)
-    
-#     context = {
-#         'words': words.order_by('created_at'),
-#         'topics': topics,
-#         'selected_topic': topic_filter,
-#         'title': 'Darslik Lugʻati',
-#     }
-#     return render(request, 'vocabulary/dashboard.html', context)
-
-# @login_required
-# def my_vocabulary(request):
-#     my_created = Word.objects.filter(author=request.user).order_by('-created_at')
-#     my_saved = request.user.saved_words.all().order_by('-created_at')
-    
-#     context = {
-#         'my_created': my_created,
-#         'my_saved': my_saved,
-#         'title': "Mening Lug'atim"
-#     }
-#     return render(request, 'vocabulary/my_vocabulary.html', context)
-
-# @login_required
-# def categories_view(request):
-#     topics = Word.objects.filter(author__isnull=True).values_list('topic', flat=True).distinct()
-#     return render(request, 'vocabulary/categories.html', {'topics': topics})
-
-# @login_required
-# def topic_words(request, topic_name):
-#     words = Word.objects.filter(author__isnull=True, topic=topic_name).order_by('created_at')
-    
-#     words_all_saved = True
-#     for w in words:
-#         if request.user not in w.saves.all():
-#             words_all_saved = False
-#             break
-            
-#     context = {
-#         'words': words,
-#         'topic_name': topic_name,
-#         'words_all_saved': words_all_saved
-#     }
-#     return render(request, 'vocabulary/topic_words.html', context)
-
-# @login_required
-# def save_all_topic_words(request, topic_name):
-#     words = Word.objects.filter(author__isnull=True, topic=topic_name)
-#     all_saved = True
-#     for word in words:
-#         if request.user not in word.saves.all():
-#             all_saved = False
-#             break
-
-#     if not all_saved:
-#         for word in words:
-#             if request.user not in word.saves.all():
-#                 word.saves.add(request.user)
-#     else:
-#         for word in words:
-#             word.saves.remove(request.user)
-            
-#     return redirect('topic_words', topic_name=topic_name)
-
-# # =========================================================
-# # 3. CRUD (Qo'shish/O'chirish/Saqlash)
-# # =========================================================
-
-# @login_required
-# def add_word(request):
-#     if request.method == 'POST':
-#         form = WordForm(request.POST)
-#         if form.is_valid():
-#             word = form.save(commit=False)
-#             word.author = request.user
-#             word.save()
-#             return redirect('my_vocabulary')
-#     else:
-#         form = WordForm()
-#     return render(request, 'vocabulary/add_word.html', {'form': form})
-
-# @login_required
-# def toggle_save_word(request, word_id):
-#     word = get_object_or_404(Word, id=word_id)
-#     if request.user in word.saves.all():
-#         word.saves.remove(request.user)
-#     else:
-#         word.saves.add(request.user)
-#     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
-
-# @login_required
-# def delete_word(request, word_id):
-#     word = get_object_or_404(Word, id=word_id, author=request.user)
-#     word.delete()
-#     return redirect('my_vocabulary')
-
-# # =========================================================
-# # 4. AUTH & PROFILE
-# # =========================================================
-
-# @login_required
-# def profile_view(request):
-#     return render(request, 'vocabulary/profile.html')
-
-# def register_view(request):
-#     if request.method == 'POST':
-#         form = UserRegisterForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('login')
-#     else:
-#         form = UserRegisterForm()
-#     return render(request, 'registration/register.html', {'form': form})
-
-# def admin_dashboard(request):
-#     return render(request, 'vocabulary/admin_dashboard.html', {})
-
-# # =========================================================
-# # 5. O'YINLAR (GAMES LOGIC)
-# # =========================================================
-
-# @login_required
-# def games_menu(request):
-#     return render(request, 'vocabulary/games_menu.html')
-
-# # --- TEST O'YINI ---
-
-# @login_required
-# def test_setup(request):
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-#     unique_words = list(set(user_created + user_saved))
-#     word_count = len(unique_words)
-
-#     if word_count < 4:
-#         # threshold=4 deb yuboramiz
-#         return render(request, 'vocabulary/low_words.html', {'count': word_count, 'threshold': 4})
-
-#     return render(request, 'vocabulary/test_setup.html')
-
-# @login_required
-# def test_start(request):
-#     if request.method == 'POST':
-#         limit = request.POST.get('limit')
-#         request.session['test_stats'] = {
-#             'total_questions': 0,
-#             'correct': 0,
-#             'wrong': 0,
-#             'limit': int(limit) if limit != 'infinite' else 'infinite'
-#         }
-#         return redirect('test_play')
-#     return redirect('test_setup')
-
-# @login_required
-# def test_play(request):
-#     stats = request.session.get('test_stats', None)
-#     if not stats:
-#         return redirect('games_menu')
-    
-#     # Javobni tekshirish
-#     if request.GET.get('check_answer'):
-#         is_correct = request.GET.get('is_correct') == 'true'
-#         stats['total_questions'] += 1
-#         if is_correct:
-#             stats['correct'] += 1
-#         else:
-#             stats['wrong'] += 1
-        
-#         request.session['test_stats'] = stats
-#         request.session.modified = True
-        
-#         limit = stats['limit']
-#         if limit != 'infinite' and stats['total_questions'] >= limit:
-#             return redirect('test_result')
-#         return redirect('test_play')
-
-#     # Yangi savol tayyorlash
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-#     my_vocabulary = list(set(user_created + user_saved))
-    
-#     if len(my_vocabulary) < 4:
-#         return redirect('test_setup')
-        
-#     correct_word = random.choice(my_vocabulary)
-#     wrong_words = random.sample([w for w in my_vocabulary if w != correct_word], 3)
-#     variants = wrong_words + [correct_word]
-#     random.shuffle(variants)
-    
-#     context = {
-#         'question': correct_word,
-#         'variants': variants,
-#         'stats': stats
-#     }
-#     return render(request, 'vocabulary/test_play.html', context)
-
-# @login_required
-# def test_result(request):
-#     stats = request.session.get('test_stats')
-#     if not stats:
-#         return redirect('games_menu')
-    
-#     message = ""
-    
-#     if stats['total_questions'] > 0:
-#         profile = request.user.profile
-#         today = timezone.now().date()
-        
-#         if profile.last_game_date != today:
-#             profile.daily_test_count = 0
-#             profile.daily_match_count = 0
-#             profile.daily_write_count = 0
-#             profile.last_game_date = today
-#             profile.save()
-
-#         accuracy = (stats['correct'] / stats['total_questions']) * 100
-        
-#         if stats['total_questions'] < 10:
-#              message = "Ball olish uchun kamida 10 ta savol yechish kerak!"
-#         elif accuracy < 60:
-#              message = f"Natija past ({int(accuracy)}%). Ball olish uchun 60% kerak."
-#         elif profile.daily_test_count >= 3:
-#              message = "Bugungi Test limiti (3/3) to'lgan. Boshqa o'yinlarni o'ynang!"
-#         else:
-#             profile.daily_test_count += 1
-#             profile.save()
-#             message = "Ajoyib! Kunlik maqsadga +1 ball qo'shildi."
-#             stats['saved'] = True
-
-#     request.session.pop('test_stats', None)
-    
-#     context = {
-#         'stats': stats,
-#         'message': message,
-#         'accuracy': int((stats['correct'] / stats['total_questions']) * 100) if stats['total_questions'] > 0 else 0
-#     }
-#     return render(request, 'vocabulary/test_result.html', context)
-
-# # --- MATCHING (JUFTLIKLAR) O'YINI ---
-
-# @login_required
-# def match_play(request):
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-#     my_vocabulary = list(set(user_created + user_saved))
-#     word_count = len(my_vocabulary)
-
-#     if word_count < 5:
-#          # threshold=5 deb yuboramiz
-#          return render(request, 'vocabulary/low_words.html', {'count': word_count, 'threshold': 5})
-#     selected_words = random.sample(my_vocabulary, 5)
-
-#     cards = []
-#     for word in selected_words:
-#         cards.append({'id': word.id, 'text': word.japanese_word, 'type': 'jp'})
-#         cards.append({'id': word.id, 'text': word.meaning, 'type': 'uz'})
-
-#     random.shuffle(cards)
-#     return render(request, 'vocabulary/match_play.html', {'cards': cards})
-
-# @login_required
-# def match_result(request):
-#     profile = request.user.profile
-#     today = timezone.now().date()
-    
-#     if profile.last_game_date != today:
-#         profile.daily_test_count = 0
-#         profile.daily_match_count = 0
-#         profile.daily_write_count = 0
-#         profile.last_game_date = today
-#         profile.save()
-        
-#     saved = False
-#     message = ""
-    
-#     if profile.daily_match_count < 3:
-#         profile.daily_match_count += 1
-#         profile.save()
-#         saved = True
-#         message = "Barakalla! +1 Ball qo'shildi."
-#     else:
-#         message = "Bugungi Matching limiti to'lgan (3/3)."
-        
-#     return render(request, 'vocabulary/match_result.html', {
-#         'saved': saved,
-#         'message': message,
-#         'count': profile.daily_match_count
-#     })
-
-# # === 3. WRITING (YOZISH) O'YINI ===
-
-# @login_required
-# def write_setup(request):
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-#     unique_words = list(set(user_created + user_saved))
-#     word_count = len(unique_words)
-    
-#     if word_count < 5:
-#         # threshold=5 deb yuboramiz
-#         return render(request, 'vocabulary/low_words.html', {'count': word_count, 'threshold': 5})
-
-#     return render(request, 'vocabulary/write_setup.html')
-
-# @login_required
-# def write_start(request):
-#     if request.method == 'POST':
-#         # Yozish mashqi qiyinroq, shuning uchun standart 5 ta so'z qilamiz
-#         request.session['write_stats'] = {
-#             'total_questions': 0,
-#             'correct': 0,
-#             'wrong': 0,
-#             'limit': 5 # Har bir raund 5 ta so'zdan iborat
-#         }
-#         return redirect('write_play')
-#     return redirect('write_setup')
-
-# @login_required
-# def write_play(request):
-#     stats = request.session.get('write_stats', None)
-#     if not stats:
-#         return redirect('games_menu')
-
-#     # --- JAVOBNI TEKSHIRISH ---
-#     if request.method == 'POST':
-#         user_answer = request.POST.get('answer', '').strip().lower()
-#         # Virgul bilan ajratilgan javoblarni ro'yxatga aylantiramiz
-#         correct_answers_list = request.POST.get('valid_answers', '').split(',')
-        
-#         is_correct = False
-#         # Har bir to'g'ri variantni tekshiramiz
-#         for ans in correct_answers_list:
-#             if user_answer == ans.strip().lower():
-#                 is_correct = True
-#                 break
-        
-#         stats['total_questions'] += 1
-#         if is_correct:
-#             stats['correct'] += 1
-#         else:
-#             stats['wrong'] += 1
-            
-#         request.session['write_stats'] = stats
-#         request.session.modified = True
-        
-#         # Limit tugadimi?
-#         if stats['total_questions'] >= stats['limit']:
-#             return redirect('write_result')
-        
-#         return redirect('write_play')
-
-#     # --- YANGI SAVOL TAYYORLASH ---
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-#     my_vocabulary = list(set(user_created + user_saved))
-    
-#     if len(my_vocabulary) < 5:
-#         my_vocabulary = list(Word.objects.all())
-    
-#     word = random.choice(my_vocabulary)
-    
-#     # --- JAVOBLARNI AJRATIB OLISH (AQLLI MANTIQ) ---
-#     valid_answers = []
-    
-#     # 1. Hiragana maydoni (Sizda bu yerda "Konnichiwa" bor)
-#     if word.hiragana:
-#         valid_answers.append(word.hiragana)
-    
-#     # 2. Qavs ichidagini olamiz: "日進月歩 (こんにちは)" -> "こんにちは"
-#     match = re.search(r'\((.*?)\)', word.japanese_word)
-#     if match:
-#         inside_parens = match.group(1)
-#         valid_answers.append(inside_parens)
-    
-#     # 3. KANJI QISMI (YANGI): Qavsdan oldingi qismni olamiz -> "日進月歩"
-#     # split('(')[0] -> qavsgacha bo'lgan qismni kesib oladi
-#     kanji_part = word.japanese_word.split('(')[0].strip()
-#     if kanji_part:
-#         valid_answers.append(kanji_part)
-        
-#     # 4. Butun so'zni ham qo'shib qo'yamiz (Ehtiyot shart)
-#     valid_answers.append(word.japanese_word)
-    
-#     # Ro'yxatni stringga aylantiramiz (HTMLga yuborish uchun)
-#     valid_answers_str = ",".join(valid_answers)
-    
-#     context = {
-#         'word': word,
-#         'valid_answers': valid_answers_str,
-#         'stats': stats
-#     }
-#     return render(request, 'vocabulary/write_play.html', context)
-
-# @login_required
-# def write_result(request):
-#     stats = request.session.get('write_stats')
-#     if not stats:
-#         return redirect('games_menu')
-    
-#     profile = request.user.profile
-#     today = timezone.now().date()
-    
-#     if profile.last_game_date != today:
-#         profile.daily_test_count = 0
-#         profile.daily_match_count = 0
-#         profile.daily_write_count = 0
-#         profile.last_game_date = today
-#         profile.save()
-        
-#     saved = False
-#     message = ""
-    
-#     # Yozish qiyin, shuning uchun 5 tadan 3 tasini topsa ham ball beramiz (60%)
-#     accuracy = (stats['correct'] / stats['limit']) * 100
-    
-#     if accuracy >= 60:
-#         if profile.daily_write_count < 3:
-#             profile.daily_write_count += 1
-#             profile.save()
-#             saved = True
-#             message = "Barakalla! +1 Ball qo'shildi."
-#         else:
-#             message = "Bugungi Yozish limiti to'lgan (3/3)."
-#     else:
-#         message = "Ball olish uchun 60% natija kerak."
-        
-#     request.session.pop('write_stats', None)
-    
-#     return render(request, 'vocabulary/write_result.html', {
-#         'saved': saved,
-#         'message': message,
-#         'stats': stats,
-#         'count': profile.daily_write_count
-#     })
-
-
-# # --- ESKI O'YIN (Agar kerak bo'lmasa o'chirib tashlasa ham bo'ladi) ---
-# @login_required
-# def quiz_home(request):
-#     return redirect('games_menu')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# import random # Test o'yini uchun kerak bo'ladi
-# from datetime import timedelta
-# from django.utils import timezone
-# from django.shortcuts import render, redirect, get_object_or_404
-# # ... qolgan importlar turaversin
-# from django.contrib.auth.decorators import login_required   
-# from django.shortcuts import render, redirect, get_object_or_404
-# from .models import Word
-# from .forms import UserRegisterForm, WordForm
-# from django.db.models import Q 
-
-# # vocabulary/views.py ichida
-
-# def check_daily_progress(user):
-#     profile = user.profile
-#     today = timezone.now().date()
-    
-#     if profile.last_login_date != today:
-#         yesterday = today - timedelta(days=1)
-        
-#         # Kecha kirmagan bo'lsa streak kuyadi va daraxt zararlanadi
-#         if profile.last_login_date and profile.last_login_date < yesterday:
-#             profile.tree_state = 2 
-#             profile.streak = 0
-#             if profile.last_login_date < (today - timedelta(days=2)):
-#                  profile.tree_state = 3
-        
-#         # --- YANGI KUN UCHUN HAMMA O'YINLARNI NOLLAYMIZ ---
-#         profile.daily_test_count = 0   # <--- BIZGA SHU KERAK
-#         profile.daily_match_count = 0
-#         profile.daily_write_count = 0
-        
-#         profile.last_login_date = today
-#         profile.save()
-
-# # 1. ASOSIY MENYU (HOME)
-# @login_required
-# def home(request):
-#     # Profil borligini tekshirish
-#     if not hasattr(request.user, 'profile'):
-#         from .models import Profile
-#         Profile.objects.create(user=request.user)
-    
-#     # --- VAQTNI TEKSHIRISHNI ISHGA TUSHIRAMIZ ---
-#     check_daily_progress(request.user)
-    
-#     return render(request, 'vocabulary/home.html')
-
-# # 2. DARSLIK LUG'ATI (Faqat Admin so'zlari ko'rinadi)
-# @login_required
-# def dashboard(request):
-#     query = request.GET.get('q')
-#     topic_filter = request.GET.get('topic') # Tanlangan mavzuni olamiz
-    
-#     # 1. Faqat Admin so'zlarini olamiz
-#     words = Word.objects.filter(author__isnull=True)
-    
-#     # 2. Mavzular ro'yxatini shakllantiramiz (takrorlanmas qilib)
-#     # Bu hamma mavzular tugmasi uchun kerak
-#     topics = Word.objects.filter(author__isnull=True).values_list('topic', flat=True).distinct()
-    
-#     # 3. Agar qidiruv bo'lsa
-#     if query:
-#         words = words.filter(
-#             Q(japanese_word__icontains=query) | 
-#             Q(hiragana__icontains=query) | 
-#             Q(meaning__icontains=query)
-#         )
-    
-#     # 4. Agar mavzu tanlangan bo'lsa
-#     if topic_filter:
-#         words = words.filter(topic=topic_filter)
-    
-#     context = {
-#         'words': words.order_by('created_at'),
-#         'topics': topics,
-#         'selected_topic': topic_filter,
-#         'title': 'Darslik Lugʻati',
-#     }
-#     return render(request, 'vocabulary/dashboard.html', context)
-
-# # 3. MENING LUG'ATIM (Faqat o'zi qo'shgan va saqlaganlari)
-# @login_required
-# def my_vocabulary(request):
-#     # Faqat kirib turgan user qo'shgan so'zlar (Boshqaniki ko'rinmaydi)
-#     my_created = Word.objects.filter(author=request.user).order_by('-created_at')
-    
-#     # User "Like" (Save) bosgan admin so'zlari
-#     my_saved = request.user.saved_words.all().order_by('-created_at')
-    
-#     context = {
-#         'my_created': my_created,
-#         'my_saved': my_saved,
-#         'title': "Mening Lug'atim"
-#     }
-#     return render(request, 'vocabulary/my_vocabulary.html', context)
-
-# # 4. YANGI SO'Z QO'SHISH
-# @login_required
-# def add_word(request):
-#     if request.method == 'POST':
-#         form = WordForm(request.POST)
-#         if form.is_valid():
-#             word = form.save(commit=False)
-#             word.author = request.user # So'z egasini belgilash
-#             word.save()
-#             return redirect('my_vocabulary')
-#     else:
-#         form = WordForm()
-#     return render(request, 'vocabulary/add_word.html', {'form': form})
-
-# # 5. SAQLASH (LIKE) FUNKSIYASI
-# @login_required
-# def toggle_save_word(request, word_id):
-#     word = get_object_or_404(Word, id=word_id)
-#     if request.user in word.saves.all():
-#         word.saves.remove(request.user)
-#     else:
-#         word.saves.add(request.user)
-#     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
-
-# # 6. O'CHIRISH FUNKSIYASI
-# @login_required
-# def delete_word(request, word_id):
-#     # Faqat o'ziga tegishli so'zni o'chira olishi uchun author=request.user shart
-#     word = get_object_or_404(Word, id=word_id, author=request.user)
-#     word.delete()
-#     return redirect('my_vocabulary')
-
-# # 7. PROFIL VA RO'YXATDAN O'TISH
-# @login_required
-# def profile_view(request):
-#     return render(request, 'vocabulary/profile.html')
-
-# def register_view(request):
-#     if request.method == 'POST':
-#         form = UserRegisterForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('login')
-#     else:
-#         form = UserRegisterForm()
-#     return render(request, 'registration/register.html', {'form': form})
-
-# def admin_dashboard(request):
-#     return render(request, 'vocabulary/admin_dashboard.html', {})
-
-# # 1. Faqat Mavzular (Kategoriyalar) ro'yxatini ko'rsatuvchi view
-# @login_required
-# def categories_view(request):
-#     # Admin qo'shgan so'zlar ichidagi takrorlanmas mavzularni olamiz
-#     topics = Word.objects.filter(author__isnull=True).values_list('topic', flat=True).distinct()
-#     return render(request, 'vocabulary/categories.html', {'topics': topics})
-
-# # 2. Tanlangan mavzu ichidagi so'zlarni ko'rsatuvchi view
-# @login_required
-# def topic_words(request, topic_name):
-#     words = Word.objects.filter(author__isnull=True, topic=topic_name).order_by('created_at')
-    
-#     # Hamma so'z saqlanganmi yoki yo'qligini tekshirish
-#     words_all_saved = True
-#     for w in words:
-#         if request.user not in w.saves.all():
-#             words_all_saved = False
-#             break
-            
-#     context = {
-#         'words': words,
-#         'topic_name': topic_name,
-#         'words_all_saved': words_all_saved # Buni HTMLga yuboramiz
-#     }
-#     return render(request, 'vocabulary/topic_words.html', context)
-
-# # vocabulary/views.py fayliga qo'shing
-
-# @login_required
-# def save_all_topic_words(request, topic_name):
-#     # Shu mavzuga tegishli barcha admin so'zlarini olamiz
-#     words = Word.objects.filter(author__isnull=True, topic=topic_name)
-    
-#     # Bu mavzudagi so'zlar foydalanuvchi tomonidan allaqachon saqlanganmi yoki yo'qligini tekshiramiz
-#     # Agar hech bo'lmaganda bitta so'z saqlanmagan bo'lsa, demak biz "Hamma saqlash" rejimidamiz
-#     # Agar hammasi saqlangan bo'lsa, demak biz "Hammasini o'chirish" rejimiga o'tamiz
-#     all_saved = True
-#     for word in words:
-#         if request.user not in word.saves.all():
-#             all_saved = False
-#             break
-
-#     if not all_saved:
-#         # Agar hali hammasi saqlanmagan bo'lsa -> HAMMASINI SAQLAYMIZ
-#         for word in words:
-#             if request.user not in word.saves.all():
-#                 word.saves.add(request.user)
-#     else:
-#         # Agar hammasi allaqachon saqlangan bo'lsa -> HAMMASINI O'CHIRAMIZ
-#         for word in words:
-#             word.saves.remove(request.user)
-            
-#     return redirect('topic_words', topic_name=topic_name)
-
-
-# @login_required
-# def quiz_home(request):
-#     # 1. Bazadan barcha so'zlarni olamiz
-#     all_words = list(Word.objects.all())
-    
-#     # Agar so'zlar kam bo'lsa (4 tadan kam), o'yin o'ynab bo'lmaydi
-#     if len(all_words) < 4:
-#         return render(request, 'vocabulary/quiz_home.html', {'error': "O'yin uchun kamida 4 ta so'z kerak!"})
-    
-#     # 2. To'g'ri javobni tanlaymiz (Random)
-#     correct_word = random.choice(all_words)
-    
-#     # 3. Noto'g'ri javoblar (3 ta boshqa so'z)
-#     wrong_words = random.sample([w for w in all_words if w != correct_word], 3)
-    
-#     # 4. Hamma variantlarni birlashtiramiz va aralashtiramiz
-#     variants = wrong_words + [correct_word]
-#     random.shuffle(variants)
-    
-#     context = {
-#         'question': correct_word,  # Savol (Yaponchasi)
-#         'variants': variants,      # Variantlar (O'zbekchasi)
-#     }
-#     return render(request, 'vocabulary/quiz_home.html', context)
-
-# # 1. O'YINLAR MENYUSI (3 ta o'yin tanlash)
-# @login_required
-# def games_menu(request):
-#     return render(request, 'vocabulary/games_menu.html')
-
-# # 2. TEST SOZLASH (Limit tanlash)
-# # vocabulary/views.py ichida
-
-# @login_required
-# def test_setup(request):
-#     # 1. Foydalanuvchining hamma so'zlarini sanaymiz
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-    
-#     # Takrorlanmasligi uchun set qilamiz
-#     unique_words = list(set(user_created + user_saved))
-#     word_count = len(unique_words)
-
-#     # 2. Agar 4 tadan kam bo'lsa -> Ogohlantirish sahifasiga yuboramiz
-#     if word_count < 4:
-#         return render(request, 'vocabulary/low_words.html', {'count': word_count})
-
-#     # Agar hammasi joyida bo'lsa, limit tanlash sahifasi ochiladi
-#     return render(request, 'vocabulary/test_setup.html')
-
-# # 3. TESTNI BOSHLASH (Eski ma'lumotlarni tozalash)
-# @login_required
-# def test_start(request):
-#     if request.method == 'POST':
-#         limit = request.POST.get('limit')
-#         # Sessiyada o'yin holatini saqlaymiz
-#         request.session['test_stats'] = {
-#             'total_questions': 0,
-#             'correct': 0,
-#             'wrong': 0,
-#             'limit': int(limit) if limit != 'infinite' else 'infinite'
-#         }
-#         return redirect('test_play')
-#     return redirect('test_setup')
-
-# # 4. O'YIN JARAYONI
-# # vocabulary/views.py ichida
-
-# @login_required
-# def test_play(request):
-#     # 1. Sessiyadan o'yin holatini olamiz
-#     stats = request.session.get('test_stats', None)
-    
-#     # Agar o'yin boshlanmagan bo'lsa (sessiya yo'q), menyuga qaytaramiz
-#     if not stats:
-#         return redirect('games_menu')
-    
-#     # 2. JAVOBNI TEKSHIRISH (Agar foydalanuvchi javob bergan bo'lsa)
-#     # Frontenddagi JS bizga '?check_answer=true' va 'is_correct' ni yuboradi
-#     if request.GET.get('check_answer'):
-#         is_correct = request.GET.get('is_correct') == 'true'
-        
-#         # Statistikani yangilaymiz
-#         stats['total_questions'] += 1
-#         if is_correct:
-#             stats['correct'] += 1
-#         else:
-#             stats['wrong'] += 1
-        
-#         # Yangilangan statistikani sessiyaga saqlaymiz
-#         request.session['test_stats'] = stats
-#         request.session.modified = True
-        
-#         # Limitni tekshirish (Agar cheksiz bo'lmasa va limitga yetgan bo'lsa)
-#         limit = stats['limit']
-#         if limit != 'infinite' and stats['total_questions'] >= limit:
-#             return redirect('test_result')
-            
-#         # Keyingi savolga o'tish (URL parametrlarini tozalash uchun redirect)
-#         return redirect('test_play')
-
-#     # 3. YANGI SAVOL TAYYORLASH
-#     # Faqat foydalanuvchining o'z so'zlari (yaratgan + saqlagan)
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-    
-#     # Ikkalasini birlashtiramiz (takrorlanmasligi uchun 'set' qilamiz)
-#     my_vocabulary = list(set(user_created + user_saved))
-    
-#     # XATOLIK: Agar so'zlar yetarli bo'lmasa (kamida 4 ta kerak)
-#     if len(my_vocabulary) < 4:
-#         return render(request, 'vocabulary/games_menu.html', {
-#             'error': "Test o'ynash uchun lug'atingizda kamida 4 ta so'z bo'lishi kerak! Iltimos, so'z qo'shing yoki boshqa so'zlarni saqlang."
-#         })
-        
-#     # To'g'ri javobni tanlaymiz
-#     correct_word = random.choice(my_vocabulary)
-    
-#     # Noto'g'ri variantlarni tanlaymiz (to'g'ri javobdan boshqa 3 ta so'z)
-#     wrong_words = random.sample([w for w in my_vocabulary if w != correct_word], 3)
-    
-#     # Variantlarni aralashtiramiz
-#     variants = wrong_words + [correct_word]
-#     random.shuffle(variants)
-    
-#     context = {
-#         'question': correct_word,
-#         'variants': variants,
-#         'stats': stats
-#     }
-#     return render(request, 'vocabulary/test_play.html', context)
-
-# # 5. NATIJA SAHIFASI
-# # vocabulary/views.py ichida
-
-# # vocabulary/views.py ichida
-
-# @login_required
-# def test_result(request):
-#     stats = request.session.get('test_stats')
-#     if not stats:
-#         return redirect('games_menu')
-    
-#     saved_status = False # Natija saqlandimi yoki yo'q
-#     message = "" # Foydalanuvchiga xabar
-    
-#     if stats['total_questions'] > 0:
-#         profile = request.user.profile
-#         today = timezone.now().date()
-        
-#         # Sana o'zgargan bo'lsa reset
-#         if profile.last_game_date != today:
-#             profile.daily_test_count = 0
-#             profile.daily_match_count = 0
-#             profile.daily_write_count = 0
-#             profile.last_game_date = today
-#             profile.save()
-
-#         # --- YANGI MANTIQ: 60% VA MINIMUM 10 TA SAVOL ---
-#         accuracy = (stats['correct'] / stats['total_questions']) * 100
-        
-#         # 1-SHART: Savollar soni kamida 10 ta bo'lishi kerak
-#         if stats['total_questions'] < 10:
-#              message = "Ball olish uchun kamida 10 ta savol yechish kerak!"
-        
-#         # 2-SHART: Aniqlik 60% dan baland bo'lishi kerak
-#         elif accuracy < 60:
-#              message = f"Natija past ({int(accuracy)}%). Ball olish uchun 60% kerak."
-             
-#         # 3-SHART: Kunlik limit (3 ta) to'lmagan bo'lishi kerak
-#         elif profile.daily_test_count >= 3:
-#              message = "Bugungi Test limiti (3/3) to'lgan. Boshqa o'yinlarni o'ynang!"
-             
-#         # HAMMASI ZO'R BO'LSA:
-#         else:
-#             profile.daily_test_count += 1
-#             profile.save()
-#             saved_status = True
-#             message = "Ajoyib! Kunlik maqsadga +1 ball qo'shildi."
-            
-#             # Statistikaga 'saved' flagini qo'shamiz
-#             stats['saved'] = True
-
-#     request.session.pop('test_stats', None)
-    
-#     context = {
-#         'stats': stats,
-#         'message': message, # Xabarni shablonga yuboramiz
-#         'accuracy': int((stats['correct'] / stats['total_questions']) * 100) if stats['total_questions'] > 0 else 0
-#     }
-#     return render(request, 'vocabulary/test_result.html', context)
-
-
-# # vocabulary/views.py ichida
-
-# @login_required
-# def match_play(request):
-#     # 1. So'zlarni yig'amiz (Xuddi Test o'yinidagi kabi)
-#     user_created = list(Word.objects.filter(author=request.user))
-#     user_saved = list(request.user.saved_words.all())
-#     my_vocabulary = list(set(user_created + user_saved))
-
-#     # Agar kam bo'lsa, bazadan olamiz (B Plan)
-#     if len(my_vocabulary) < 5:
-#         my_vocabulary = list(Word.objects.all())
-    
-#     # Agar baribir 5 taga yetmasa -> Xato
-#     if len(my_vocabulary) < 5:
-#         return render(request, 'vocabulary/games_menu.html', {
-#             'error': "Matching o'ynash uchun kamida 5 ta so'z kerak!"
-#         })
-
-#     # 2. 5 ta tasodifiy so'z tanlaymiz
-#     selected_words = random.sample(my_vocabulary, 5)
-
-#     # 3. Kartalarni tayyorlaymiz (Jami 10 ta: 5 ta JP, 5 ta UZ)
-#     cards = []
-#     for word in selected_words:
-#         # Yaponcha karta
-#         cards.append({
-#             'id': word.id,        # ID bir xil bo'ladi (moslashtirish uchun)
-#             'text': word.japanese_word,
-#             'type': 'jp'
-#         })
-#         # O'zbekcha karta
-#         cards.append({
-#             'id': word.id,
-#             'text': word.meaning,
-#             'type': 'uz'
-#         })
-
-#     # 4. Kartalarni yaxshilab aralashtiramiz
-#     random.shuffle(cards)
-
-#     return render(request, 'vocabulary/match_play.html', {'cards': cards})
-
-# @login_required
-# def match_result(request):
-#     # Bu yerga faqat o'yinni yutganda keladi (JS yuboradi)
-#     profile = request.user.profile
-#     today = timezone.now().date()
-    
-#     # Kun yangilangan bo'lsa reset
-#     if profile.last_game_date != today:
-#         profile.daily_test_count = 0
-#         profile.daily_match_count = 0
-#         profile.daily_write_count = 0
-#         profile.last_game_date = today
-#         profile.save()
-        
-#     saved = False
-#     message = ""
-    
-#     # Limitni tekshiramiz (3 ta)
-#     if profile.daily_match_count < 3:
-#         profile.daily_match_count += 1
-#         profile.save()
-#         saved = True
-#         message = "Barakalla! +1 Ball qo'shildi."
-#     else:
-#         message = "Bugungi Matching limiti to'lgan (3/3)."
-        
-#     return render(request, 'vocabulary/match_result.html', {
-#         'saved': saved,
-#         'message': message,
-#         'count': profile.daily_match_count
-#     })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -13,11 +13,9 @@ class Topic(models.Model):
         return self.name
 
 
-# 1. SO'ZLAR MODELI (O'zgarishsiz qoldi)
+# 1. SO'ZLAR MODELI
 class Word(models.Model):
-    # ESKI: topic = models.CharField(...)  <-- BUNI OLIB TASHLAYMIZ
-    
-    # YANGI: Bitta so'z ko'p mavzuga tegishli bo'lishi mumkin
+    # Bitta so'z ko'p mavzuga tegishli bo'lishi mumkin
     topics = models.ManyToManyField(Topic, related_name='words', blank=True)
     
     japanese_word = models.CharField(max_length=100)
@@ -33,16 +31,13 @@ class Word(models.Model):
     class Meta:
         verbose_name_plural = "Words"
 
-# ... Profile va Signallar o'zgarishsiz qoladi ...
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     
-    # ... (Eski fieldlar: is_premium, expiry_date, streak, tree_state turaversin) ...
     streak = models.IntegerField(default=0)
     last_login_date = models.DateField(null=True, blank=True)
     tree_state = models.IntegerField(default=1)
     
-    # --- YANGILANGAN QISM: O'YINLAR STATISTIKASI ---
     # Har bir o'yin uchun alohida hisoblagich (Maksimum 3 tadan)
     daily_test_count = models.IntegerField(default=0)
     daily_match_count = models.IntegerField(default=0)
@@ -56,6 +51,29 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} profili"
+
+# 2. HAFTALIK STATISTIKA MODELI (Yangi)
+class WeeklyStats(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='weekly_stats')
+    start_date = models.DateField() # Haftaning birinchi kuni (Dushanba)
+    end_date = models.DateField()   # Haftaning oxirgi kuni (Yakshanba)
+
+    words_learned = models.IntegerField(default=0) # Yangi qo'shilgan/saqlangan so'zlar
+    games_played = models.IntegerField(default=0)  # O'ynalgan o'yinlar soni
+    correct_answers = models.IntegerField(default=0) # To'g'ri javoblar
+    total_questions = models.IntegerField(default=0) # Jami savollar (Aniqlikni hisoblash uchun)
+
+    class Meta:
+        unique_together = ('user', 'start_date') # Bir hafta uchun bitta statistika
+
+    @property
+    def accuracy(self):
+        if self.total_questions > 0:
+            return int((self.correct_answers / self.total_questions) * 100)
+        return 0
+
+    def __str__(self):
+        return f"{self.user.username} - {self.start_date} haftasi"
 
 # 3. SIGNALLAR (Profilni avtomatik yaratish)
 @receiver(post_save, sender=User)

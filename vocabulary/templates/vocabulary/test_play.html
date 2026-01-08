@@ -144,6 +144,10 @@
         </div>
         <h1 class="display-3 fw-bold text-dark mb-2" style="font-family: 'Nunito', sans-serif;">
             {{ question.japanese_word }}
+            <i class="bi bi-volume-up-fill text-secondary ms-2"
+               style="font-size: 2rem; cursor: pointer; vertical-align: middle;"
+               onclick="speak('{{ question.japanese_word|escapejs }}')">
+            </i>
         </h1>
         
         <div class="d-inline-block" onclick="this.querySelector('.secret-blur').classList.add('revealed')">
