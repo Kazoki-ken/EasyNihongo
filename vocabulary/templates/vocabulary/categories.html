@@ -15,7 +15,7 @@
                        placeholder="Bo'limni qidirish..."
                        value="{{ request.GET.q|default:'' }}">
                 {% if request.GET.q %}
-                <a href="{% url 'categories_view' %}" class="input-group-text bg-white border-0 text-decoration-none text-muted">
+                <a href="{% url 'categories' %}" class="input-group-text bg-white border-0 text-decoration-none text-muted">
                     <i class="bi bi-x-lg"></i>
                 </a>
                 {% endif %}
