@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="row text-center g-2">
-                    <div class="col-4">
+                    <div class="col-3">
                         <div class="bg-white bg-opacity-25 rounded-3 p-2 mobile-compact-box">
                             <div class="h4 fw-bold mb-0 mobile-compact-number">
                                 {{ weekly_stats.words_learned }}
@@ -38,18 +38,24 @@
                             <small style="font-size: 0.7rem;">Yangi so'z</small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-3">
                         <div class="bg-white bg-opacity-25 rounded-3 p-2 mobile-compact-box">
                             <div class="h4 fw-bold mb-0 mobile-compact-number">{{ weekly_stats.games_played }}</div>
                             <small style="font-size: 0.7rem;">O'yinlar</small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-3">
+                        <div class="bg-white bg-opacity-25 rounded-3 p-2 mobile-compact-box">
+                            <div class="h4 fw-bold mb-0 mobile-compact-number">{{ weekly_stats.accuracy }}%</div>
+                            <small style="font-size: 0.7rem;">Aniqlik</small>
+                        </div>
+                    </div>
+                    <div class="col-3">
                         <div class="bg-white bg-opacity-25 rounded-3 p-2 mobile-compact-box">
                             <div class="h4 fw-bold mb-0 mobile-compact-number">
                                 {{ weekly_stats.coins_earned }}
                             </div>
-                            <small style="font-size: 0.7rem;">Haftalik Coin</small>
+                            <small style="font-size: 0.7rem;">Coinlar</small>
                         </div>
                     </div>
                 </div>
