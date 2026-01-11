@@ -466,7 +466,8 @@ def test_start(request):
             'total_questions': 0,
             'correct': 0,
             'wrong': 0,
-            'limit': int(limit) if limit != 'infinite' else 'infinite'
+            'limit': int(limit) if limit != 'infinite' else 'infinite',
+            'potential_coins': 0,
         }
         return redirect('test_play')
     return redirect('test_setup')
@@ -500,7 +501,13 @@ def test_play(request):
         w_stats.total_questions += 1
         if is_correct:
             w_stats.correct_answers += 1
-            w_stats.coins_earned += 1 # Har bir to'g'ri javob uchun 1 coin
+            # Coin logikasi: Faqat bazadagi (author is Null) so'zlar uchun
+            try:
+                word_obj = Word.objects.get(id=word_id)
+                if word_obj.author is None:
+                     stats['potential_coins'] = stats.get('potential_coins', 0) + 1
+            except Word.DoesNotExist:
+                pass
         w_stats.save()
         
         request.session['test_stats'] = stats
@@ -573,6 +580,31 @@ def test_result(request):
 
         accuracy = (stats['correct'] / stats['total_questions']) * 100
         
+        # --- Coin berish qoidalari ---
+        # 1. 60% dan yuqori aniqlik
+        # 2. To'liq yechilgan (limit bo'yicha) yoki Infinite bo'lsa 30 tadan ko'p
+        limit = stats['limit']
+        eligible_for_coins = False
+
+        if accuracy >= 60:
+            if limit == 'infinite':
+                if stats['total_questions'] > 30:
+                    eligible_for_coins = True
+            else:
+                # Agar limit belgilangan bo'lsa, to'liq yechgan bo'lishi kerak
+                # (Test o'yini avtomatik redirect qiladi limitga yetganda, demak yetib kelgan)
+                if stats['total_questions'] >= limit:
+                    eligible_for_coins = True
+
+        earned_coins = 0
+        if eligible_for_coins:
+            earned_coins = stats.get('potential_coins', 0)
+            if earned_coins > 0:
+                w_stats.coins_earned += earned_coins
+                w_stats.save()
+
+        stats['earned_coins'] = earned_coins
+
         if stats['total_questions'] < 10:
              message = "Ball olish uchun kamida 10 ta savol yechish kerak!"
         elif accuracy < 60:
@@ -593,7 +625,8 @@ def test_result(request):
     context = {
         'stats': stats,
         'message': message,
-        'accuracy': int((stats['correct'] / stats['total_questions']) * 100) if stats['total_questions'] > 0 else 0
+        'accuracy': int(accuracy) if stats['total_questions'] > 0 else 0,
+        'earned_coins': stats.get('earned_coins', 0)
     }
     return render(request, 'vocabulary/test_result.html', context)
 
@@ -639,6 +672,11 @@ def match_play(request):
     random.shuffle(all_words)
     selected_words = all_words[:total_words_needed]
 
+    # Coin hisoblash: Faqat tizim so'zlari (author is None)
+    system_words_count = sum(1 for w in selected_words if w.author is None)
+    # 5 ta tizim so'zi uchun 1 coin (ya'ni 1 raund to'liq tizim so'zi bo'lsa)
+    match_potential_coins = system_words_count // 5
+
     # JSON tayyorlash
     cards_data = []
     for word in selected_words:
@@ -648,6 +686,7 @@ def match_play(request):
     # Sessiyaga yozib qo'yamiz (Refresh muammosi uchun)
     request.session['match_playing'] = True
     request.session['match_rounds'] = rounds
+    request.session['match_potential_coins'] = match_potential_coins
 
     return render(request, 'vocabulary/match_play.html', {
         'cards_json': json.dumps(cards_data), 
@@ -668,8 +707,14 @@ def match_result(request):
     # Haftalik statistika: O'yin soni (Match uchun)
     w_stats = get_weekly_stats(request.user)
     w_stats.games_played += 1
-    w_stats.coins_earned += rounds # 1 raund = 1 coin
+
+    # Coinlarni qo'shish
+    earned_coins = request.session.get('match_potential_coins', 0)
+    w_stats.coins_earned += earned_coins
     w_stats.save()
+
+    # Sessiyaga yozib qo'yamiz (shablonda ko'rsatish uchun)
+    request.session['match_last_earned_coins'] = earned_coins
 
     profile = request.user.profile
     today = timezone.now().date()
@@ -739,7 +784,8 @@ def write_start(request):
         request.session['write_stats'] = {
             'correct': 0,
             'wrong': 0,
-            'total_questions': 0
+            'total_questions': 0,
+            'potential_coins': 0,
         }
         # "O'yin jarayoni ketyapti" degan belgi
         request.session['write_playing'] = True
@@ -808,7 +854,9 @@ def write_play(request):
         w_stats.total_questions += 1
         if is_correct:
             w_stats.correct_answers += 1
-            w_stats.coins_earned += 1 # Har bir to'g'ri javob uchun 1 coin
+            # Coin logikasi: Faqat bazadagi so'zlar uchun
+            if target_word.author is None:
+                stats['potential_coins'] = stats.get('potential_coins', 0) + 1
         w_stats.save()
 
         request.session['write_stats'] = stats
@@ -890,6 +938,26 @@ def write_result(request):
     if stats['total_questions'] > 0:
         accuracy = int((stats['correct'] / stats['total_questions']) * 100)
 
+    # --- Coin berish qoidalari ---
+    eligible_for_coins = False
+
+    if accuracy >= 60:
+        if limit == 'infinite':
+            if stats['total_questions'] > 30:
+                eligible_for_coins = True
+        else:
+            if stats['total_questions'] >= int(limit):
+                eligible_for_coins = True
+
+    earned_coins = 0
+    if eligible_for_coins:
+        earned_coins = stats.get('potential_coins', 0)
+        if earned_coins > 0:
+            w_stats.coins_earned += earned_coins
+            w_stats.save()
+
+    stats['earned_coins'] = earned_coins
+
     saved = False
     message = ""
 
@@ -924,7 +992,8 @@ def write_result(request):
         'saved': saved,
         'message': message,
         'count': profile.daily_write_count, # Hozirgi hisob (masalan: 2)
-        'limit': limit
+        'limit': limit,
+        'earned_coins': earned_coins
     })
  # --- ESKI O'YIN (Agar kerak bo'lmasa o'chirib tashlasa ham bo'ladi) ---
 @login_required
