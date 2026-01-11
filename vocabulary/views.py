@@ -53,6 +53,28 @@ def get_weekly_stats(user):
     """Joriy hafta uchun statistika obyektini qaytaradi yoki yaratadi"""
     today = timezone.now().date()
     start_week = today - timedelta(days=today.weekday()) # Dushanba
+
+    # 1. Oldingi haftalarning yig'ilmagan tangalarini tekshirish
+    uncollected_stats = WeeklyStats.objects.filter(
+        user=user,
+        end_date__lt=start_week,
+        is_collected=False
+    )
+
+    if uncollected_stats.exists():
+        total_coins = 0
+        for stat in uncollected_stats:
+            total_coins += stat.coins_earned
+            stat.is_collected = True
+            stat.save()
+
+        if total_coins > 0:
+            profile = user.profile
+            profile.coins += total_coins
+            profile.save()
+            # Xabar berish (agar kerak bo'lsa) - bu yerda request yo'q, shuning uchun shunchaki saqlaymiz
+
+    # 2. Joriy hafta statistikasini olish
     stats, created = WeeklyStats.objects.get_or_create(
         user=user,
         start_date=start_week,
@@ -478,6 +500,7 @@ def test_play(request):
         w_stats.total_questions += 1
         if is_correct:
             w_stats.correct_answers += 1
+            w_stats.coins_earned += 1 # Har bir to'g'ri javob uchun 1 coin
         w_stats.save()
         
         request.session['test_stats'] = stats
@@ -640,9 +663,12 @@ def match_result(request):
     # O'yin tugadi, sessiyani tozalaymiz
     del request.session['match_playing']
 
+    rounds = request.session.get('match_rounds', 3)
+
     # Haftalik statistika: O'yin soni (Match uchun)
     w_stats = get_weekly_stats(request.user)
     w_stats.games_played += 1
+    w_stats.coins_earned += rounds # 1 raund = 1 coin
     w_stats.save()
 
     profile = request.user.profile
@@ -782,6 +808,7 @@ def write_play(request):
         w_stats.total_questions += 1
         if is_correct:
             w_stats.correct_answers += 1
+            w_stats.coins_earned += 1 # Har bir to'g'ri javob uchun 1 coin
         w_stats.save()
 
         request.session['write_stats'] = stats
