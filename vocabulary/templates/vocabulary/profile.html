@@ -11,6 +11,12 @@
         </div>
         <h4 class="fw-bold mb-1 text-dark">{{ user.username }}</h4>
         <p class="text-muted small">Sakura Akademiyasi Talabasi</p>
+
+        <!-- COINS DISPLAY -->
+        <div class="d-inline-flex align-items-center bg-warning bg-opacity-10 px-3 py-1 rounded-pill mt-2">
+            <i class="bi bi-coin text-warning me-2"></i>
+            <span class="fw-bold text-warning">{{ user.profile.coins }} Coins</span>
+        </div>
     </div>
 
     <!-- Haftalik Statistika (Yangi) -->
@@ -40,8 +46,10 @@
                     </div>
                     <div class="col-4">
                         <div class="bg-white bg-opacity-25 rounded-3 p-2 mobile-compact-box">
-                            <div class="h4 fw-bold mb-0 mobile-compact-number">{{ weekly_stats.accuracy }}%</div>
-                            <small style="font-size: 0.7rem;">Aniqlik</small>
+                            <div class="h4 fw-bold mb-0 mobile-compact-number">
+                                {{ weekly_stats.coins_earned }}
+                            </div>
+                            <small style="font-size: 0.7rem;">Haftalik Coin</small>
                         </div>
                     </div>
                 </div>

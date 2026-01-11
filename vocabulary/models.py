@@ -44,6 +44,8 @@ class Profile(models.Model):
     daily_write_count = models.IntegerField(default=0)
     last_game_date = models.DateField(null=True, blank=True)
 
+    coins = models.IntegerField(default=0)
+
     # Jami kunlik progressni hisoblaydigan property (3+3+3 = 9)
     @property
     def total_daily_progress(self):
@@ -62,6 +64,9 @@ class WeeklyStats(models.Model):
     games_played = models.IntegerField(default=0)  # O'ynalgan o'yinlar soni
     correct_answers = models.IntegerField(default=0) # To'g'ri javoblar
     total_questions = models.IntegerField(default=0) # Jami savollar (Aniqlikni hisoblash uchun)
+
+    coins_earned = models.IntegerField(default=0) # Haftalik yig'ilgan tangalar
+    is_collected = models.BooleanField(default=False) # Balansga o'tkazilganligi
 
     class Meta:
         unique_together = ('user', 'start_date') # Bir hafta uchun bitta statistika
