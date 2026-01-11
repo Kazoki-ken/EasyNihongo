@@ -53,10 +53,17 @@
         </div>
         
         <!-- EARNED COINS -->
+        {% if request.session.match_last_earned_coins > 0 %}
         <div class="mt-3 py-2 px-3 rounded-pill bg-warning bg-opacity-10 d-inline-flex align-items-center">
             <i class="bi bi-coin text-warning me-2 fs-5"></i>
-            <span class="fw-bold text-dark">+{{ request.session.match_rounds|default:3 }} Coins</span>
+            <span class="fw-bold text-dark">+{{ request.session.match_last_earned_coins }} Coins</span>
         </div>
+        {% else %}
+        <div class="mt-3 py-2 px-3 rounded-pill bg-secondary bg-opacity-10 d-inline-flex align-items-center">
+            <i class="bi bi-coin text-secondary me-2 fs-5"></i>
+            <span class="fw-bold text-muted">0 Coins (Baza so'zlari kam)</span>
+        </div>
+        {% endif %}
 
     </div>
     
