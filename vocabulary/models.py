@@ -4,12 +4,27 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-# 1. MAVZULAR MODELI (Yangi)
-class Topic(models.Model):
-    name = models.CharField(max_length=100)
-    # description = models.TextField(blank=True, null=True) # Kerak bo'lsa qo'shasiz
+# 0. KITOBLAR MODELI (Yangi)
+class Book(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+    # Rasm uchun ImageField ishlatish mumkin, lekin hozircha oddiy saqlaymiz yoki icon
+    # image = models.ImageField(upload_to='books/', blank=True, null=True)
+    saves = models.ManyToManyField(User, related_name='saved_books', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        return self.title
+
+# 1. MAVZULAR MODELI
+class Topic(models.Model):
+    name = models.CharField(max_length=100)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='topics', null=True, blank=True)
+    # Agar book=None bo'lsa -> Asosiy lug'at mavzusi
+
+    def __str__(self):
+        if self.book:
+            return f"{self.book.title} - {self.name}"
         return self.name
 
 
