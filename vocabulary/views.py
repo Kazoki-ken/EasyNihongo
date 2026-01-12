@@ -55,9 +55,10 @@ def get_weekly_stats(user):
     start_week = today - timedelta(days=today.weekday()) # Dushanba
 
     # 1. Oldingi haftalarning yig'ilmagan tangalarini tekshirish
+    # DIQQAT: start_date dan foydalanish xavfsizroq, chunki end_date modelda aniq ko'rinmayapti
     uncollected_stats = WeeklyStats.objects.filter(
         user=user,
-        end_date__lt=start_week,
+        start_date__lt=start_week,
         is_collected=False
     )
 
