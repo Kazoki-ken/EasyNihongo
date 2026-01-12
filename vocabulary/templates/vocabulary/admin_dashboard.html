@@ -1,0 +1,41 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <h2 class="mb-4 fw-bold text-center"><i class="bi bi-shield-lock me-2"></i>Admin Dashboard</h2>
+
+    <div class="row g-4">
+        <!-- 1. General Upload -->
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box mb-3 mx-auto rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-cloud-upload fs-3"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">General Upload</h5>
+                    <p class="card-text text-muted">Upload words directly to the dictionary. These words will be available in the general pool or specific topics.</p>
+                    <a href="{% url 'upload_words' %}" class="btn btn-primary w-100 rounded-pill">
+                        Go to Upload <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Book Upload -->
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="icon-box mb-3 mx-auto rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-book fs-3"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Upload to Book</h5>
+                    <p class="card-text text-muted">Create a new Book or Topic and upload words specifically for it. Organized structure.</p>
+                    <a href="{% url 'upload_book_words' %}" class="btn btn-success w-100 rounded-pill">
+                        Go to Book Upload <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
