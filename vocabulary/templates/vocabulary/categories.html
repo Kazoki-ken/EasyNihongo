@@ -5,6 +5,19 @@
         <h3 class="fw-bold text-dark">📚 O'quv Bo'limlari</h3>
         <p class="text-muted small">O'rganmoqchi bo'lgan darsingizni tanlang</p>
 
+        <!-- NAVIGATION PILLS (QO'SHILDI) -->
+        <ul class="nav nav-pills justify-content-center mb-4 mt-3" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill px-4 fw-bold" id="pills-main-tab" data-bs-toggle="pill" data-bs-target="#pills-main" type="button" role="tab">Asosiy</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4 fw-bold" id="pills-books-tab" data-bs-toggle="pill" data-bs-target="#pills-books" type="button" role="tab">Kitoblar</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill px-4 fw-bold disabled" id="pills-soon-tab" data-bs-toggle="pill" type="button" role="tab">Tez orada</button>
+            </li>
+        </ul>
+
         <!-- Search Bar -->
         <form method="get" class="mt-3">
             <div class="input-group shadow-sm rounded-pill overflow-hidden border-0">
@@ -23,48 +36,83 @@
         </form>
     </div>
 
-    <div class="row g-3 px-2 pb-3">
+    <!-- TAB CONTENT WRAPPER -->
+    <div class="tab-content" id="pills-tabContent">
         
-        {% if page_obj.number == 1 and not request.GET.q %}
-        <div class="col-12">
-            <a href="{% url 'dashboard' %}" class="text-decoration-none">
-                <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center bg-primary text-white border-0">
-                    
-                    <div class="bg-white bg-opacity-25 rounded-circle mb-3 d-flex align-items-center justify-content-center" 
-                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-collection-fill text-white" style="font-size: 1.5rem;"></i>
-                    </div>
-                    
-                    <span class="fw-bold text-white text-truncate w-100">Hamma so'zlar</span>
-                </div>
-            </a>
-        </div>
-        {% endif %}
+        <!-- 1. ASOSIY LUG'AT TABI -->
+        <div class="tab-pane fade show active" id="pills-main" role="tabpanel">
+            <div class="row g-3 px-2 pb-3">
 
-        {% for topic in page_obj %}
-       <div class="col-6">
-            <a href="{% url 'topic_words' topic %}" class="text-decoration-none">
-                <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center">
-                    
-                    <div class="bg-light rounded-circle mb-3 d-flex align-items-center justify-content-center"
-                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-journal-bookmark text-primary" style="font-size: 1.5rem;"></i>
-                    </div>
-                    
-                    <span class="fw-bold text-dark text-truncate w-100">{{ topic }}</span>
+                {% if page_obj.number == 1 and not request.GET.q %}
+                <div class="col-12">
+                    <a href="{% url 'dashboard' %}" class="text-decoration-none">
+                        <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center bg-primary text-white border-0">
+
+                            <div class="bg-white bg-opacity-25 rounded-circle mb-3 d-flex align-items-center justify-content-center"
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-collection-fill text-white" style="font-size: 1.5rem;"></i>
+                            </div>
+
+                            <span class="fw-bold text-white text-truncate w-100">Hamma so'zlar</span>
+                        </div>
+                    </a>
                 </div>
-            </a>
+                {% endif %}
+
+                {% for topic in page_obj %}
+               <div class="col-6">
+                    <a href="{% url 'topic_words' topic.name %}" class="text-decoration-none">
+                        <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+
+                            <div class="bg-light rounded-circle mb-3 d-flex align-items-center justify-content-center"
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-journal-bookmark text-primary" style="font-size: 1.5rem;"></i>
+                            </div>
+
+                            <span class="fw-bold text-dark text-truncate w-100">{{ topic.name }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-12 py-5">
+                    <p class="text-muted">Hozircha bo'limlar yo'q.</p>
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- Pagination -->
+            {% include 'vocabulary/includes/pagination.html' with page_obj=page_obj param_name='page' %}
         </div>
-        {% empty %}
-        <div class="col-12 py-5">
-            <p class="text-muted">Hozircha bo'limlar yo'q.</p>
+
+        <!-- 2. KITOBLAR TABI (QO'SHILDI) -->
+        <div class="tab-pane fade" id="pills-books" role="tabpanel">
+            <div class="row g-3 px-2 pb-3">
+                {% for book in books %}
+                <div class="col-6">
+                    <a href="{% url 'book_details' book.id %}" class="text-decoration-none">
+                        <div class="sakura-card p-4 h-100 d-flex flex-column align-items-center justify-content-center">
+
+                            <!-- Kitob belgisi -->
+                            <div class="bg-success bg-opacity-10 rounded-3 mb-3 d-flex align-items-center justify-content-center"
+                                 style="width: 60px; height: 80px;">
+                                <i class="bi bi-book-fill text-success" style="font-size: 2rem;"></i>
+                            </div>
+
+                            <span class="fw-bold text-dark text-truncate w-100">{{ book.title }}</span>
+                            <small class="text-muted" style="font-size: 0.7rem;">{{ book.topics.count }} ta bo'lim</small>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-12 py-5">
+                    <p class="text-muted">Hozircha kitoblar yo'q.</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
-        
+
     </div>
-
-    <!-- Pagination -->
-    {% include 'vocabulary/includes/pagination.html' with page_obj=page_obj param_name='page' %}
 
     <div class="pb-5"></div>
 </div>

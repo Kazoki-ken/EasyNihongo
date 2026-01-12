@@ -1,0 +1,81 @@
+{% extends 'vocabulary/base.html' %}
+{% block content %}
+<div class="container" style="padding-top: 90px; padding-bottom: 3rem;">
+
+    <div class="mb-3">
+        <a href="{% url 'categories' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left"></i> Orqaga
+        </a>
+    </div>
+
+    <div class="d-flex align-items-center mb-4">
+        <h3 class="fw-bold text-dark m-0">{{ book.title }}</h3>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="d-flex align-items-start">
+            <div class="bg-success bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center me-4"
+                 style="width: 80px; height: 100px;">
+                <i class="bi bi-book-fill text-success" style="font-size: 2.5rem;"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold">{{ book.title }}</h5>
+                <p class="text-muted">{{ book.description|default:"Tavsif yo'q" }}</p>
+
+                <button id="save-book-btn" class="btn {% if is_saved %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill px-4">
+                    {% if is_saved %}
+                        <i class="bi bi-check-lg me-1"></i> Saqlangan
+                    {% else %}
+                        <i class="bi bi-bookmark me-1"></i> Saqlash
+                    {% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="text-muted text-uppercase small fw-bold mb-3">Mavzular ({{ topics.count }})</h5>
+
+    <div class="row g-3">
+        {% for topic in topics %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'topic_words' topic.name %}" class="text-decoration-none">
+                <div class="sakura-card p-3 h-100 bg-white shadow-sm rounded-4 d-flex align-items-center">
+                    <div class="bg-light rounded-circle me-3 d-flex align-items-center justify-content-center"
+                         style="width: 50px; height: 50px;">
+                        <i class="bi bi-list-ul text-primary"></i>
+                    </div>
+                    <span class="fw-bold text-dark">{{ topic.name }}</span>
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-muted">Bu kitobda hali mavzular yo'q.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('save-book-btn').addEventListener('click', function() {
+        const btn = this;
+        // URL needs book id. Assuming url pattern is /books/save/<id>/
+        fetch("{% url 'toggle_book_save' book.id %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.saved) {
+                    btn.classList.remove('btn-outline-success');
+                    btn.classList.add('btn-success');
+                    btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Saqlangan';
+                } else {
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                    btn.innerHTML = '<i class="bi bi-bookmark me-1"></i> Saqlash';
+                }
+            })
+            .catch(err => console.error('Error:', err));
+    });
+</script>
+{% endblock %}
