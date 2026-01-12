@@ -45,5 +45,6 @@ urlpatterns = [
     path('games/write/start/', views.write_start, name='write_start'),    # Boshlash
     path('games/write/play/', views.write_play, name='write_play'),       # O'yin jarayoni
     path('games/write/result/', views.write_result, name='write_result'), # Natija
-    path('upload-words/', views.upload_words, name='upload_words'),   
+    path('upload-words/', views.upload_words, name='upload_words'),
+    path('upload-book-words/', views.upload_book_words, name='upload_book_words'),
 ]

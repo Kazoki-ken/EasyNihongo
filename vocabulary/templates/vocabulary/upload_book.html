@@ -1,0 +1,74 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold mb-0">Upload Book Words</h2>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <!-- Book Selection -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Select Book</label>
+                        <select name="book_id" class="form-select mb-2" id="bookSelect">
+                            <option value="">-- Create New Book --</option>
+                            {% for book in books %}
+                                <option value="{{ book.id }}">{{ book.title }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="new_book_title" id="newBookInput" class="form-control" placeholder="Enter new book title (if creating new)">
+                    </div>
+
+                    <!-- Topic Selection -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Select Topic (Chapter)</label>
+                        <select name="topic_id" class="form-select mb-2" id="topicSelect">
+                            <option value="">-- Create New Topic --</option>
+                            {% for topic in topics %}
+                                <option value="{{ topic.id }}">{{ topic.name }} {% if topic.book %}({{ topic.book.title }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="new_topic_name" id="newTopicInput" class="form-control" placeholder="Enter new topic name (e.g. Chapter 1)">
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="col-12 mt-4">
+                        <label class="form-label fw-bold">Excel File</label>
+                        <div class="input-group">
+                            <input type="file" name="excel_file" class="form-control" accept=".xlsx, .xls" required>
+                            <label class="input-group-text" for="excel_file"><i class="bi bi-file-earmark-excel"></i></label>
+                        </div>
+                        <div class="form-text mt-2">
+                            The Excel file must have columns: <code>Japanese</code>, <code>Meaning</code>. <br>
+                            Optional: <code>Hiragana</code>.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-5">
+                    <button type="submit" class="btn btn-success py-3 rounded-pill fw-bold">
+                        <i class="bi bi-cloud-arrow-up me-2"></i> Upload Words
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

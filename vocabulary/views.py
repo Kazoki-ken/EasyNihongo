@@ -1088,5 +1088,83 @@ def upload_words(request):
             
     return render(request, 'vocabulary/upload.html')
 
+@staff_member_required
+def upload_book_words(request):
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        new_book_title = request.POST.get('new_book_title')
+
+        topic_id = request.POST.get('topic_id')
+        new_topic_name = request.POST.get('new_topic_name')
+
+        excel_file = request.FILES.get('excel_file')
+
+        if not excel_file:
+            messages.error(request, "Excel fayl tanlanmagan!")
+            return redirect('upload_book_words')
+
+        # 1. KITOBNI ANIQLASH
+        book = None
+        if new_book_title:
+            book, created = Book.objects.get_or_create(title=new_book_title)
+        elif book_id:
+            book = get_object_or_404(Book, id=book_id)
+        else:
+            messages.error(request, "Kitob tanlanmagan yoki yangi nom kiritilmagan!")
+            return redirect('upload_book_words')
+
+        # 2. MAVZUNI ANIQLASH
+        topic = None
+        if new_topic_name:
+            # Yangi mavzu yaratamiz va uni kitobga bog'laymiz
+            topic, created = Topic.objects.get_or_create(name=new_topic_name, book=book)
+        elif topic_id:
+            topic = get_object_or_404(Topic, id=topic_id)
+            # Agar mavzu "General" (book=None) bo'lsa va endi Kitobga bog'lanishi kerak bo'lsa:
+            if topic.book is None:
+                topic.book = book
+                topic.save()
+            elif topic.book != book:
+                messages.warning(request, f"Diqqat: '{topic.name}' mavzusi '{topic.book.title}' kitobiga tegishli edi. So'zlar o'sha mavzuga qo'shildi.")
+        else:
+            messages.error(request, "Mavzu tanlanmagan!")
+            return redirect('upload_book_words')
+
+        # 3. EXCELNI O'QISH VA SO'ZLARNI QO'SHISH
+        try:
+            df = pd.read_excel(excel_file)
+            added_count = 0
+
+            for index, row in df.iterrows():
+                jap = str(row['Japanese']).strip()
+                hira = str(row['Hiragana']).strip() if pd.notna(row['Hiragana']) else ""
+                mean = str(row['Meaning']).strip()
+
+                # So'zni yaratamiz
+                word, created = Word.objects.get_or_create(
+                    japanese_word=jap,
+                    defaults={'hiragana': hira, 'meaning': mean}
+                )
+
+                # Mavzuga bog'laymiz
+                word.topics.add(topic)
+                word.save()
+                added_count += 1
+
+            messages.success(request, f"{book.title} -> {topic.name}: {added_count} ta so'z muvaffaqiyatli yuklandi!")
+
+        except Exception as e:
+            messages.error(request, f"Xatolik: {str(e)}")
+
+        return redirect('upload_book_words')
+
+    # GET Request
+    books = Book.objects.all()
+    topics = Topic.objects.all()
+
+    return render(request, 'vocabulary/upload_book.html', {
+        'books': books,
+        'topics': topics
+    })
 
 
