@@ -232,6 +232,7 @@ def my_vocabulary(request):
 @login_required
 def categories_view(request):
     query = request.GET.get('q')
+    tab = request.GET.get('tab', 'main') # Default to 'main' if not present
 
     # 1. ASOSIY MAVZULAR (Book yo'q)
     topics = Topic.objects.filter(book__isnull=True)
@@ -252,7 +253,8 @@ def categories_view(request):
     return render(request, 'vocabulary/categories.html', {
         'page_obj': page_obj,
         'books': books,
-        'search_query': query
+        'search_query': query,
+        'active_tab': tab
     })
 
 @login_required
