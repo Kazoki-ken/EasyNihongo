@@ -1,56 +1,66 @@
 from django.contrib import admin
-from .models import Word, Topic, Profile
+from .models import Word, Topic, Profile, Book, WeeklyStats, UserWordProgress
 
-# 1. Topic va Profile ni oddiy ro'yxatdan o'tkazish
-# (Bularni faqat bir marta yozish kerak)
-try:
-    admin.site.register(Topic)
-except admin.sites.AlreadyRegistered:
-    pass
+# 1. BOOK (Yangi)
+@admin.register(Book)
+class BookAdmin(admin.ModelAdmin):
+    list_display = ('title', 'created_at', 'get_topics_count')
+    search_fields = ('title', 'description')
 
-try:
-    admin.site.register(Profile)
-except admin.sites.AlreadyRegistered:
-    pass
+    def get_topics_count(self, obj):
+        return obj.topics.count()
+    get_topics_count.short_description = "Mavzular soni"
 
-# 2. Word modeli uchun maxsus sozlamalar
-# Agar Word oldin ro'yxatdan o'tgan bo'lsa, uni avval chiqarib tashlaymiz
+# 2. TOPIC
+# Oldingi oddiy register(Topic) ni o'chirib, custom admin qilamiz
+# Agar oldin register qilingan bo'lsa, unregister qilish shart emas, chunki @admin.register ustiga yozadi,
+# LEKIN kodda "try...except AlreadyRegistered" bor edi. Biz uni tozalamiz.
+
+if admin.site.is_registered(Topic):
+    admin.site.unregister(Topic)
+
+@admin.register(Topic)
+class TopicAdmin(admin.ModelAdmin):
+    list_display = ('name', 'book')
+    list_filter = ('book',)
+    search_fields = ('name',)
+
+# 3. PROFILE
+if admin.site.is_registered(Profile):
+    admin.site.unregister(Profile)
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'streak', 'coins', 'level_display')
+    search_fields = ('user__username',)
+
+    def level_display(self, obj):
+        # Bu yerda level yo'q, lekin kerak bo'lsa qo'shish mumkin
+        return "N/A"
+
+# 4. WORD
 if admin.site.is_registered(Word):
     admin.site.unregister(Word)
 
 @admin.register(Word)
 class WordAdmin(admin.ModelAdmin):
-    list_display = ('japanese_word', 'meaning', 'get_topics') # Jadvalda ko'rinishi
+    list_display = ('japanese_word', 'meaning', 'author', 'get_topics')
     search_fields = ('japanese_word', 'meaning')
-    filter_horizontal = ('topics',) # ManyToMany tanlash oynasi
+    list_filter = ('topics', 'author')
+    filter_horizontal = ('topics',)
 
     def get_topics(self, obj):
         return ", ".join([t.name for t in obj.topics.all()])
-    
     get_topics.short_description = 'Topics'
 
+# 5. STATISTIKA (Ixtiyoriy, lekin foydali)
+@admin.register(WeeklyStats)
+class WeeklyStatsAdmin(admin.ModelAdmin):
+    list_display = ('user', 'start_date', 'words_learned', 'games_played', 'coins_earned')
+    list_filter = ('start_date', 'is_collected')
 
-
-
-
-
-
-
-# # vocabulary/admin.py
-# from django.contrib import admin
-# from .models import Word, Profile
-
-# @admin.register(Word)
-# class WordAdmin(admin.ModelAdmin):
-#     # 'created_by' o'rniga 'author' va yangi 'topic' maydonini qo'shdik
-#     list_display = ('japanese_word', 'hiragana', 'meaning', 'author', 'topic', 'created_at')
-    
-#     # Filtrlash endi muallif va mavzu bo'yicha bo'ladi
-#     list_filter = ('author', 'topic', 'created_at')
-    
-#     # Qidiruv maydonlari
-#     search_fields = ('japanese_word', 'hiragana', 'meaning')
-
-# # Profile modelini ham admin panelda ko'radigan qilamiz
-# admin.site.register(Profile)
-
+@admin.register(UserWordProgress)
+class UserWordProgressAdmin(admin.ModelAdmin):
+    list_display = ('user', 'word', 'level', 'xp', 'next_review_date')
+    search_fields = ('user__username', 'word__japanese_word')
+    list_filter = ('level', 'next_review_date')
