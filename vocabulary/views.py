@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress
+from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress, Book
 from .forms import UserRegisterForm, WordForm
 
 # =========================================================
@@ -202,6 +202,9 @@ def my_vocabulary(request):
     # 2. Foydalanuvchi SAQLAB QO'YGAN so'zlar
     saved_words_qs = request.user.saved_words.all().order_by('-created_at')
 
+    # 3. Foydalanuvchi SAQLAB QO'YGAN KITOBLAR
+    saved_books_qs = request.user.saved_books.all().order_by('-created_at')
+
     # --- PAGINATION (USER WORDS) ---
     user_paginator = Paginator(user_words_qs, 20)
     user_page_number = request.GET.get('user_page')
@@ -222,26 +225,59 @@ def my_vocabulary(request):
 
     return render(request, 'vocabulary/my_vocabulary.html', {
         'user_words': user_words,
-        'saved_words': saved_words
+        'saved_words': saved_words,
+        'saved_books': saved_books_qs
     })
 ########################################
 @login_required
 def categories_view(request):
     query = request.GET.get('q')
-    topics = Topic.objects.all()
+
+    # 1. ASOSIY MAVZULAR (Book yo'q)
+    topics = Topic.objects.filter(book__isnull=True)
+
+    # 2. KITOBLAR
+    books = Book.objects.all()
 
     if query:
         topics = topics.filter(name__icontains=query)
+        books = books.filter(title__icontains=query)
 
-    # --- PAGINATION (TOPICS) ---
-    # 10 ta bo'limdan chiqaramiz
+    # --- PAGINATION (TOPICS - Asosiy lug'at uchun) ---
+    # Kitoblar hozircha bitta sahifada chiqadi (yoki alohida paginator qilish mumkin)
     paginator = Paginator(topics, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'vocabulary/categories.html', {
-        'page_obj': page_obj
+        'page_obj': page_obj,
+        'books': books,
+        'search_query': query
     })
+
+@login_required
+def book_details_view(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    topics = book.topics.all()
+
+    is_saved = request.user in book.saves.all()
+
+    return render(request, 'vocabulary/book_details.html', {
+        'book': book,
+        'topics': topics,
+        'is_saved': is_saved
+    })
+
+@login_required
+def toggle_book_save(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    if request.user in book.saves.all():
+        book.saves.remove(request.user)
+        saved = False
+    else:
+        book.saves.add(request.user)
+        saved = True
+    return JsonResponse({'saved': saved})
 ###########################################
 @login_required
 def topic_words(request, topic_name):
