@@ -282,9 +282,10 @@ def toggle_book_save(request, book_id):
     return JsonResponse({'saved': saved})
 ###########################################
 @login_required
-def topic_words(request, topic_name):
-    # Mavzu nomi bo'yicha so'zlarni olish
-    words_qs = Word.objects.filter(author__isnull=True, topics__name=topic_name).order_by('created_at').distinct()
+def topic_words(request, topic_id):
+    # Mavzu ID bo'yicha so'zlarni olish
+    topic = get_object_or_404(Topic, id=topic_id)
+    words_qs = Word.objects.filter(author__isnull=True, topics=topic).order_by('created_at').distinct()
 
     # --- PAGINATION (TOPIC WORDS) ---
     paginator = Paginator(words_qs, 20)
@@ -319,14 +320,16 @@ def topic_words(request, topic_name):
             
     context = {
         'words': page_obj, # Sahifalangan obyekt
-        'topic_name': topic_name,
+        'topic': topic,
+        'topic_name': topic.name,
         'words_all_saved': words_all_saved
     }
     return render(request, 'vocabulary/topic_words.html', context)
 ################################
 @login_required
-def save_all_topic_words(request, topic_name):
-    words = Word.objects.filter(author__isnull=True, topics__name=topic_name).distinct()
+def save_all_topic_words(request, topic_id):
+    topic = get_object_or_404(Topic, id=topic_id)
+    words = Word.objects.filter(author__isnull=True, topics=topic).distinct()
     
     # 1. Hamma so'zlar saqlanganmi?
     # Optimization: exists() bilan tekshiramiz

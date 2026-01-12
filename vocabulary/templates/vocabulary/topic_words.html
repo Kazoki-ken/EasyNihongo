@@ -25,7 +25,7 @@
             <p class="text-muted small m-0">Mavzuga oid so'zlar</p>
         </div>
 
-        <button id="save-all-btn" class="btn btn-outline-primary rounded-pill d-flex align-items-center shadow-sm" data-topic-name="{{ topic_name }}">
+        <button id="save-all-btn" class="btn btn-outline-primary rounded-pill d-flex align-items-center shadow-sm" data-topic-id="{{ topic.id }}">
             <i class="bi bi-bookmark-heart fs-5"></i>
             <span class="ms-2 d-none d-sm-inline">Hammasini saqlash</span>
         </button>
@@ -96,15 +96,15 @@
     const saveAllBtn = document.getElementById('save-all-btn');
     if (saveAllBtn) {
         saveAllBtn.addEventListener('click', function() {
-            // BU YERDA HAM O'ZGARISH: topic_name ni olamiz
-            const topicName = this.getAttribute('data-topic-name'); 
+            // BU YERDA HAM O'ZGARISH: topic_id ni olamiz
+            const topicId = this.getAttribute('data-topic-id');
             const iconMain = this.querySelector('i');
             const spanMain = this.querySelector('span');
             
             iconMain.className = 'bi bi-hourglass-split';
 
             // URL ga e'tibor bering!
-            fetch(`/save_all_topic/${topicName}/`)
+            fetch(`/save_all_topic/${topicId}/`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.saved) {
