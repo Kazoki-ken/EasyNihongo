@@ -97,14 +97,19 @@
             <div class="d-flex overflow-auto p-3" style="white-space: nowrap;">
                 {% for item in badges_display %}
                     <div class="d-inline-block text-center me-4" style="min-width: 80px;">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm position-relative
                             {% if item.is_earned %}bg-white{% else %}bg-light{% endif %}"
                             style="width: 60px; height: 60px; border: 2px solid {% if item.is_earned %}{{ item.badge.color }}{% else %}#e9ecef{% endif %};">
 
                             {% if item.is_earned %}
                                 <i class="bi {{ item.badge.icon }} fs-3 {{ item.badge.color }}"></i>
                             {% else %}
-                                <i class="bi bi-lock-fill fs-3 text-secondary opacity-25"></i>
+                                <div style="filter: grayscale(100%) opacity(0.5);">
+                                    <i class="bi {{ item.badge.icon }} fs-3 text-secondary"></i>
+                                </div>
+                                <div class="position-absolute" style="top: 2px; right: 2px;">
+                                    <i class="bi bi-lock-fill text-secondary small"></i>
+                                </div>
                             {% endif %}
                         </div>
                         <small class="d-block fw-bold small text-truncate

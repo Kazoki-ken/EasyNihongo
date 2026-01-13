@@ -135,6 +135,10 @@ class Badge(models.Model):
         ('words', 'Word Count'),
         ('streak', 'Daily Streak'),
         ('league', 'League Rank'),
+        ('coins', 'Total Coins'),
+        ('books', 'Saved Books'),
+        ('master', 'Mastered Words'),
+        ('correct', 'Correct Answers'),
         ('other', 'Other'),
     ]
 

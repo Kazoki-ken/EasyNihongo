@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib import messages
@@ -42,6 +43,37 @@ def check_badges(user):
             UserBadge.objects.get_or_create(user=user, badge=badge)
 
     # 3. Liga bo'yicha (future) - buni process_weekly_leagues da chaqirish mumkin
+
+    # 4. Yangi Badge Turlari (Mergan, Boyvachcha, Kitobxon, Poliglot)
+
+    # Boyvachcha (Coins)
+    if hasattr(user, 'profile'):
+        coins = user.profile.coins
+        coin_badges = Badge.objects.filter(badge_type='coins', threshold__lte=coins)
+        for badge in coin_badges:
+            UserBadge.objects.get_or_create(user=user, badge=badge)
+
+    # Kitobxon (Saved Books)
+    saved_books_count = user.saved_books.count()
+    book_badges = Badge.objects.filter(badge_type='books', threshold__lte=saved_books_count)
+    for badge in book_badges:
+        UserBadge.objects.get_or_create(user=user, badge=badge)
+
+    # Poliglot (Mastered Words - Level 5)
+    mastered_count = UserWordProgress.objects.filter(user=user, level__gte=5).count()
+    master_badges = Badge.objects.filter(badge_type='master', threshold__lte=mastered_count)
+    for badge in master_badges:
+        UserBadge.objects.get_or_create(user=user, badge=badge)
+
+    # Mergan (Weekly Correct Answers)
+    # Bu biroz murakkab, chunki bizda "Total Correct" yo'q. Hozircha WeeklyStats dan foydalanamiz
+    # Yoki joriy hafta uchun tekshiramiz. Agar "Total" kerak bo'lsa, WeeklyStats larni yig'ish kerak.
+    # Keling, WeeklyStats larni yig'ib chiqamiz (Lifetime Correct Answers).
+    total_correct = WeeklyStats.objects.filter(user=user).aggregate(total=models.Sum('correct_answers'))['total'] or 0
+    sniper_badges = Badge.objects.filter(badge_type='correct', threshold__lte=total_correct)
+    for badge in sniper_badges:
+        UserBadge.objects.get_or_create(user=user, badge=badge)
+
 
 def update_word_progress(user, word, is_correct):
     """So'zning progressini yangilash (XP va Level)"""
@@ -555,10 +587,13 @@ def leagues_view(request):
             user_rank = idx + 1
             break
 
+    current_user_xp = weekly_stats_map.get(request.user.id, 0)
+
     return render(request, 'vocabulary/leagues.html', {
         'current_league': current_league,
         'leaderboard_data': leaderboard_data,
-        'user_rank': user_rank
+        'user_rank': user_rank,
+        'current_user_xp': current_user_xp
     })
 
 # Eski Leaderboard funksiyasini saqlab turamiz yoki o'chirib tashlaymiz?
