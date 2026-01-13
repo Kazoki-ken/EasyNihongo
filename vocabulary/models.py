@@ -129,6 +129,37 @@ class LeagueLog(models.Model):
     def __str__(self):
         return f"League Update for: {self.week_start_date}"
 
+# 6. YUTUQLAR (BADGES) MODELI
+class Badge(models.Model):
+    BADGE_TYPES = [
+        ('words', 'Word Count'),
+        ('streak', 'Daily Streak'),
+        ('league', 'League Rank'),
+        ('other', 'Other'),
+    ]
+
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    icon = models.CharField(max_length=50) # Bootstrap Icon class (e.g., 'bi-star-fill')
+    color = models.CharField(max_length=20, default='text-warning') # 'text-warning', 'text-info', etc.
+
+    badge_type = models.CharField(max_length=20, choices=BADGE_TYPES, default='other')
+    threshold = models.IntegerField(default=0) # Condition value (e.g., 100 words)
+
+    def __str__(self):
+        return self.name
+
+class UserBadge(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='badges')
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    earned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'badge')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.badge.name}"
+
 # 4. SIGNALLAR (Profilni avtomatik yaratish)
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

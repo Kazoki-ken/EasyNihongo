@@ -82,16 +82,44 @@
 </style>
 
     <div class="px-2 mb-4">
+        <!-- ACHIEVEMENTS CARD (Replaces 'Add Word') -->
         <div class="sakura-card mb-3 overflow-hidden">
-            <a href="{% url 'add_word' %}" class="btn btn-link text-decoration-none text-dark p-3 d-flex align-items-center justify-content-between w-100 border-0">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                        <i class="bi bi-stars"></i>
+                    <div class="icon-box bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-award-fill"></i>
                     </div>
-                    <span class="fw-bold ms-3">Yangi so'z qo'shish</span>
+                    <span class="fw-bold ms-3">Yutuqlar</span>
                 </div>
-                <i class="bi bi-chevron-right text-muted"></i>
-            </a>
+                <span class="badge bg-light text-dark rounded-pill">{{ badges_display|length }}</span>
+            </div>
+
+            <div class="d-flex overflow-auto p-3" style="white-space: nowrap;">
+                {% for item in badges_display %}
+                    <div class="d-inline-block text-center me-4" style="min-width: 80px;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm
+                            {% if item.is_earned %}bg-white{% else %}bg-light{% endif %}"
+                            style="width: 60px; height: 60px; border: 2px solid {% if item.is_earned %}{{ item.badge.color }}{% else %}#e9ecef{% endif %};">
+
+                            {% if item.is_earned %}
+                                <i class="bi {{ item.badge.icon }} fs-3 {{ item.badge.color }}"></i>
+                            {% else %}
+                                <i class="bi bi-lock-fill fs-3 text-secondary opacity-25"></i>
+                            {% endif %}
+                        </div>
+                        <small class="d-block fw-bold small text-truncate
+                            {% if item.is_earned %}text-dark{% else %}text-muted{% endif %}"
+                            style="max-width: 80px;">
+                            {{ item.badge.name }}
+                        </small>
+                        <small class="d-block text-muted" style="font-size: 0.65rem;">
+                            {% if item.is_earned %}Topdingiz!{% else %}Qulflangan{% endif %}
+                        </small>
+                    </div>
+                {% empty %}
+                    <p class="text-muted small">Hozircha nishonlar yo'q</p>
+                {% endfor %}
+            </div>
         </div>
 
         <div class="sakura-card overflow-hidden">
@@ -120,13 +148,14 @@
             </button>
         </div>
             <div class="col-3">
-                <div class="grid-btn-card locked opacity-50">
-                    <i class="bi bi-lock-fill lock-icon"></i>
-                    <div class="mini-icon bg-primary bg-opacity-10">
-                        <i class="bi bi-robot text-primary"></i>
+                <a href="{% url 'add_word' %}" class="text-decoration-none">
+                    <div class="grid-btn-card">
+                        <div class="mini-icon bg-warning bg-opacity-10">
+                            <i class="bi bi-stars text-warning"></i>
+                        </div>
+                        <span class="grid-text">Yangi so'z</span>
                     </div>
-                    <span class="grid-text">AI Chat</span>
-                </div>
+                </a>
             </div>
 
             <div class="col-3">
