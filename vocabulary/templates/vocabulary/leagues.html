@@ -1,0 +1,108 @@
+{% extends 'vocabulary/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- LEAGUE HEADER -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold mb-1" style="color:
+            {% if current_league == 'Bronze' %}#cd7f32
+            {% elif current_league == 'Silver' %}#c0c0c0
+            {% elif current_league == 'Gold' %}#ffd700
+            {% elif current_league == 'Platinum' %}#e5e4e2
+            {% elif current_league == 'Diamond' %}#b9f2ff
+            {% endif %};
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+            {% if current_league == 'Bronze' %}🥉 Bronze
+            {% elif current_league == 'Silver' %}🥈 Silver
+            {% elif current_league == 'Gold' %}🥇 Gold
+            {% elif current_league == 'Platinum' %}💎 Platinum
+            {% elif current_league == 'Diamond' %}👑 Diamond
+            {% endif %} League
+        </h2>
+        <p class="text-muted small">Haftalik bellashuv yakshanba kuni tugaydi</p>
+    </div>
+
+    <!-- CURRENT USER STATS -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);">
+        <div class="card-body d-flex align-items-center justify-content-between p-3">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-person-fill fs-3 text-secondary"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">{{ user.username }}</h6>
+                    <small class="text-muted">Rank: #{{ user_rank }}</small>
+                </div>
+            </div>
+            <div class="text-end">
+                <h5 class="fw-bold text-primary mb-0">{{ user_xp_week }} XP</h5>
+                <small class="text-muted">Bu hafta</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD TABLE -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 py-3">
+            <h6 class="fw-bold mb-0 text-secondary"><i class="bi bi-trophy-fill me-2 text-warning"></i>Jadval</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 border-0" style="width: 10%;">#</th>
+                        <th class="border-0" style="width: 60%;">Foydalanuvchi</th>
+                        <th class="text-end pe-4 border-0" style="width: 30%;">XP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in leaderboard_data %}
+                        <tr class="
+                            {% if forloop.counter <= 5 and current_league != 'Diamond' %}bg-success bg-opacity-10
+                            {% elif forloop.revcounter <= 5 and current_league != 'Bronze' and leaderboard_data|length > 5 %}bg-danger bg-opacity-10
+                            {% endif %}
+                            {% if item.profile.user == user %}table-active border-start border-4 border-primary{% endif %}
+                        ">
+                            <td class="ps-4 fw-bold text-secondary">
+                                {% if forloop.counter == 1 %}🥇
+                                {% elif forloop.counter == 2 %}🥈
+                                {% elif forloop.counter == 3 %}🥉
+                                {% else %}{{ forloop.counter }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                        {{ item.profile.user.username|slice:":2"|upper }}
+                                    </div>
+                                    <span class="fw-semibold {% if item.profile.user == user %}text-primary{% endif %}">
+                                        {{ item.profile.user.username }}
+                                    </span>
+                                    {% if forloop.counter <= 5 and current_league != 'Diamond' %}
+                                        <i class="bi bi-arrow-up-short text-success ms-2" title="Ko'tarilish zonasida"></i>
+                                    {% elif forloop.revcounter <= 5 and current_league != 'Bronze' and leaderboard_data|length > 5 %}
+                                        <i class="bi bi-arrow-down-short text-danger ms-2" title="Tushish zonasida"></i>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-end pe-4 fw-bold text-dark">{{ item.xp }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">
+                                Hozircha hech kim o'ynamadi. Birinchi bo'ling!
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <small class="text-muted"><i class="bi bi-info-circle me-1"></i> Top 5 yuqoriga, oxirgi 5 pastga tushadi.</small>
+    </div>
+</div>
+{% endblock %}
