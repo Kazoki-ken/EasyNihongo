@@ -14,13 +14,34 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress, Book, LeagueLog
+from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress, Book, LeagueLog, Badge, UserBadge
 from .forms import UserRegisterForm, WordForm
 
 # =========================================================
 # 1. YORDAMCHI FUNKSIYALAR (HELPERS)
 # DIQQAT: Bularning tepasiga @login_required QO'YMANG!
 # =========================================================
+
+def check_badges(user):
+    """
+    Foydalanuvchining yutuqlarini tekshirish va berish.
+    Bu funksiya har safar muhim harakat (so'z qo'shish, o'yin o'ynash) bo'lganda chaqiriladi.
+    """
+    # 1. So'zlar soni bo'yicha (words)
+    word_count = Word.objects.filter(author=user).count()
+    word_badges = Badge.objects.filter(badge_type='words', threshold__lte=word_count)
+
+    for badge in word_badges:
+        UserBadge.objects.get_or_create(user=user, badge=badge)
+
+    # 2. Streak bo'yicha (streak)
+    if hasattr(user, 'profile'):
+        streak_count = user.profile.streak
+        streak_badges = Badge.objects.filter(badge_type='streak', threshold__lte=streak_count)
+        for badge in streak_badges:
+            UserBadge.objects.get_or_create(user=user, badge=badge)
+
+    # 3. Liga bo'yicha (future) - buni process_weekly_leagues da chaqirish mumkin
 
 def update_word_progress(user, word, is_correct):
     """So'zning progressini yangilash (XP va Level)"""
@@ -243,6 +264,8 @@ def process_weekly_leagues():
 @login_required
 def home(request):
     check_daily_progress(request.user)
+    check_badges(request.user) # Badge tekshirish
+
     try:
         created_count = Word.objects.filter(author=request.user).count()
         saved_count = request.user.saved_words.count()
@@ -424,6 +447,9 @@ def add_word(request):
             stats = get_weekly_stats(request.user)
             stats.words_learned += 1
             stats.save()
+
+            check_badges(request.user) # Badge tekshirish (Ilk qadam)
+
             return redirect('my_vocabulary')
     else:
         form = WordForm()
@@ -462,7 +488,24 @@ def delete_word(request, word_id):
 @login_required
 def profile_view(request):
     weekly_stats = get_weekly_stats(request.user)
-    return render(request, 'vocabulary/profile.html', {'weekly_stats': weekly_stats})
+
+    # Barcha nishonlar va foydalanuvchi olgan nishonlar
+    all_badges = Badge.objects.all().order_by('threshold')
+    user_badges_ids = UserBadge.objects.filter(user=request.user).values_list('badge_id', flat=True)
+
+    # Shablon uchun ma'lumot tayyorlash
+    badges_display = []
+    for badge in all_badges:
+        is_earned = badge.id in user_badges_ids
+        badges_display.append({
+            'badge': badge,
+            'is_earned': is_earned
+        })
+
+    return render(request, 'vocabulary/profile.html', {
+        'weekly_stats': weekly_stats,
+        'badges_display': badges_display
+    })
 
 @login_required
 def leagues_view(request):
