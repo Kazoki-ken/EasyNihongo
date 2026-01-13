@@ -8,9 +8,18 @@
             <div class="rounded-circle bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center overflow-hidden mx-auto profile-avatar-box">
                 <i class="bi bi-person-fill text-secondary profile-avatar-icon"></i>
             </div>
+            <!-- LEAGUE BADGE (Yangi) -->
+            <div class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow-sm p-1 border" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                {% if user.profile.league == 'Bronze' %}🥉
+                {% elif user.profile.league == 'Silver' %}🥈
+                {% elif user.profile.league == 'Gold' %}🥇
+                {% elif user.profile.league == 'Platinum' %}💎
+                {% elif user.profile.league == 'Diamond' %}👑
+                {% else %}🥉{% endif %}
+            </div>
         </div>
         <h4 class="fw-bold mb-1 text-dark">{{ user.username }}</h4>
-        <p class="text-muted small">Sakura Akademiyasi Talabasi</p>
+        <p class="text-muted small">{{ user.profile.league }} League Student</p>
 
         <!-- COINS DISPLAY -->
         <div class="d-inline-flex align-items-center bg-warning bg-opacity-10 px-3 py-1 rounded-pill mt-2">
@@ -121,12 +130,12 @@
             </div>
 
             <div class="col-3">
-                <a href="{% url 'leaderboard' %}" class="text-decoration-none">
+                <a href="{% url 'leagues' %}" class="text-decoration-none"> <!-- Link yangilandi -->
                     <div class="grid-btn-card">
                         <div class="mini-icon bg-success bg-opacity-10">
                             <i class="bi bi-trophy text-success"></i>
                         </div>
-                        <span class="grid-text">Reyting</span>
+                        <span class="grid-text">Leagues</span> <!-- Matn yangilandi -->
                     </div>
                 </a>
             </div>

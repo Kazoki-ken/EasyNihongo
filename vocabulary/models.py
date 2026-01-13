@@ -47,6 +47,14 @@ class Word(models.Model):
         verbose_name_plural = "Words"
 
 class Profile(models.Model):
+    LEAGUE_CHOICES = [
+        ('Bronze', 'Bronze'),
+        ('Silver', 'Silver'),
+        ('Gold', 'Gold'),
+        ('Platinum', 'Platinum'),
+        ('Diamond', 'Diamond'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     
     streak = models.IntegerField(default=0)
@@ -60,6 +68,7 @@ class Profile(models.Model):
     last_game_date = models.DateField(null=True, blank=True)
 
     coins = models.IntegerField(default=0)
+    league = models.CharField(max_length=20, choices=LEAGUE_CHOICES, default='Bronze')
 
     # Jami kunlik progressni hisoblaydigan property (3+3+3 = 9)
     @property
@@ -67,7 +76,7 @@ class Profile(models.Model):
         return self.daily_test_count + self.daily_match_count + self.daily_write_count
 
     def __str__(self):
-        return f"{self.user.username} profili"
+        return f"{self.user.username} profili ({self.league})"
 
 # 2. HAFTALIK STATISTIKA MODELI (Yangi)
 class WeeklyStats(models.Model):
@@ -81,6 +90,8 @@ class WeeklyStats(models.Model):
     total_questions = models.IntegerField(default=0) # Jami savollar (Aniqlikni hisoblash uchun)
 
     coins_earned = models.IntegerField(default=0) # Haftalik yig'ilgan tangalar
+    xp_earned = models.IntegerField(default=0)    # Haftalik yig'ilgan XP
+
     is_collected = models.BooleanField(default=False) # Balansga o'tkazilganligi
 
     class Meta:
@@ -109,6 +120,14 @@ class UserWordProgress(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.word.japanese_word} (Lvl: {self.level})"
+
+# 5. LIGA LOGI (Yangi - Qaysi hafta hisob-kitob qilinganini bilish uchun)
+class LeagueLog(models.Model):
+    week_start_date = models.DateField(unique=True) # Qaysi haftaning Natijasi hisoblandi (Masalan: o'tgan dushanba)
+    processed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"League Update for: {self.week_start_date}"
 
 # 4. SIGNALLAR (Profilni avtomatik yaratish)
 @receiver(post_save, sender=User)
