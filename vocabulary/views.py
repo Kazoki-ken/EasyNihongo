@@ -519,6 +519,7 @@ def delete_word(request, word_id):
 
 @login_required
 def profile_view(request):
+    check_badges(request.user)
     weekly_stats = get_weekly_stats(request.user)
 
     # Barcha nishonlar va foydalanuvchi olgan nishonlar
