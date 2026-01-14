@@ -154,13 +154,15 @@ def check_daily_progress(user):
     today = timezone.now().date()
     yesterday = today - timedelta(days=1)
     
-    if profile.last_game_date != today:
-        profile.daily_test_count = 0
-        profile.daily_match_count = 0
-        profile.daily_write_count = 0
-        profile.save()
+    if profile.last_login_date != today: # KICHIK TUZATISH: last_game_date emas, last_login_date bilan tekshiramiz
+        # Lekin o'yinlar uchun daily_count ni reset qilish kerak:
+        if profile.last_game_date != today:
+             profile.daily_test_count = 0
+             profile.daily_match_count = 0
+             profile.daily_write_count = 0
+             profile.save() # Reset qilinganini saqlash kerak
 
-    # Jarima tizimi
+    # Jarima tizimi (Streak)
     if profile.last_login_date and profile.last_login_date < yesterday:
         profile.streak = 0
         profile.tree_state = 3
@@ -1150,3 +1152,8 @@ def upload_book_words(request):
         'books': books,
         'topics': topics
     })
+
+# --- AI CHAT VIEW ---
+@login_required
+def ai_chat_view(request):
+    return render(request, 'vocabulary/ai_chat.html')
