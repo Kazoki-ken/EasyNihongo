@@ -48,4 +48,5 @@ urlpatterns = [
     path('games/write/result/', views.write_result, name='write_result'), # Natija
     path('upload-words/', views.upload_words, name='upload_words'),
     path('upload-book-words/', views.upload_book_words, name='upload_book_words'),
+    path('ai-chat/', views.ai_chat_view, name='ai_chat'),
 ]

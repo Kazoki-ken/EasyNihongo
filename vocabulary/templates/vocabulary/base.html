@@ -211,7 +211,7 @@
     <a href="{% url 'games_menu' %}" class="nav-item-custom {% if 'game' in request.path %}active{% endif %}">
         <i class="bi bi-controller"></i><span>O'yinlar</span>
     </a>
-    <a href="#" class="nav-item-custom opacity-50">
+    <a href="{% url 'ai_chat' %}" class="nav-item-custom {% if 'ai-chat' in request.path %}active{% endif %}">
         <i class="bi bi-robot"></i><span>AI Chat</span>
     </a>
     <a href="{% url 'profile' %}" class="nav-item-custom {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
