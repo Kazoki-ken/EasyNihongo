@@ -190,6 +190,7 @@ MULOQOT STRATEGIYASI:
     let stream = null;
     let processor = null;
     let source = null;
+    let playbackNextStartTime = 0; // For queueing audio
 
     // UI BUILDER
     function renderUI() {
@@ -247,7 +248,7 @@ MULOQOT STRATEGIYASI:
             // 1. Init Client
             const client = new GoogleGenAI({ apiKey: API_KEY });
 
-            // 2. Audio Context (Input)
+            // 2. Audio Context (Input & Output)
             audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
             // 3. Microphone Access
@@ -259,6 +260,7 @@ MULOQOT STRATEGIYASI:
             });
 
             // 4. Connect to Gemini Live API
+            // Note: Updated to use 'callbacks' parameter as 'receive' iterator is not supported in JS SDK
             session = await client.live.connect({
                 model: "gemini-2.0-flash-exp",
                 config: {
@@ -267,6 +269,11 @@ MULOQOT STRATEGIYASI:
                         voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } }
                     },
                     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+                },
+                callbacks: {
+                    onMessage: (message) => {
+                        handleServerMessage(message);
+                    }
                 }
             });
 
@@ -275,25 +282,27 @@ MULOQOT STRATEGIYASI:
             processor = audioContext.createScriptProcessor(4096, 1, 1);
 
             processor.onaudioprocess = (e) => {
-                if (!session) return;
+                if (!session || !isConnected) return;
+
                 const inputData = e.inputBuffer.getChannelData(0);
                 // Convert Float32 to base64 PCM16
                 const b64Data = floatTo16BitPCM(inputData);
-                // Fix: Send object with 'media' property, not an array
-                session.sendRealtimeInput({
-                    media: {
-                        mimeType: "audio/pcm;rate=16000",
-                        data: b64Data
-                    }
-                });
+
+                try {
+                    // Fix: Send object with 'media' property, not an array
+                    session.sendRealtimeInput({
+                        media: {
+                            mimeType: "audio/pcm;rate=16000",
+                            data: b64Data
+                        }
+                    });
+                } catch(err) {
+                    console.error("Send Error:", err);
+                }
             };
 
             source.connect(processor);
             processor.connect(audioContext.destination);
-
-            // Handle Incoming Messages
-            // The official SDK often uses an async generator for receiving messages
-            handleIncomingMessages(session);
 
             isConnected = true;
             updateUIState(true);
@@ -305,53 +314,51 @@ MULOQOT STRATEGIYASI:
         }
     }
 
-    // Helper to process incoming stream
-    async function handleIncomingMessages(currentSession) {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
-        let nextStartTime = 0;
+    // Updated: Handle Incoming Messages via Callback
+    async function handleServerMessage(message) {
+        // console.log("Received:", message); // Debug
+
+        // 1. Check for standard 'serverContent' with 'modelTurn' (Multimodal API)
+        if (message.serverContent && message.serverContent.modelTurn && message.serverContent.modelTurn.parts) {
+            for (const part of message.serverContent.modelTurn.parts) {
+                if (part.inlineData && part.inlineData.data) {
+                    playAudioChunk(part.inlineData.data);
+                }
+            }
+        }
+    }
+
+    async function playAudioChunk(base64Data) {
+        if (!audioContext) return;
 
         try {
-            for await (const message of currentSession.receive()) {
-                // 1. Audio Data
-                if (message.serverContent && message.serverContent.modelTurn && message.serverContent.modelTurn.parts) {
-                    for (const part of message.serverContent.modelTurn.parts) {
-                        if (part.inlineData && part.inlineData.data) {
-                            // Play Audio
-                            const audioData = base64ToArrayBuffer(part.inlineData.data);
-                            const audioBuffer = await audioCtx.decodeAudioData(audioData);
+            const audioData = base64ToArrayBuffer(base64Data);
+            const audioBuffer = await audioContext.decodeAudioData(audioData);
 
-                            const source = audioCtx.createBufferSource();
-                            source.buffer = audioBuffer;
-                            source.connect(audioCtx.destination);
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
 
-                            const now = audioCtx.currentTime;
-                            // Ensure smooth playback sequence
-                            const startTime = Math.max(now, nextStartTime);
-                            source.start(startTime);
-                            nextStartTime = startTime + audioBuffer.duration;
+            const now = audioContext.currentTime;
+            // Ensure smooth playback sequence
+            const startTime = Math.max(now, playbackNextStartTime);
+            source.start(startTime);
+            playbackNextStartTime = startTime + audioBuffer.duration;
 
-                            // Visualize (fake it for now or hook up analyser)
-                            visualizeAudio(true);
-                        }
-                    }
-                }
+            // Visualize (simple trigger)
+            visualizeAudio(true);
 
-                // 2. Transcript (Text)
-                // Note: Realtime API text handling varies. Often it sends 'modelTurn' with text parts too if requested?
-                // Or we infer it. The user's code had `outputTranscription`.
-                // Let's check `serverContent.modelTurn.parts` for text.
-                // Currently "AUDIO" modality only sends audio, we might not get text unless we ask for TEXT too?
-                // Let's rely on Audio for now.
-            }
-        } catch(err) {
-            console.log("Stream ended", err);
+        } catch (e) {
+            console.error("Audio decode error:", e);
         }
     }
 
     async function disconnect() {
         if (session) {
-            // session.close() if available, or just stop loop
-             try { session.close(); } catch(e){}
+             try {
+                 // session.close() might not exist on all implementations, wait for explicit close
+                 // session.close();
+             } catch(e){}
         }
         if (processor) { processor.disconnect(); processor = null; }
         if (source) { source.disconnect(); source = null; }
@@ -412,6 +419,7 @@ MULOQOT STRATEGIYASI:
     // --- VISUALIZER ---
     function visualizeAudio(isActive) {
         const canvas = document.getElementById("visualizer");
+        if (!canvas) return;
         const ctx = canvas.getContext("2d");
         const width = canvas.width;
         const height = canvas.height;
@@ -419,7 +427,7 @@ MULOQOT STRATEGIYASI:
         ctx.clearRect(0, 0, width, height);
         if (!isActive) return;
 
-        // Simple Random Bars for now (since we don't have AnalyserNode hooked to output yet)
+        // Simple Random Bars for now
         ctx.fillStyle = "#ff6b81";
         const barWidth = 5;
         const gap = 2;
