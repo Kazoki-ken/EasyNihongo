@@ -8,7 +8,7 @@
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3 text-muted">AI O'qituvchi yuklanmoqda... (v1.2 Fix)</p>
+            <p class="mt-3 text-muted">AI O'qituvchi yuklanmoqda... (v1.3 Debug)</p>
         </div>
     </div>
 </div>
@@ -146,6 +146,18 @@
         background: rgba(255,255,255,0.05);
     }
 
+    /* Debug Console in UI */
+    #debug-console {
+        font-size: 0.7rem;
+        color: #dc3545;
+        max-height: 60px;
+        overflow-y: auto;
+        width: 100%;
+        text-align: center;
+        margin-top: 5px;
+        display: none;
+    }
+
 </style>
 
 <!-- Load Google Generative AI SDK via Import Map for better compatibility -->
@@ -160,7 +172,7 @@
 <script type="module">
     import { GoogleGenAI } from "@google/genai";
 
-    console.log("AI Chat Module Loaded - v1.2 (Fix Applied)");
+    console.log("AI Chat Module Loaded - v1.3 (Debug)");
 
     // --- CONFIGURATION ---
     const API_KEY = "AIzaSyBvFvRiociNCG3dooJrQhOvD6RjRbrF9S0";
@@ -203,7 +215,7 @@ MULOQOT STRATEGIYASI:
                          <div class="rounded-circle d-flex align-items-center justify-content-center me-2 bg-danger text-white fw-bold" style="width: 40px; height: 40px;">先</div>
                          <div>
                             <h6 class="mb-0 fw-bold">Sensei AI</h6>
-                            <span class="text-muted" style="font-size: 0.7rem;">Beta v1.2</span>
+                            <span class="text-muted" style="font-size: 0.7rem;">Beta v1.3</span>
                          </div>
                     </div>
                     <div id="status-indicator" class="badge bg-secondary">OFFLINE</div>
@@ -218,6 +230,7 @@ MULOQOT STRATEGIYASI:
 
                 <div class="controls-area">
                     <canvas id="visualizer"></canvas>
+                    <div id="debug-console"></div>
                     <button id="mic-btn" class="mic-btn">
                         <i class="bi bi-mic-fill"></i>
                     </button>
@@ -227,6 +240,15 @@ MULOQOT STRATEGIYASI:
         `;
 
         document.getElementById('mic-btn').addEventListener('click', toggleConnection);
+    }
+
+    function logError(msg) {
+        const consoleEl = document.getElementById('debug-console');
+        if (consoleEl) {
+            consoleEl.style.display = 'block';
+            consoleEl.innerText = msg;
+        }
+        console.error(msg);
     }
 
     // --- LOGIC ---
@@ -242,6 +264,10 @@ MULOQOT STRATEGIYASI:
         const statusEl = document.getElementById('status-indicator');
         const btn = document.getElementById('mic-btn');
         const statusText = document.getElementById('status-text');
+        const debugEl = document.getElementById('debug-console');
+
+        // Reset debug
+        if(debugEl) debugEl.style.display = 'none';
 
         try {
             statusText.innerText = "Ulanmoqda...";
@@ -262,9 +288,10 @@ MULOQOT STRATEGIYASI:
             });
 
             // 4. Connect to Gemini Live API
-            // Note: Updated to use 'callbacks' parameter as 'receive' iterator is not supported in JS SDK
             console.log("Connecting to Gemini Live...");
-            session = await client.live.connect({
+
+            // Define config
+            const config = {
                 model: "gemini-2.0-flash-exp",
                 config: {
                     responseModalities: ["AUDIO"],
@@ -273,31 +300,36 @@ MULOQOT STRATEGIYASI:
                     },
                     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
                 },
-                // Use 'onmessage' (lowercase) or 'onMessage' depending on SDK version.
-                // Using generic approach or checking docs. Most JS APIs use lowercase 'onmessage'.
-                // However, Google GenAI SDK might differ. Let's try to map both to be safe?
-                // No, can't map both in config.
-                // Research showed 'onmessage'.
+                // Callbacks for events
                 callbacks: {
                     onmessage: (message) => {
                         handleServerMessage(message);
+                    },
+                    onError: (err) => {
+                        logError("Session Error: " + (err.message || JSON.stringify(err)));
+                        disconnect(); // Force disconnect on error
+                    },
+                    onClose: (event) => {
+                        logError("Session Closed: " + (event.reason || "Connection lost"));
+                        disconnect();
                     }
                 }
-            });
+            };
+
+            session = await client.live.connect(config);
 
             // 5. Setup Input Stream (Send Audio)
             source = audioContext.createMediaStreamSource(stream);
             processor = audioContext.createScriptProcessor(4096, 1, 1);
 
             processor.onaudioprocess = (e) => {
+                // Critical Check: ensure session is open
                 if (!session || !isConnected) return;
 
-                const inputData = e.inputBuffer.getChannelData(0);
-                // Convert Float32 to base64 PCM16
-                const b64Data = floatTo16BitPCM(inputData);
-
                 try {
-                    // Fix: Send object with 'media' property, not an array
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    const b64Data = floatTo16BitPCM(inputData);
+
                     session.sendRealtimeInput({
                         media: {
                             mimeType: "audio/pcm;rate=16000",
@@ -305,7 +337,13 @@ MULOQOT STRATEGIYASI:
                         }
                     });
                 } catch(err) {
-                    console.error("Send Error:", err);
+                    // Filter out expected errors when closing
+                    if (err.message && (err.message.includes("CLOSING") || err.message.includes("CLOSED"))) {
+                        // socket closed, stop trying
+                        disconnect();
+                    } else {
+                        console.error("Send Error:", err);
+                    }
                 }
             };
 
@@ -317,15 +355,13 @@ MULOQOT STRATEGIYASI:
 
         } catch (e) {
             console.error("Connection failed:", e);
-            alert("Ulanishda xatolik: " + e.message);
+            logError("Ulanish xatosi: " + e.message);
             await disconnect();
         }
     }
 
     // Updated: Handle Incoming Messages via Callback
     async function handleServerMessage(message) {
-        // console.log("Received:", message); // Debug
-
         // 1. Check for standard 'serverContent' with 'modelTurn' (Multimodal API)
         if (message.serverContent && message.serverContent.modelTurn && message.serverContent.modelTurn.parts) {
             for (const part of message.serverContent.modelTurn.parts) {
@@ -362,16 +398,20 @@ MULOQOT STRATEGIYASI:
     }
 
     async function disconnect() {
-        if (session) {
+        if (isConnected || session) {
              try {
-                 // session.close() might not exist on all implementations, wait for explicit close
-                 // session.close();
+                 // Attempt to close session if it exists
+                 if(session && session.close) session.close();
              } catch(e){}
         }
+
         if (processor) { processor.disconnect(); processor = null; }
         if (source) { source.disconnect(); source = null; }
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-        if (audioContext) { audioContext.close(); audioContext = null; }
+        if (audioContext) {
+            try { await audioContext.close(); } catch(e){}
+            audioContext = null;
+        }
 
         session = null;
         isConnected = false;
