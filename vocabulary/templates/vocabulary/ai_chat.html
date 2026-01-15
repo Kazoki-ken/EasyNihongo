@@ -16,14 +16,20 @@
 <style>
     /* Chat Specific Styles to override/complement base.html */
     .chat-container {
-        height: calc(100vh - 130px); /* Adjust for header/nav */
+        height: calc(100vh - 80px); /* Adjusted height calculation */
         display: flex;
         flex-direction: column;
         background-color: #f8f9fa;
+        max-width: 800px; /* Center on PC */
+        margin: 0 auto;
+        border-left: 1px solid #eee;
+        border-right: 1px solid #eee;
+        position: relative; /* Ensure stacking context */
     }
 
     body.dark-mode .chat-container {
         background-color: #121212;
+        border-color: #333;
     }
 
     .chat-messages {
@@ -33,6 +39,8 @@
         display: flex;
         flex-direction: column;
         gap: 15px;
+        /* Ensure it doesn't get hidden behind controls */
+        margin-bottom: 0;
     }
 
     .chat-bubble {
@@ -271,7 +279,13 @@ MULOQOT STRATEGIYASI:
                 const inputData = e.inputBuffer.getChannelData(0);
                 // Convert Float32 to base64 PCM16
                 const b64Data = floatTo16BitPCM(inputData);
-                session.sendRealtimeInput([{ mimeType: "audio/pcm;rate=16000", data: b64Data }]);
+                // Fix: Send object with 'media' property, not an array
+                session.sendRealtimeInput({
+                    media: {
+                        mimeType: "audio/pcm;rate=16000",
+                        data: b64Data
+                    }
+                });
             };
 
             source.connect(processor);
