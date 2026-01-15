@@ -8,7 +8,7 @@
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3 text-muted">AI O'qituvchi yuklanmoqda...</p>
+            <p class="mt-3 text-muted">AI O'qituvchi yuklanmoqda... (v1.2 Fix)</p>
         </div>
     </div>
 </div>
@@ -160,6 +160,8 @@
 <script type="module">
     import { GoogleGenAI } from "@google/genai";
 
+    console.log("AI Chat Module Loaded - v1.2 (Fix Applied)");
+
     // --- CONFIGURATION ---
     const API_KEY = "AIzaSyBvFvRiociNCG3dooJrQhOvD6RjRbrF9S0";
     const SYSTEM_INSTRUCTION = `
@@ -201,7 +203,7 @@ MULOQOT STRATEGIYASI:
                          <div class="rounded-circle d-flex align-items-center justify-content-center me-2 bg-danger text-white fw-bold" style="width: 40px; height: 40px;">先</div>
                          <div>
                             <h6 class="mb-0 fw-bold">Sensei AI</h6>
-                            <span class="text-muted" style="font-size: 0.7rem;">Beta v1.0</span>
+                            <span class="text-muted" style="font-size: 0.7rem;">Beta v1.2</span>
                          </div>
                     </div>
                     <div id="status-indicator" class="badge bg-secondary">OFFLINE</div>
@@ -261,6 +263,7 @@ MULOQOT STRATEGIYASI:
 
             // 4. Connect to Gemini Live API
             // Note: Updated to use 'callbacks' parameter as 'receive' iterator is not supported in JS SDK
+            console.log("Connecting to Gemini Live...");
             session = await client.live.connect({
                 model: "gemini-2.0-flash-exp",
                 config: {
@@ -270,8 +273,13 @@ MULOQOT STRATEGIYASI:
                     },
                     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
                 },
+                // Use 'onmessage' (lowercase) or 'onMessage' depending on SDK version.
+                // Using generic approach or checking docs. Most JS APIs use lowercase 'onmessage'.
+                // However, Google GenAI SDK might differ. Let's try to map both to be safe?
+                // No, can't map both in config.
+                // Research showed 'onmessage'.
                 callbacks: {
-                    onMessage: (message) => {
+                    onmessage: (message) => {
                         handleServerMessage(message);
                     }
                 }
