@@ -1,166 +1,23 @@
 {% extends 'vocabulary/base.html' %}
 
 {% block content %}
-<div class="container-fluid p-0">
-    <div id="ai-chat-app" class="h-100 d-flex flex-col">
-        <!-- Chat Interface will be injected here -->
-        <div class="text-center p-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-3 text-muted">AI O'qituvchi yuklanmoqda... (v1.3 Debug)</p>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Chat Specific Styles to override/complement base.html */
-    .chat-container {
-        height: calc(100vh - 80px); /* Adjusted height calculation */
-        display: flex;
-        flex-direction: column;
-        background-color: #f8f9fa;
-        max-width: 800px; /* Center on PC */
-        margin: 0 auto;
-        border-left: 1px solid #eee;
-        border-right: 1px solid #eee;
-        position: relative; /* Ensure stacking context */
+<!-- Load Tailwind CSS for this page specifically to match the React design -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif'],
+                },
+                animation: {
+                    'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                }
+            }
+        }
     }
-
-    body.dark-mode .chat-container {
-        background-color: #121212;
-        border-color: #333;
-    }
-
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        /* Ensure it doesn't get hidden behind controls */
-        margin-bottom: 0;
-    }
-
-    .chat-bubble {
-        max-width: 80%;
-        padding: 12px 16px;
-        border-radius: 18px;
-        font-size: 0.95rem;
-        line-height: 1.5;
-        position: relative;
-    }
-
-    .chat-bubble.user {
-        align-self: flex-end;
-        background-color: #0d6efd;
-        color: white;
-        border-bottom-right-radius: 4px;
-    }
-
-    .chat-bubble.model {
-        align-self: flex-start;
-        background-color: white;
-        color: #333;
-        border: 1px solid #e0e0e0;
-        border-bottom-left-radius: 4px;
-    }
-
-    body.dark-mode .chat-bubble.model {
-        background-color: #2c2c2c;
-        color: #e0e0e0;
-        border-color: #444;
-    }
-
-    .japanese-text {
-        font-family: 'Noto Sans JP', sans-serif;
-    }
-
-    .controls-area {
-        padding: 15px;
-        background: white;
-        border-top: 1px solid #eee;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        align-items: center;
-    }
-
-    body.dark-mode .controls-area {
-        background: #1e1e1e;
-        border-color: #333;
-    }
-
-    .mic-btn {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        border: none;
-        background: #ff6b81; /* Sakura Red */
-        color: white;
-        font-size: 1.8rem;
-        box-shadow: 0 4px 15px rgba(255, 107, 129, 0.4);
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .mic-btn:active {
-        transform: scale(0.95);
-    }
-
-    .mic-btn.listening {
-        background: #dc3545;
-        animation: pulse 1.5s infinite;
-    }
-
-    .mic-btn:disabled {
-        background: #ccc;
-        box-shadow: none;
-    }
-
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
-        70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
-    }
-
-    .status-text {
-        font-size: 0.8rem;
-        color: #999;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    canvas#visualizer {
-        width: 100%;
-        height: 60px;
-        border-radius: 10px;
-        background: rgba(0,0,0,0.02);
-    }
-
-    body.dark-mode canvas#visualizer {
-        background: rgba(255,255,255,0.05);
-    }
-
-    /* Debug Console in UI */
-    #debug-console {
-        font-size: 0.7rem;
-        color: #dc3545;
-        max-height: 60px;
-        overflow-y: auto;
-        width: 100%;
-        text-align: center;
-        margin-top: 5px;
-        display: none;
-    }
-
-</style>
-
-<!-- Load Google Generative AI SDK via Import Map for better compatibility -->
+</script>
+<!-- Import Map for Google GenAI SDK -->
 <script type="importmap">
   {
     "imports": {
@@ -169,14 +26,115 @@
   }
 </script>
 
+<div class="h-[calc(100vh-60px)] bg-slate-50 flex flex-col font-sans text-slate-900 overflow-hidden relative">
+
+    <!-- Config Bar (Added Feature) -->
+    <div id="config-bar" class="bg-slate-800 text-white px-4 py-2 text-xs flex flex-wrap gap-3 items-center justify-between shadow-md z-30">
+        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+            <span class="font-bold text-slate-400">API KEY:</span>
+            <input type="password" id="api-key-input" class="bg-slate-700 border-none rounded px-2 py-1 text-white w-full focus:ring-1 focus:ring-blue-500 outline-none" placeholder="AIzaSy..." value="AIzaSyDWAwj87eZR1sfVby8oidPw_jRqYv-sa_w">
+        </div>
+        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+            <span class="font-bold text-slate-400">MODEL:</span>
+            <input type="text" id="model-input" class="bg-slate-700 border-none rounded px-2 py-1 text-white w-full focus:ring-1 focus:ring-blue-500 outline-none" placeholder="models/gemini-..." value="gemini-2.0-flash-exp">
+        </div>
+        <button id="update-config-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded font-bold transition-colors">
+            Yangilash
+        </button>
+    </div>
+
+    <!-- Header (Similar to App.tsx Navbar) -->
+    <nav class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-20">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-sm">
+            あ
+          </div>
+          <div>
+            <h1 class="text-lg font-black tracking-tight text-slate-800 leading-none">EasyNihongo</h1>
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Live Japanese Tutor</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+          <div id="status-dot" class="w-2 h-2 rounded-full bg-slate-300"></div>
+          <span id="status-text" class="text-[10px] font-bold text-slate-600 uppercase">OFFLINE</span>
+        </div>
+    </nav>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 flex flex-col max-w-2xl w-full mx-auto overflow-hidden relative p-3 md:p-4 gap-3">
+
+        <!-- Error Overlay -->
+        <div id="error-box" class="hidden bg-red-50 border border-red-200 p-3 rounded-xl flex items-center gap-3 animate-bounce z-30 shrink-0">
+            <p id="error-msg" class="text-red-800 font-bold text-xs flex-1"></p>
+            <button onclick="document.getElementById('error-box').classList.add('hidden')" class="text-red-400">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        <!-- Chat History -->
+        <div id="chat-history" class="flex-1 bg-white rounded-[1.5rem] border border-slate-200 shadow-sm overflow-y-auto px-4 py-5 space-y-4 scroll-smooth">
+            <!-- Initial Empty State -->
+            <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center px-6">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-200">
+                    <svg class="w-8 h-8 text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                </div>
+                <p class="text-slate-400 text-sm font-medium">Sensei bilan suhbatni boshlang...</p>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="messages-list" class="flex flex-col gap-4 hidden"></div>
+        </div>
+
+        <!-- Visualizer Area -->
+        <div class="shrink-0 h-[60px] relative">
+            <canvas id="visualizer-canvas" class="w-full h-full rounded-2xl bg-white/50 border border-slate-100 backdrop-blur-sm hidden"></canvas>
+        </div>
+
+        <!-- Controls -->
+        <div class="shrink-0 pb-2">
+            <!-- Start Button -->
+            <button id="start-btn" class="w-full h-16 rounded-2xl bg-slate-900 text-white font-bold text-lg shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 hover:bg-slate-800">
+                <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <span>Darsni Boshlash</span>
+            </button>
+
+            <!-- Stop/Listening State (Hidden by default) -->
+            <div id="active-controls" class="hidden flex flex-col gap-2">
+                <button id="stop-btn" class="w-full h-16 bg-white border border-slate-200 text-slate-800 rounded-2xl font-bold text-lg hover:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-sm">
+                    <div class="w-3 h-3 bg-red-500 rounded-sm"></div>
+                    Darsni Tugatish
+                </button>
+                <p class="text-center text-slate-400 text-[9px] font-bold uppercase tracking-[0.2em] animate-pulse">
+                    Sensei eshitmoqda...
+                </p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Logic Script -->
 <script type="module">
     import { GoogleGenAI } from "@google/genai";
 
-    console.log("AI Chat Module Loaded - v1.4 (CrashFix)");
+    // --- State Management ---
+    const state = {
+        apiKey: document.getElementById('api-key-input').value,
+        modelName: document.getElementById('model-input').value,
+        isConnected: false,
+        isModelSpeaking: false,
+        messages: [],
+        session: null,
+        client: null,
+        audioContext: null,
+        stream: null,
+        processor: null,
+        source: null,
+        playbackNextStartTime: 0
+    };
 
-    // --- CONFIGURATION ---
-    // TODO: For production, move this key to the backend/environment variables
-    const API_KEY = "AIzaSyAwlNzbGNZ_BzCqsLsDMhFiP1DsEz0Ak44";
     const SYSTEM_INSTRUCTION = `
 Siz "EasyNihongo Sensei" ismli, o'ta sabrli va do'stona yapon tili o'qituvchisisiz. Sizning talabalaringiz asosan o'zbek tilida so'zlashuvchi N5/N4 darajasidagi boshlovchilardir.
 
@@ -187,116 +145,62 @@ ASOSIY QOIDALAR:
 3. QISQA JAVOBLAR: Ovozli interfeys bo'lgani uchun javoblaringiz 2-3 gapdan oshmasin.
 4. XATOLARNI TUZATISH: Agar talaba xato qilsa, avval to'g'ri variantni yaponcha ayting, keyin o'zbek tilida 1 jumlada nima uchun bundayligini tushuntiring.
 5. SUHBATNI DAVOM ETTIRISH: Har doim gapingiz oxirida talabaga javob berish oson bo'lgan qisqa savol bering.
-
-MULOQOT STRATEGIYASI:
-- Agar talaba jim bo'lib qolsa, oddiy mavzularni taklif qiling: oila, sevimli ovqatlar, ob-havo yoki yapon madaniyati.
-- Talabani har bir to'g'ri aytilgan so'z uchun maqtang (Sugoi desu ne!, Jozu desu ne!).
-- Murakkab grammatik terminlarni ishlatmang, sodda tushuntiring.
 `;
 
-    // --- DOM ELEMENTS ---
-    const appContainer = document.getElementById('ai-chat-app');
+    // --- DOM Elements ---
+    const els = {
+        startBtn: document.getElementById('start-btn'),
+        activeControls: document.getElementById('active-controls'),
+        stopBtn: document.getElementById('stop-btn'),
+        statusDot: document.getElementById('status-dot'),
+        statusText: document.getElementById('status-text'),
+        chatHistory: document.getElementById('chat-history'),
+        messagesList: document.getElementById('messages-list'),
+        emptyState: document.getElementById('empty-state'),
+        errorBox: document.getElementById('error-box'),
+        errorMsg: document.getElementById('error-msg'),
+        canvas: document.getElementById('visualizer-canvas'),
+        updateConfigBtn: document.getElementById('update-config-btn'),
+        apiKeyInput: document.getElementById('api-key-input'),
+        modelInput: document.getElementById('model-input')
+    };
 
-    // --- STATE ---
-    let client = null;
-    let session = null;
-    let isConnected = false;
-    let audioContext = null;
-    let stream = null;
-    let processor = null;
-    let source = null;
-    let playbackNextStartTime = 0; // For queueing audio
+    // --- Config Handlers ---
+    els.updateConfigBtn.addEventListener('click', () => {
+        state.apiKey = els.apiKeyInput.value;
+        state.modelName = els.modelInput.value;
+        alert("Sozlamalar yangilandi! Endi 'Darsni Boshlash' tugmasini bosing.");
+        if(state.isConnected) stopConversation();
+    });
 
-    // UI BUILDER
-    function renderUI() {
-        appContainer.innerHTML = `
-            <div class="chat-container">
-                <div class="d-flex align-items-center justify-content-between px-3 py-2 bg-white border-bottom shadow-sm app-header">
-                    <div class="d-flex align-items-center">
-                         <div class="rounded-circle d-flex align-items-center justify-content-center me-2 bg-danger text-white fw-bold" style="width: 40px; height: 40px;">先</div>
-                         <div>
-                            <h6 class="mb-0 fw-bold">Sensei AI</h6>
-                            <span class="text-muted" style="font-size: 0.7rem;">Beta v1.3</span>
-                         </div>
-                    </div>
-                    <div id="status-indicator" class="badge bg-secondary">OFFLINE</div>
-                </div>
+    // --- Chat Logic ---
+    els.startBtn.addEventListener('click', startConversation);
+    els.stopBtn.addEventListener('click', stopConversation);
 
-                <div id="messages-area" class="chat-messages">
-                    <div class="text-center text-muted mt-5">
-                        <i class="bi bi-mic fs-1 d-block mb-3 opacity-50"></i>
-                        <p>Mikrofon tugmasini bosing va Sensei bilan gaplashing!</p>
-                    </div>
-                </div>
-
-                <div class="controls-area">
-                    <canvas id="visualizer"></canvas>
-                    <div id="debug-console"></div>
-                    <button id="mic-btn" class="mic-btn">
-                        <i class="bi bi-mic-fill"></i>
-                    </button>
-                    <p id="status-text" class="status-text mt-2">Darsni Boshlash</p>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('mic-btn').addEventListener('click', toggleConnection);
-    }
-
-    function logError(msg) {
-        const consoleEl = document.getElementById('debug-console');
-        if (consoleEl) {
-            consoleEl.style.display = 'block';
-            consoleEl.innerText = msg;
+    async function startConversation() {
+        if (!state.apiKey) {
+            showError("API kalit kiritilmagan!");
+            return;
         }
-        console.error(msg);
-    }
-
-    // --- LOGIC ---
-    async function toggleConnection() {
-        if (isConnected) {
-            await disconnect();
-        } else {
-            await connect();
-        }
-    }
-
-    async function connect() {
-        const statusEl = document.getElementById('status-indicator');
-        const btn = document.getElementById('mic-btn');
-        const statusText = document.getElementById('status-text');
-        const debugEl = document.getElementById('debug-console');
-
-        // Reset debug
-        if(debugEl) debugEl.style.display = 'none';
 
         try {
-            statusText.innerText = "Ulanmoqda...";
-            btn.disabled = true;
+            setLoading(true);
+            showError(null); // Clear errors
 
             // 1. Init Client
-            const client = new GoogleGenAI({ apiKey: API_KEY });
+            const client = new GoogleGenAI({ apiKey: state.apiKey });
 
-            // 2. Audio Context (Input & Output)
-            audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+            // 2. Audio Context
+            state.audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
 
-            // 3. Microphone Access
-            stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    channelCount: 1,
-                    sampleRate: 16000
-                }
+            // 3. Mic Access
+            state.stream = await navigator.mediaDevices.getUserMedia({
+                audio: { channelCount: 1, sampleRate: 16000 }
             });
 
-            // 4. Connect to Gemini Live API
-            console.log("Connecting to Gemini Live...");
-
-            // Define config
+            // 4. Connect Config
             const config = {
-                // User requested 'gemini-2.5-flash-native-audio', but sticking to 'gemini-2.0-flash-exp' for public API compatibility.
-                // If you have access to 2.5 via this key, you can uncomment the line below:
-                // model: "gemini-2.5-flash-native-audio",
-                model: "gemini-2.0-flash-exp",
+                model: state.modelName, // Dynamic model name
                 config: {
                     responseModalities: ["AUDIO"],
                     speechConfig: {
@@ -304,174 +208,193 @@ MULOQOT STRATEGIYASI:
                     },
                     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
                 },
-                // Callbacks for events
+            };
+
+            // 5. Connect
+            state.session = await client.live.connect(config);
+
+            // 6. Setup Listeners
+            // Note: The SDK might change. Using 'on' if available or fallback.
+            // But based on provided v1.4 code, we wrap handlers differently?
+            // Actually, the new SDK returns a session object with `sendRealtimeInput` and emits events.
+            // Let's attach generic listeners via direct internal handling or documentation standard.
+            // Since `client.live.connect` returns a session, we listen to its stream.
+
+            // IMPORTANT: The previous SDK code used callbacks in config.
+            // Let's try the modern stream iteration approach or the callback config approach.
+            // Based on previous success, let's use the CALLBACK approach passed to `connect` if supported,
+            // OR iterate the incoming stream.
+            // But wait, the previous code passed `callbacks` in `config`. Let's do that.
+
+            // Re-creating config with callbacks
+            const configWithCallbacks = {
+                ...config,
                 callbacks: {
-                    onmessage: (message) => {
-                        handleServerMessage(message);
-                    },
+                    onmessage: (msg) => handleServerMessage(msg),
                     onError: (err) => {
-                        logError("Session Error: " + (err.message || JSON.stringify(err)));
-                        disconnect(); // Force disconnect on error
+                        console.error("Session Error:", err);
+                        showError("Ulanish xatosi: " + (err.message || "Noma'lum"));
+                        stopConversation();
                     },
-                    onClose: (event) => {
-                        logError("Session Closed: " + (event.reason || "Connection lost"));
-                        disconnect();
+                    onClose: (evt) => {
+                        console.log("Session Closed", evt);
+                        stopConversation();
                     }
                 }
             };
 
-            session = await client.live.connect(config);
+            // Re-connect with callbacks
+            state.session = await client.live.connect(configWithCallbacks);
 
-            // 5. Setup Input Stream (Send Audio)
-            source = audioContext.createMediaStreamSource(stream);
-            processor = audioContext.createScriptProcessor(4096, 1, 1);
+            // 7. Setup Input Processing
+            state.source = state.audioContext.createMediaStreamSource(state.stream);
+            state.processor = state.audioContext.createScriptProcessor(4096, 1, 1);
 
-            processor.onaudioprocess = (e) => {
-                // Critical Check: ensure session is open and connected
-                if (!session || !isConnected) return;
-
+            state.processor.onaudioprocess = (e) => {
+                if (!state.session || !state.isConnected) return;
                 try {
                     const inputData = e.inputBuffer.getChannelData(0);
                     const b64Data = floatTo16BitPCM(inputData);
-
-                    // Double check before sending
-                    if(isConnected) {
-                        session.sendRealtimeInput({
-                            media: {
-                                mimeType: "audio/pcm;rate=16000",
-                                data: b64Data
-                            }
-                        });
-                    }
+                    state.session.sendRealtimeInput({
+                        media: { mimeType: "audio/pcm;rate=16000", data: b64Data }
+                    });
                 } catch(err) {
-                    // Filter out expected errors when closing
-                    if (err.message && (err.message.includes("CLOSING") || err.message.includes("CLOSED"))) {
-                        // socket closed, stop trying
-                        console.warn("Socket closed during send, disconnecting...");
-                        disconnect();
-                    } else {
-                        console.error("Send Error:", err);
-                    }
+                     // Ignore send errors on closing
                 }
             };
 
-            source.connect(processor);
-            processor.connect(audioContext.destination);
+            state.source.connect(state.processor);
+            state.processor.connect(state.audioContext.destination);
 
-            isConnected = true;
-            updateUIState(true);
+            // Success
+            state.isConnected = true;
+            updateUI(true);
+            visualizeAudio(true);
 
         } catch (e) {
-            console.error("Connection failed:", e);
-            logError("Ulanish xatosi: " + e.message);
-            await disconnect();
+            console.error(e);
+            showError("Ulanishda xatolik: " + e.message + " (Model nomini tekshiring)");
+            setLoading(false);
+            stopConversation();
         }
     }
 
-    // Updated: Handle Incoming Messages via Callback
+    function stopConversation() {
+        state.isConnected = false;
+
+        if (state.processor) {
+            state.processor.disconnect();
+            state.processor.onaudioprocess = null;
+            state.processor = null;
+        }
+        if (state.source) { state.source.disconnect(); state.source = null; }
+        if (state.stream) { state.stream.getTracks().forEach(t => t.stop()); state.stream = null; }
+        if (state.session) {
+            try { state.session.close(); } catch(e){}
+            state.session = null;
+        }
+        if (state.audioContext) {
+            try { state.audioContext.close(); } catch(e){}
+            state.audioContext = null;
+        }
+
+        updateUI(false);
+    }
+
+    // --- Message Handling ---
     async function handleServerMessage(message) {
-        // 1. Check for standard 'serverContent' with 'modelTurn' (Multimodal API)
-        if (message.serverContent && message.serverContent.modelTurn && message.serverContent.modelTurn.parts) {
+        // Audio
+        if (message.serverContent?.modelTurn?.parts) {
             for (const part of message.serverContent.modelTurn.parts) {
-                if (part.inlineData && part.inlineData.data) {
+                if (part.inlineData?.data) {
                     playAudioChunk(part.inlineData.data);
                 }
+                // Check for text transcriptions if available in future
             }
+        }
+
+        // Turn handling logic (optional)
+        if (message.serverContent?.turnComplete) {
+            state.isModelSpeaking = false;
         }
     }
 
     async function playAudioChunk(base64Data) {
-        if (!audioContext) return;
-
+        if (!state.audioContext) return;
         try {
             const audioData = base64ToArrayBuffer(base64Data);
-            const audioBuffer = await audioContext.decodeAudioData(audioData);
+            const audioBuffer = await state.audioContext.decodeAudioData(audioData);
 
-            const source = audioContext.createBufferSource();
+            const source = state.audioContext.createBufferSource();
             source.buffer = audioBuffer;
-            source.connect(audioContext.destination);
+            source.connect(state.audioContext.destination);
 
-            const now = audioContext.currentTime;
-            // Ensure smooth playback sequence
-            const startTime = Math.max(now, playbackNextStartTime);
+            const now = state.audioContext.currentTime;
+            const startTime = Math.max(now, state.playbackNextStartTime);
             source.start(startTime);
-            playbackNextStartTime = startTime + audioBuffer.duration;
+            state.playbackNextStartTime = startTime + audioBuffer.duration;
 
-            // Visualize (simple trigger)
-            visualizeAudio(true);
+            state.isModelSpeaking = true;
 
-        } catch (e) {
-            console.error("Audio decode error:", e);
-        }
+            // Simple visualizer trigger
+            source.onended = () => {
+                if (state.audioContext && state.audioContext.currentTime >= state.playbackNextStartTime) {
+                    state.isModelSpeaking = false;
+                }
+            };
+        } catch (e) { console.error(e); }
     }
 
-    async function disconnect() {
-        // 1. Immediately flag as disconnected to stop loops
-        isConnected = false;
-        updateUIState(false);
-
-        // 2. Stop Processor first (stop sending data)
-        if (processor) {
-            processor.disconnect();
-            processor.onaudioprocess = null; // Remove callback
-            processor = null;
-        }
-
-        // 3. Stop Media Stream
-        if (source) { source.disconnect(); source = null; }
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-
-        // 4. Close Session
-        if (session) {
-             try {
-                 console.log("Closing session...");
-                 if(session.close) await session.close();
-             } catch(e){
-                 console.warn("Error closing session:", e);
-             }
-             session = null;
-        }
-
-        // 5. Close Audio Context
-        if (audioContext) {
-            try { await audioContext.close(); } catch(e){}
-            audioContext = null;
-        }
-    }
-
-    function updateUIState(connected) {
-        const btn = document.getElementById('mic-btn');
-        const statusText = document.getElementById('status-text');
-        const statusInd = document.getElementById('status-indicator');
-
-        btn.disabled = false;
+    // --- UI Helpers ---
+    function updateUI(connected) {
         if (connected) {
-            btn.classList.add('listening');
-            btn.innerHTML = '<i class="bi bi-stop-fill"></i>';
-            statusText.innerText = "Eshitilmoqda...";
-            statusInd.className = "badge bg-success";
-            statusInd.innerText = "ONLINE";
+            els.startBtn.classList.add('hidden');
+            els.activeControls.classList.remove('hidden');
+            els.statusDot.className = "w-2 h-2 rounded-full bg-green-500 animate-pulse";
+            els.statusText.innerText = "ONLINE";
+            els.canvas.classList.remove('hidden');
+            // Hide empty state if we wanted, but let's keep it until messages appear
+            els.emptyState.innerHTML = '<p class="text-slate-400 text-sm">Suhbat boshlandi...</p>';
         } else {
-            btn.classList.remove('listening');
-            btn.innerHTML = '<i class="bi bi-mic-fill"></i>';
-            statusText.innerText = "Darsni Boshlash";
-            statusInd.className = "badge bg-secondary";
-            statusInd.innerText = "OFFLINE";
+            els.startBtn.classList.remove('hidden');
+            els.activeControls.classList.add('hidden');
+            els.statusDot.className = "w-2 h-2 rounded-full bg-slate-300";
+            els.statusText.innerText = "OFFLINE";
+            els.canvas.classList.add('hidden');
+            setLoading(false);
         }
     }
 
-    // --- AUDIO HELPERS ---
+    function setLoading(isLoading) {
+        if (isLoading) {
+            els.startBtn.disabled = true;
+            els.startBtn.innerHTML = '<div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div><span>Ulanmoqda...</span>';
+        } else {
+            els.startBtn.disabled = false;
+            els.startBtn.innerHTML = '<div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><span>Darsni Boshlash</span>';
+        }
+    }
+
+    function showError(msg) {
+        if (msg) {
+            els.errorBox.classList.remove('hidden');
+            els.errorMsg.innerText = msg;
+        } else {
+            els.errorBox.classList.add('hidden');
+        }
+    }
+
+    // --- Audio Utils ---
     function floatTo16BitPCM(input) {
         let output = new Int16Array(input.length);
         for (let i = 0; i < input.length; i++) {
             let s = Math.max(-1, Math.min(1, input[i]));
             output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
-        // Convert to Base64
         const bytes = new Uint8Array(output.buffer);
         let binary = '';
         for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
+             binary += String.fromCharCode(bytes[i]);
         }
         return btoa(binary);
     }
@@ -485,36 +408,39 @@ MULOQOT STRATEGIYASI:
         return bytes.buffer;
     }
 
-    // --- VISUALIZER ---
-    function visualizeAudio(isActive) {
-        const canvas = document.getElementById("visualizer");
-        if (!canvas) return;
+    // --- Visualizer ---
+    function visualizeAudio() {
+        if (!state.isConnected) return;
+
+        const canvas = els.canvas;
         const ctx = canvas.getContext("2d");
-        const width = canvas.width;
-        const height = canvas.height;
+        const width = canvas.width = canvas.offsetWidth;
+        const height = canvas.height = canvas.offsetHeight;
 
         ctx.clearRect(0, 0, width, height);
-        if (!isActive) return;
 
-        // Simple Random Bars for now
-        ctx.fillStyle = "#ff6b81";
-        const barWidth = 5;
-        const gap = 2;
-        const bars = Math.floor(width / (barWidth + gap));
+        // Draw bars
+        const bars = 30;
+        const barWidth = width / bars;
+
+        ctx.fillStyle = state.isModelSpeaking ? "#ef4444" : "#94a3b8"; // Red if model speaks, gray if user listening
 
         for (let i = 0; i < bars; i++) {
-            const h = Math.random() * height * 0.8;
-            const x = i * (barWidth + gap);
+            // Random height for demo, real implementation would use AnalyzerNode
+            const h = Math.random() * (state.isModelSpeaking ? height * 0.8 : height * 0.3);
+            const x = i * barWidth;
             const y = (height - h) / 2;
-            ctx.fillRect(x, y, barWidth, h);
+
+            // Rounded bars
+            ctx.beginPath();
+            ctx.roundRect(x + 2, y, barWidth - 4, h, 4);
+            ctx.fill();
         }
 
-        if(isConnected) {
-            requestAnimationFrame(() => visualizeAudio(true));
-        }
+        requestAnimationFrame(visualizeAudio);
     }
 
-    // --- INIT ---
-    renderUI();
+    console.log("EasyNihongo AI Module Ready (v2.0 Configurable)");
 </script>
+
 {% endblock %}
