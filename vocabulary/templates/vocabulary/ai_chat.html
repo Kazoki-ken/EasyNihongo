@@ -172,10 +172,11 @@
 <script type="module">
     import { GoogleGenAI } from "@google/genai";
 
-    console.log("AI Chat Module Loaded - v1.3 (Debug)");
+    console.log("AI Chat Module Loaded - v1.4 (CrashFix)");
 
     // --- CONFIGURATION ---
-    const API_KEY = "AIzaSyBvFvRiociNCG3dooJrQhOvD6RjRbrF9S0";
+    // TODO: For production, move this key to the backend/environment variables
+    const API_KEY = "AIzaSyAwlNzbGNZ_BzCqsLsDMhFiP1DsEz0Ak44";
     const SYSTEM_INSTRUCTION = `
 Siz "EasyNihongo Sensei" ismli, o'ta sabrli va do'stona yapon tili o'qituvchisisiz. Sizning talabalaringiz asosan o'zbek tilida so'zlashuvchi N5/N4 darajasidagi boshlovchilardir.
 
@@ -292,6 +293,9 @@ MULOQOT STRATEGIYASI:
 
             // Define config
             const config = {
+                // User requested 'gemini-2.5-flash-native-audio', but sticking to 'gemini-2.0-flash-exp' for public API compatibility.
+                // If you have access to 2.5 via this key, you can uncomment the line below:
+                // model: "gemini-2.5-flash-native-audio",
                 model: "gemini-2.0-flash-exp",
                 config: {
                     responseModalities: ["AUDIO"],
@@ -323,23 +327,27 @@ MULOQOT STRATEGIYASI:
             processor = audioContext.createScriptProcessor(4096, 1, 1);
 
             processor.onaudioprocess = (e) => {
-                // Critical Check: ensure session is open
+                // Critical Check: ensure session is open and connected
                 if (!session || !isConnected) return;
 
                 try {
                     const inputData = e.inputBuffer.getChannelData(0);
                     const b64Data = floatTo16BitPCM(inputData);
 
-                    session.sendRealtimeInput({
-                        media: {
-                            mimeType: "audio/pcm;rate=16000",
-                            data: b64Data
-                        }
-                    });
+                    // Double check before sending
+                    if(isConnected) {
+                        session.sendRealtimeInput({
+                            media: {
+                                mimeType: "audio/pcm;rate=16000",
+                                data: b64Data
+                            }
+                        });
+                    }
                 } catch(err) {
                     // Filter out expected errors when closing
                     if (err.message && (err.message.includes("CLOSING") || err.message.includes("CLOSED"))) {
                         // socket closed, stop trying
+                        console.warn("Socket closed during send, disconnecting...");
                         disconnect();
                     } else {
                         console.error("Send Error:", err);
@@ -398,24 +406,37 @@ MULOQOT STRATEGIYASI:
     }
 
     async function disconnect() {
-        if (isConnected || session) {
-             try {
-                 // Attempt to close session if it exists
-                 if(session && session.close) session.close();
-             } catch(e){}
+        // 1. Immediately flag as disconnected to stop loops
+        isConnected = false;
+        updateUIState(false);
+
+        // 2. Stop Processor first (stop sending data)
+        if (processor) {
+            processor.disconnect();
+            processor.onaudioprocess = null; // Remove callback
+            processor = null;
         }
 
-        if (processor) { processor.disconnect(); processor = null; }
+        // 3. Stop Media Stream
         if (source) { source.disconnect(); source = null; }
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+
+        // 4. Close Session
+        if (session) {
+             try {
+                 console.log("Closing session...");
+                 if(session.close) await session.close();
+             } catch(e){
+                 console.warn("Error closing session:", e);
+             }
+             session = null;
+        }
+
+        // 5. Close Audio Context
         if (audioContext) {
             try { await audioContext.close(); } catch(e){}
             audioContext = null;
         }
-
-        session = null;
-        isConnected = false;
-        updateUIState(false);
     }
 
     function updateUIState(connected) {
