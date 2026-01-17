@@ -107,6 +107,11 @@
                     <input type="password" id="api-key-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="AIzaSy...">
                     <p class="text-[10px] text-slate-400 mt-1">Google AI Studio'dan olingan kalit</p>
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Model Name</label>
+                    <input type="text" id="model-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="gemini-2.0-flash">
+                    <p class="text-[10px] text-slate-400 mt-1">Masalan: gemini-2.0-flash, gemini-1.5-flash</p>
+                </div>
             </div>
 
             <div class="mt-6 flex justify-end gap-2">
@@ -138,6 +143,7 @@ Instructions:
     // --- State ---
     const state = {
         apiKey: localStorage.getItem('gemini_api_key') || '',
+        modelName: localStorage.getItem('gemini_model_name') || 'gemini-2.0-flash',
         isRecording: false,
         isProcessing: false,
         mediaRecorder: null,
@@ -157,17 +163,19 @@ Instructions:
         settingsBtn: document.getElementById('settings-btn'),
         closeSettings: document.getElementById('close-settings'),
         saveSettings: document.getElementById('save-settings'),
-        apiKeyInput: document.getElementById('api-key-input')
+        apiKeyInput: document.getElementById('api-key-input'),
+        modelNameInput: document.getElementById('model-name-input')
     };
 
     // --- Initialization ---
     function init() {
-        // Load API Key
+        // Load settings to inputs
         if (state.apiKey) {
             els.apiKeyInput.value = state.apiKey;
         } else {
             openSettings(); // Force open if no key
         }
+        els.modelNameInput.value = state.modelName;
 
         // Setup Voices
         window.speechSynthesis.onvoiceschanged = () => {
@@ -178,7 +186,7 @@ Instructions:
         els.micBtn.addEventListener('click', handleMicClick);
         els.settingsBtn.addEventListener('click', openSettings);
         els.closeSettings.addEventListener('click', closeSettings);
-        els.saveSettings.addEventListener('click', saveApiKey);
+        els.saveSettings.addEventListener('click', saveSettings);
     }
 
     // --- Interactions ---
@@ -270,10 +278,9 @@ Instructions:
 
     // --- API Call ---
     async function sendToGemini(base64Audio, mimeType) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`;
-
-        // Clean mimeType for API if needed (usually full type is fine, but sometimes simpler is better)
-        // Gemini handles audio/webm and audio/mp4.
+        // Use the model name from state
+        const model = state.modelName || 'gemini-2.0-flash';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.apiKey}`;
 
         const payload = {
             contents: [{
@@ -410,15 +417,19 @@ Instructions:
         els.settingsModal.classList.add('hidden');
     }
 
-    function saveApiKey() {
+    function saveSettings() {
         const key = els.apiKeyInput.value.trim();
-        if (key) {
+        const model = els.modelNameInput.value.trim();
+
+        if (key && model) {
             state.apiKey = key;
+            state.modelName = model;
             localStorage.setItem('gemini_api_key', key);
+            localStorage.setItem('gemini_model_name', model);
             closeSettings();
-            alert("API Kalit saqlandi!");
+            alert("Sozlamalar saqlandi!");
         } else {
-            alert("Kalit bo'sh bo'lishi mumkin emas");
+            alert("Barcha maydonlarni to'ldiring!");
         }
     }
 
