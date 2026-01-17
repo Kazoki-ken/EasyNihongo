@@ -36,14 +36,15 @@
 <div class="fixed inset-0 bg-slate-50 z-[2000] flex flex-col font-sans text-slate-900">
 
     <!-- 1. HEADER -->
-    <header class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm z-10">
+    <!-- Added pt-8 for mobile (safe area) and increased min-height -->
+    <header class="bg-white border-b border-slate-200 px-4 pt-10 pb-3 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div class="flex items-center gap-3">
             <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             </a>
             <div>
                 <h1 class="text-lg font-black tracking-tight text-slate-800 leading-none">Sensei AI</h1>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ovozli Yordamchi</span>
+                <span id="level-badge" class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded uppercase tracking-widest">N5</span>
             </div>
         </div>
         <button id="settings-btn" class="p-2 text-slate-400 hover:text-slate-600 transition">
@@ -109,8 +110,19 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Model Name</label>
-                    <input type="text" id="model-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="gemini-2.0-flash">
-                    <p class="text-[10px] text-slate-400 mt-1">Masalan: gemini-2.0-flash, gemini-1.5-flash</p>
+                    <input type="text" id="model-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="gemini-2.5-flash">
+                    <p class="text-[10px] text-slate-400 mt-1">Masalan: gemini-2.5-flash, gemini-1.5-flash</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Yapon Tili Darajangiz</label>
+                    <select id="level-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition appearance-none">
+                        <option value="Beginner">Beginner (Boshlang'ich)</option>
+                        <option value="N5">JLPT N5</option>
+                        <option value="N4">JLPT N4</option>
+                        <option value="N3">JLPT N3</option>
+                        <option value="N2">JLPT N2</option>
+                        <option value="N1">JLPT N1</option>
+                    </select>
                 </div>
             </div>
 
@@ -125,25 +137,58 @@
 
 <!-- LOGIC -->
 <script>
-    // --- Constants ---
-    const SYSTEM_PROMPT = `
-Role: You are "EasyNihongo Sensei", a friendly and patient Japanese language teacher.
-Target Audience: Uzbek speakers (Beginner level N5/N4).
+    // --- Prompts ---
+    function getSystemPrompt(level) {
+        let levelDesc = "";
+        let grammarFocus = "";
 
-Instructions:
-1. Language: Speak primarily in simple Japanese. Use polite form (Desu/Masu).
-2. Explanations: Use Uzbek language for explaining grammar, meanings, or correcting mistakes.
-3. ROMAJI IS MANDATORY: For EVERY Japanese sentence you speak, you MUST provide the Romaji reading in parentheses immediately after.
-   Example: こんにちは (Konnichiwa).
-4. Correction: If the user makes a mistake, kindly correct them in Japanese first, then explain why in Uzbek.
-5. Style: Keep responses concise (max 2-3 sentences). Always encourage the user.
-6. Interaction: End with a simple question to keep the conversation going.
-    `;
+        switch(level) {
+            case "Beginner":
+                levelDesc = "Absolute beginner. Use ONLY very simple words and greetings.";
+                grammarFocus = "Focus on greetings, introduction, and basic numbers.";
+                break;
+            case "N5":
+                levelDesc = "JLPT N5 level. Use basic vocabulary and simple sentence structures (Desu/Masu form).";
+                grammarFocus = "Focus on basic particles (wa, ga, o, ni) and present/past tense.";
+                break;
+            case "N4":
+                levelDesc = "JLPT N4 level. Use slightly more complex sentences and te-form.";
+                grammarFocus = "Focus on compound sentences and everyday conversation topics.";
+                break;
+            case "N3":
+                levelDesc = "JLPT N3 level. Intermediate Japanese. Casual speech is okay but keep it polite.";
+                grammarFocus = "Use more varied vocabulary and intermediate grammar points.";
+                break;
+            case "N2":
+            case "N1":
+                levelDesc = "Advanced level. Speak naturally at near-native speed and complexity.";
+                grammarFocus = "Discuss complex topics, news, or abstract ideas.";
+                break;
+            default:
+                levelDesc = "JLPT N5 level.";
+        }
+
+        return `
+Role: You are "EasyNihongo Sensei", a strict but helpful Japanese language teacher.
+Target Audience Level: ${levelDesc}
+${grammarFocus}
+
+Strict Rules:
+1. LANGUAGE: Speak ONLY in Japanese.
+2. EXPLANATION: If you need to explain the meaning of a word, grammar rule, or correct a mistake, provide the explanation in Uzbek inside parentheses (...).
+   Example: こんにちは！元気ですか？ (Salom! Yaxshimisiz?)
+3. NO ROMAJI: Do NOT provide Romaji unless specifically asked. The user should read the Japanese script.
+4. CORRECTION: If the user makes a mistake, correct it in Japanese, then provide the Uzbek reason in parentheses.
+   Example: 違います。「私は」です。(Xato. "Watashi wa" bo'lishi kerak.)
+5. STYLE: Be encouraging. Keep responses concise (max 2-3 sentences).
+        `;
+    }
 
     // --- State ---
     const state = {
         apiKey: localStorage.getItem('gemini_api_key') || '',
-        modelName: localStorage.getItem('gemini_model_name') || 'gemini-2.0-flash',
+        modelName: localStorage.getItem('gemini_model_name') || 'gemini-2.5-flash',
+        userLevel: localStorage.getItem('gemini_user_level') || 'N5',
         isRecording: false,
         isProcessing: false,
         mediaRecorder: null,
@@ -164,7 +209,9 @@ Instructions:
         closeSettings: document.getElementById('close-settings'),
         saveSettings: document.getElementById('save-settings'),
         apiKeyInput: document.getElementById('api-key-input'),
-        modelNameInput: document.getElementById('model-name-input')
+        modelNameInput: document.getElementById('model-name-input'),
+        levelSelect: document.getElementById('level-select'),
+        levelBadge: document.getElementById('level-badge')
     };
 
     // --- Initialization ---
@@ -176,6 +223,8 @@ Instructions:
             openSettings(); // Force open if no key
         }
         els.modelNameInput.value = state.modelName;
+        els.levelSelect.value = state.userLevel;
+        updateLevelBadge();
 
         // Setup Voices
         window.speechSynthesis.onvoiceschanged = () => {
@@ -279,13 +328,14 @@ Instructions:
     // --- API Call ---
     async function sendToGemini(base64Audio, mimeType) {
         // Use the model name from state
-        const model = state.modelName || 'gemini-2.0-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.apiKey}`;
+        const model = state.modelName || 'gemini-2.5-flash';
+        // Updated to v1 per user request
+        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${state.apiKey}`;
 
         const payload = {
             contents: [{
                 parts: [
-                    { text: SYSTEM_PROMPT },
+                    { text: getSystemPrompt(state.userLevel) },
                     {
                         inline_data: {
                             mime_type: mimeType,
@@ -383,13 +433,23 @@ Instructions:
         els.chatContainer.scrollTop = els.chatContainer.scrollHeight;
     }
 
+    function updateLevelBadge() {
+        els.levelBadge.innerText = state.userLevel;
+    }
+
     // --- TTS Logic ---
     function speakText(text) {
         if (!window.speechSynthesis) return;
 
-        // Clean text (remove markdown mostly) for better reading
-        // Simple regex to remove bolding ** **
-        const cleanText = text.replace(/\*\*/g, '').replace(/\[.*?\]/g, '');
+        // 1. Clean markdown (bolding, etc)
+        let cleanText = text.replace(/\*\*/g, '').replace(/\[.*?\]/g, '');
+
+        // 2. Remove Parentheses content (...) for TTS
+        // Matches ( ... ) or （ ... ） (Japanese parentheses)
+        // We replace them with silence so the audio is pure Japanese
+        cleanText = cleanText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '');
+
+        if (!cleanText.trim()) return; // Nothing to speak after cleaning
 
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
@@ -399,10 +459,6 @@ Instructions:
             utterance.voice = jpVoice;
             utterance.lang = 'ja-JP';
         }
-
-        // Just in case, if no JP voice, it might sound weird reading Romaji/Uzbek mixture with English voice.
-        // Ideally we split languages, but that's complex.
-        // Chrome usually handles mixed content okay-ish or uses the defined voice.
 
         utterance.rate = 0.9; // Slightly slower
         window.speechSynthesis.speak(utterance);
@@ -420,12 +476,18 @@ Instructions:
     function saveSettings() {
         const key = els.apiKeyInput.value.trim();
         const model = els.modelNameInput.value.trim();
+        const level = els.levelSelect.value;
 
         if (key && model) {
             state.apiKey = key;
             state.modelName = model;
+            state.userLevel = level;
+
             localStorage.setItem('gemini_api_key', key);
             localStorage.setItem('gemini_model_name', model);
+            localStorage.setItem('gemini_user_level', level);
+
+            updateLevelBadge();
             closeSettings();
             alert("Sozlamalar saqlandi!");
         } else {
