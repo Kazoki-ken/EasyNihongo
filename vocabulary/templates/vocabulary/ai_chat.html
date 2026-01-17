@@ -322,8 +322,13 @@ ASOSIY QOIDALAR:
     async function playAudioChunk(base64Data) {
         if (!state.audioContext) return;
         try {
-            const audioData = base64ToArrayBuffer(base64Data);
-            const audioBuffer = await state.audioContext.decodeAudioData(audioData);
+            const arrayBuffer = base64ToArrayBuffer(base64Data);
+
+            // Convert raw PCM to WAV container so decodeAudioData can understand it
+            // Gemini typically returns 24000Hz mono PCM
+            const wavBuffer = pcmToWav(arrayBuffer, 24000);
+
+            const audioBuffer = await state.audioContext.decodeAudioData(wavBuffer);
 
             const source = state.audioContext.createBufferSource();
             source.buffer = audioBuffer;
@@ -407,6 +412,52 @@ ASOSIY QOIDALAR:
         }
         return bytes.buffer;
     }
+
+    function pcmToWav(pcmData, sampleRate = 24000) {
+        // pcmData is an ArrayBuffer containing raw 16-bit PCM data
+        const numChannels = 1;
+        const bitsPerSample = 16;
+        const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+        const blockAlign = (numChannels * bitsPerSample) / 8;
+        const dataSize = pcmData.byteLength;
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+
+        // RIFF chunk descriptor
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + dataSize, true);
+        writeString(view, 8, 'WAVE');
+
+        // fmt sub-chunk
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+        view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+        view.setUint16(22, numChannels, true); // NumChannels
+        view.setUint32(24, sampleRate, true); // SampleRate
+        view.setUint32(28, byteRate, true); // ByteRate
+        view.setUint16(32, blockAlign, true); // BlockAlign
+        view.setUint16(34, bitsPerSample, true); // BitsPerSample
+
+        // data sub-chunk
+        writeString(view, 36, 'data');
+        view.setUint32(40, dataSize, true);
+
+        // Write PCM data
+        const pcmBytes = new Uint8Array(pcmData);
+        const wavBytes = new Uint8Array(buffer, 44);
+        wavBytes.set(pcmBytes);
+
+        return buffer;
+    }
+
+    function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    }
+
+    // Expose for testing
+    window.pcmToWav = pcmToWav;
 
     // --- Visualizer ---
     function visualizeAudio() {
