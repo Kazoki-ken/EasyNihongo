@@ -60,7 +60,7 @@
                 <span class="text-sm">🤖</span>
             </div>
             <div class="space-y-1">
-                <div class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm text-slate-700 text-sm leading-relaxed">
+                <div class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm text-slate-700 text-sm leading-relaxed relative group">
                     <p class="font-bold text-indigo-600 mb-1">Konnichiwa! 👋</p>
                     <p>Men EasyNihongo Senseiman. Yapon tilini o'rganishda sizga yordam beraman.</p>
                     <p class="mt-2 text-xs text-slate-400">Mikrofonni bosib, gapirishni boshlang!</p>
@@ -229,9 +229,20 @@ Strict Rules:
         updateLevelBadge();
 
         // Setup Voices
-        window.speechSynthesis.onvoiceschanged = () => {
-            state.voices = window.speechSynthesis.getVoices();
+        const loadVoices = () => {
+             const voices = window.speechSynthesis.getVoices();
+             if (voices.length > 0) {
+                 state.voices = voices;
+             }
         };
+        // Retry loading voices a few times as they might be async
+        loadVoices();
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        // Also fallback interval just in case
+        const voiceInterval = setInterval(() => {
+            if (state.voices.length === 0) loadVoices();
+            else clearInterval(voiceInterval);
+        }, 500);
 
         // Event Listeners
         els.micBtn.addEventListener('click', handleMicClick);
@@ -400,11 +411,15 @@ Strict Rules:
         let avatar = '';
         let bubbleClass = '';
         let nameClass = '';
+        let replayButton = '';
 
         if (sender === 'ai') {
             avatar = '<div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200"><span class="text-sm">🤖</span></div>';
             bubbleClass = 'bg-white border border-slate-200 text-slate-700';
             nameClass = 'text-indigo-600';
+
+            // Text needs to be escaped if we use it in onclick attribute directly,
+            // but we are using closure in JS below, so no need to escape for HTML attribute.
         } else if (sender === 'user') {
             div.classList.add('flex-row-reverse');
             avatar = '<div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center shrink-0 text-white"><span class="text-xs font-bold">SIZ</span></div>';
@@ -417,17 +432,42 @@ Strict Rules:
             return;
         }
 
+        const msgContent = sender === 'ai' ? marked.parse(text) : text;
+        const bubbleInner = `
+            <div class="${bubbleClass} p-4 rounded-2xl ${sender === 'ai' ? 'rounded-tl-none relative pb-8' : 'rounded-tr-none'} shadow-sm text-sm leading-relaxed overflow-hidden">
+                ${msgContent}
+                ${sender === 'ai' ? `
+                <button class="replay-btn absolute bottom-2 right-2 p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition" title="Qayta o'qish">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </button>` : ''}
+            </div>
+        `;
+
         const html = `
             ${avatar}
             <div class="space-y-1 max-w-[80%]">
-                <div class="${bubbleClass} p-4 rounded-2xl ${sender === 'ai' ? 'rounded-tl-none' : 'rounded-tr-none'} shadow-sm text-sm leading-relaxed overflow-hidden">
-                    ${sender === 'ai' ? marked.parse(text) : text}
-                </div>
+                ${bubbleInner}
             </div>
         `;
 
         div.innerHTML = html;
         els.chatContainer.appendChild(div);
+
+        // Attach event listener for replay button if it exists
+        if (sender === 'ai') {
+            const btn = div.querySelector('.replay-btn');
+            if (btn) {
+                // Use a closure to capture 'text' safely
+                btn.onclick = (e) => {
+                    e.stopPropagation(); // Prevent bubbling if any
+                    speakText(text);
+                };
+            }
+        }
+
         scrollToBottom();
     }
 
@@ -453,6 +493,9 @@ Strict Rules:
         cleanText = cleanText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '');
 
         if (!cleanText.trim()) return; // Nothing to speak after cleaning
+
+        // Stop any current speaking
+        window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
