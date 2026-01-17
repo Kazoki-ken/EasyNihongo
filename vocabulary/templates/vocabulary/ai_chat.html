@@ -32,11 +32,11 @@
     }
 </style>
 
-<!-- Main Container with high z-index to cover default site navigation -->
-<div class="fixed inset-0 bg-slate-50 z-[2000] flex flex-col font-sans text-slate-900">
+<!-- Main Container: Full viewport height, flex column layout -->
+<!-- z-[2000] ensures it covers the base template's navigation -->
+<div class="fixed inset-0 bg-slate-50 z-[2000] flex flex-col font-sans text-slate-900 h-[100dvh]">
 
-    <!-- 1. HEADER -->
-    <!-- Added pt-8 for mobile (safe area) and increased min-height -->
+    <!-- 1. HEADER (Fixed height, shrink-0) -->
     <header class="bg-white border-b border-slate-200 px-4 pt-10 pb-3 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div class="flex items-center gap-3">
             <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
@@ -52,8 +52,8 @@
         </button>
     </header>
 
-    <!-- 2. CHAT HISTORY -->
-    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth pb-32">
+    <!-- 2. CHAT HISTORY (Flex-1, Grows to fill space, Scrolls internally) -->
+    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth bg-slate-50 w-full">
         <!-- Welcome Message -->
         <div class="flex gap-4 max-w-3xl mx-auto">
             <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200">
@@ -67,10 +67,12 @@
                 </div>
             </div>
         </div>
+        <!-- Spacer to ensure last message isn't tight to footer -->
+        <div class="h-4"></div>
     </main>
 
-    <!-- 3. CONTROLS (Footer) -->
-    <footer class="absolute bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 pb-8 z-20">
+    <!-- 3. CONTROLS (Footer - Static at bottom of flex container) -->
+    <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 pb-8 z-20 shrink-0">
         <div class="max-w-md mx-auto flex flex-col items-center gap-4">
 
             <!-- Status Text -->
@@ -430,6 +432,7 @@ Strict Rules:
     }
 
     function scrollToBottom() {
+        // Since the chat container is now flex-1 and scrollable, we scroll IT, not the window
         els.chatContainer.scrollTop = els.chatContainer.scrollHeight;
     }
 
