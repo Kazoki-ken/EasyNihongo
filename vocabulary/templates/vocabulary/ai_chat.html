@@ -3,6 +3,20 @@
 {% block content %}
 <!-- Load Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: ['class', '.dark-mode'],
+        theme: {
+            extend: {
+                colors: {
+                    slate: {
+                        850: '#1e293b', // Custom dark shade
+                    }
+                }
+            }
+        }
+    }
+</script>
 <!-- Load Markdown Parser for nice text formatting -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -34,36 +48,36 @@
 
 <!-- Main Container: Full viewport height, flex column layout -->
 <!-- z-[2000] ensures it covers the base template's navigation -->
-<div class="fixed inset-0 bg-slate-50 z-[2000] flex flex-col font-sans text-slate-900 h-[100dvh]">
+<div class="fixed inset-0 bg-slate-50 dark:bg-slate-900 z-[2000] flex flex-col font-sans text-slate-900 dark:text-slate-100 h-[100dvh]">
 
     <!-- 1. HEADER (Fixed height, shrink-0) -->
-    <header class="bg-white border-b border-slate-200 px-4 pt-10 pb-3 flex items-center justify-between shrink-0 shadow-sm z-10">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-10 pb-3 flex items-center justify-between shrink-0 shadow-sm z-10">
         <div class="flex items-center gap-3">
-            <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-200 transition">
+            <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             </a>
             <div>
-                <h1 class="text-lg font-black tracking-tight text-slate-800 leading-none">Sensei AI</h1>
-                <span id="level-badge" class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded uppercase tracking-widest">N5</span>
+                <h1 class="text-lg font-black tracking-tight text-slate-800 dark:text-slate-100 leading-none">Sensei AI</h1>
+                <span id="level-badge" class="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded uppercase tracking-widest">N4</span>
             </div>
         </div>
-        <button id="settings-btn" class="p-2 text-slate-400 hover:text-slate-600 transition">
+        <button id="settings-btn" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         </button>
     </header>
 
     <!-- 2. CHAT HISTORY (Flex-1, Grows to fill space, Scrolls internally) -->
-    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth bg-slate-50 w-full">
+    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth bg-slate-50 dark:bg-slate-950 w-full">
         <!-- Welcome Message -->
         <div class="flex gap-4 max-w-3xl mx-auto">
-            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center shrink-0 border border-indigo-200 dark:border-indigo-800">
                 <span class="text-sm">🤖</span>
             </div>
             <div class="space-y-1">
-                <div class="bg-white border border-slate-200 p-4 rounded-2xl rounded-tl-none shadow-sm text-slate-700 text-sm leading-relaxed relative group">
-                    <p class="font-bold text-indigo-600 mb-1">Konnichiwa! 👋</p>
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl rounded-tl-none shadow-sm text-slate-700 dark:text-slate-200 text-sm leading-relaxed relative group">
+                    <p class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Konnichiwa! 👋</p>
                     <p>Men EasyNihongo Senseiman. Yapon tilini o'rganishda sizga yordam beraman.</p>
-                    <p class="mt-2 text-xs text-slate-400">Mikrofonni bosib, gapirishni boshlang!</p>
+                    <p class="mt-2 text-xs text-slate-400 dark:text-slate-500">Mikrofonni bosib, gapirishni boshlang!</p>
                 </div>
             </div>
         </div>
@@ -72,16 +86,16 @@
     </main>
 
     <!-- 3. CONTROLS (Footer - Static at bottom of flex container) -->
-    <footer class="bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 pb-8 z-20 shrink-0">
+    <footer class="bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 pb-8 z-20 shrink-0 transition-colors duration-300">
         <div class="max-w-md mx-auto flex flex-col items-center gap-4">
 
             <!-- Status Text -->
-            <p id="status-text" class="text-xs font-bold text-slate-400 tracking-wider uppercase h-4 transition-all">
+            <p id="status-text" class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase h-4 transition-all">
                 TAYYOR
             </p>
 
             <!-- Main Button -->
-            <button id="mic-btn" class="relative group w-20 h-20 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-xl shadow-slate-300 hover:scale-105 active:scale-95 transition-all duration-300">
+            <button id="mic-btn" class="relative group w-20 h-20 rounded-full bg-slate-900 dark:bg-slate-800 dark:border dark:border-slate-700 text-white flex items-center justify-center shadow-xl shadow-slate-300 dark:shadow-slate-900/50 hover:scale-105 active:scale-95 transition-all duration-300">
                 <!-- Icon: Mic -->
                 <svg id="icon-mic" class="w-8 h-8 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -95,42 +109,46 @@
                 </svg>
             </button>
 
-            <p class="text-[10px] text-slate-400">Boshlash/Tugatish uchun bosing</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500">Boshlash/Tugatish uchun bosing</p>
         </div>
     </footer>
 
     <!-- 4. SETTINGS MODAL -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 transform transition-all scale-100">
-            <h2 class="text-xl font-bold text-slate-800 mb-4">Sozlamalar</h2>
+    <!-- Fixed: Added overflow-y-auto and removed centered flex from outer container to handle mobile keyboards -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[3000] overflow-y-auto">
+        <!-- Inner Wrapper: Min-height full allows centering when space exists, but scrolling when it doesn't -->
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 transform transition-all scale-100 relative">
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-4">Sozlamalar</h2>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Gemini API Key</label>
-                    <input type="password" id="api-key-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="AIzaSy...">
-                    <p class="text-[10px] text-slate-400 mt-1">Google AI Studio'dan olingan kalit</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Gemini API Key</label>
+                        <input type="password" id="api-key-input" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="AIzaSy...">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Google AI Studio'dan olingan kalit</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Model Name</label>
+                        <input type="text" id="model-name-input" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="gemini-2.5-flash">
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Masalan: gemini-2.5-flash, gemini-1.5-flash</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Yapon Tili Darajangiz</label>
+                        <select id="level-select" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition appearance-none">
+                            <option value="Beginner">Beginner (Boshlang'ich)</option>
+                            <option value="N5">JLPT N5</option>
+                            <option value="N4">JLPT N4</option>
+                            <option value="N3">JLPT N3</option>
+                            <option value="N2">JLPT N2</option>
+                            <option value="N1">JLPT N1</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Model Name</label>
-                    <input type="text" id="model-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="gemini-2.5-flash">
-                    <p class="text-[10px] text-slate-400 mt-1">Masalan: gemini-2.5-flash, gemini-1.5-flash</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Yapon Tili Darajangiz</label>
-                    <select id="level-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition appearance-none">
-                        <option value="Beginner">Beginner (Boshlang'ich)</option>
-                        <option value="N5">JLPT N5</option>
-                        <option value="N4">JLPT N4</option>
-                        <option value="N3">JLPT N3</option>
-                        <option value="N2">JLPT N2</option>
-                        <option value="N1">JLPT N1</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="mt-6 flex justify-end gap-2">
-                <button id="close-settings" class="px-4 py-2 text-slate-500 hover:bg-slate-50 rounded-lg text-sm font-medium transition">Bekor qilish</button>
-                <button id="save-settings" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-md shadow-indigo-200 transition">Saqlash</button>
+                <div class="mt-6 flex justify-end gap-2">
+                    <button id="close-settings" class="px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-sm font-medium transition cursor-pointer">Bekor qilish</button>
+                    <button id="save-settings" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-md shadow-indigo-200 dark:shadow-none transition cursor-pointer">Saqlash</button>
+                </div>
             </div>
         </div>
     </div>
@@ -190,7 +208,7 @@ Strict Rules:
     const state = {
         apiKey: localStorage.getItem('gemini_api_key') || '',
         modelName: localStorage.getItem('gemini_model_name') || 'gemini-2.5-flash',
-        userLevel: localStorage.getItem('gemini_user_level') || 'N5',
+        userLevel: localStorage.getItem('gemini_user_level') || 'N4', // Default N4
         isRecording: false,
         isProcessing: false,
         mediaRecorder: null,
@@ -221,9 +239,9 @@ Strict Rules:
         // Load settings to inputs
         if (state.apiKey) {
             els.apiKeyInput.value = state.apiKey;
-        } else {
-            openSettings(); // Force open if no key
         }
+        // Removed auto-opening of settings
+
         els.modelNameInput.value = state.modelName;
         els.levelSelect.value = state.userLevel;
         updateLevelBadge();
@@ -379,16 +397,16 @@ Strict Rules:
         state.isProcessing = (mode === 'processing');
 
         // Reset classes
-        els.micBtn.classList.remove('bg-red-500', 'bg-slate-900', 'ring-animate');
+        els.micBtn.classList.remove('bg-red-500', 'bg-slate-900', 'dark:bg-slate-800', 'ring-animate');
         els.iconMic.classList.add('hidden');
         els.iconStop.classList.add('hidden');
         els.iconLoading.classList.add('hidden');
 
         if (mode === 'idle') {
-            els.micBtn.classList.add('bg-slate-900');
+            els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
             els.iconMic.classList.remove('hidden');
             els.statusText.innerText = "TAYYOR";
-            els.statusText.className = "text-xs font-bold text-slate-400 tracking-wider uppercase h-4 transition-all";
+            els.statusText.className = "text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase h-4 transition-all";
         }
         else if (mode === 'recording') {
             els.micBtn.classList.add('bg-red-500', 'ring-animate');
@@ -397,10 +415,10 @@ Strict Rules:
             els.statusText.className = "text-xs font-bold text-red-500 tracking-wider uppercase h-4 transition-all animate-pulse";
         }
         else if (mode === 'processing') {
-            els.micBtn.classList.add('bg-slate-900');
+            els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
             els.iconLoading.classList.remove('hidden');
             els.statusText.innerText = "O'YLANMOQDA...";
-            els.statusText.className = "text-xs font-bold text-indigo-500 tracking-wider uppercase h-4 transition-all animate-pulse";
+            els.statusText.className = "text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-wider uppercase h-4 transition-all animate-pulse";
         }
     }
 
@@ -414,19 +432,17 @@ Strict Rules:
         let replayButton = '';
 
         if (sender === 'ai') {
-            avatar = '<div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0 border border-indigo-200"><span class="text-sm">🤖</span></div>';
-            bubbleClass = 'bg-white border border-slate-200 text-slate-700';
-            nameClass = 'text-indigo-600';
+            avatar = '<div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center shrink-0 border border-indigo-200 dark:border-indigo-800"><span class="text-sm">🤖</span></div>';
+            bubbleClass = 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200';
+            nameClass = 'text-indigo-600 dark:text-indigo-400';
 
-            // Text needs to be escaped if we use it in onclick attribute directly,
-            // but we are using closure in JS below, so no need to escape for HTML attribute.
         } else if (sender === 'user') {
             div.classList.add('flex-row-reverse');
-            avatar = '<div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center shrink-0 text-white"><span class="text-xs font-bold">SIZ</span></div>';
-            bubbleClass = 'bg-slate-900 text-white';
+            avatar = '<div class="w-8 h-8 rounded-full bg-slate-900 dark:bg-slate-700 flex items-center justify-center shrink-0 text-white"><span class="text-xs font-bold">SIZ</span></div>';
+            bubbleClass = 'bg-slate-900 dark:bg-slate-700 text-white';
             nameClass = 'hidden'; // Don't show name for user
         } else if (sender === 'error') {
-            div.innerHTML = `<div class="w-full bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-bold border border-red-100">${text}</div>`;
+            div.innerHTML = `<div class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center font-bold border border-red-100 dark:border-red-900/50">${text}</div>`;
             els.chatContainer.appendChild(div);
             scrollToBottom();
             return;
@@ -437,7 +453,7 @@ Strict Rules:
             <div class="${bubbleClass} p-4 rounded-2xl ${sender === 'ai' ? 'rounded-tl-none relative pb-8' : 'rounded-tr-none'} shadow-sm text-sm leading-relaxed overflow-hidden">
                 ${msgContent}
                 ${sender === 'ai' ? `
-                <button class="replay-btn absolute bottom-2 right-2 p-1.5 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition" title="Qayta o'qish">
+                <button class="replay-btn absolute bottom-2 right-2 p-1.5 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-full transition" title="Qayta o'qish">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
                         <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
