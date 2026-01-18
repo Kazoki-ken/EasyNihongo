@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.admin.views.decorators import staff_member_required
 
-from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress, Book, LeagueLog, Badge, UserBadge
+from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress, Book, LeagueLog, Badge, UserBadge, SiteConfiguration
 from .forms import UserRegisterForm, WordForm
 
 # =========================================================
@@ -1156,4 +1156,6 @@ def upload_book_words(request):
 # --- AI CHAT VIEW ---
 @login_required
 def ai_chat_view(request):
-    return render(request, 'vocabulary/ai_chat.html')
+    config = SiteConfiguration.objects.first()
+    global_api_key = config.gemini_api_key if config else ""
+    return render(request, 'vocabulary/ai_chat.html', {'global_api_key': global_api_key})

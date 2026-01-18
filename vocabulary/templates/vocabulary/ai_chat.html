@@ -205,6 +205,8 @@ Strict Rules:
     }
 
     // --- State ---
+    const djangoGlobalKey = "{{ global_api_key }}";
+
     const state = {
         apiKey: localStorage.getItem('gemini_api_key') || '',
         modelName: localStorage.getItem('gemini_model_name') || 'gemini-2.5-flash',
@@ -271,7 +273,10 @@ Strict Rules:
 
     // --- Interactions ---
     function handleMicClick() {
-        if (!state.apiKey) {
+        // Effective Key: User provided OR Global Key
+        const effectiveKey = state.apiKey || djangoGlobalKey;
+
+        if (!effectiveKey) {
             alert("Iltimos, avval Sozlamalarda API kalitini kiriting!");
             openSettings();
             return;
@@ -360,8 +365,12 @@ Strict Rules:
     async function sendToGemini(base64Audio, mimeType) {
         // Use the model name from state
         const model = state.modelName || 'gemini-2.5-flash';
+
+        // Determine Key: Local or Global
+        const key = state.apiKey || djangoGlobalKey;
+
         // Updated to v1 per user request
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${state.apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`;
 
         const payload = {
             contents: [{
