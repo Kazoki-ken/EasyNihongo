@@ -66,6 +66,12 @@
         </button>
     </header>
 
+    <!-- HTTPS Warning (Hidden by default) -->
+    <div id="https-warning" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mx-4 mt-2 rounded shadow-md z-50">
+        <p class="font-bold">Diqqat!</p>
+        <p>Mikrofon ishlashi uchun sayt xavfsiz (HTTPS) ulanishda bo'lishi shart.</p>
+    </div>
+
     <!-- 2. CHAT HISTORY (Flex-1, Grows to fill space, Scrolls internally) -->
     <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth bg-slate-50 dark:bg-slate-950 w-full">
         <!-- Welcome Message -->
@@ -95,7 +101,7 @@
             </p>
 
             <!-- Main Button -->
-            <button id="mic-btn" class="relative group w-20 h-20 rounded-full bg-slate-900 dark:bg-slate-800 dark:border dark:border-slate-700 text-white flex items-center justify-center shadow-xl shadow-slate-300 dark:shadow-slate-900/50 hover:scale-105 active:scale-95 transition-all duration-300">
+            <button id="mic-btn" class="relative group w-20 h-20 rounded-full bg-slate-900 dark:bg-slate-800 dark:border dark:border-slate-700 text-white flex items-center justify-center shadow-xl shadow-slate-300 dark:shadow-slate-900/50 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
                 <!-- Icon: Mic -->
                 <svg id="icon-mic" class="w-8 h-8 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -153,10 +159,34 @@
         </div>
     </div>
 
+    <!-- Debug Log (Hidden by default, shown if URL param debug=true) -->
+    <div id="debug-log" class="hidden fixed bottom-0 left-0 w-full max-h-40 overflow-y-auto bg-black/80 text-green-400 text-[10px] p-2 font-mono z-[4000]"></div>
+
 </div>
 
 <!-- LOGIC -->
 <script>
+    // --- Error Logging for Mobile ---
+    const debugLogEl = document.getElementById('debug-log');
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDebug = urlParams.get('debug') === 'true';
+
+    function logError(msg) {
+        console.error(msg);
+        if (isDebug || true) { // Always log critical errors internally but show only if needed or keep it hidden but populate
+            // Actually, let's only show if debug=true, but we can inspect elements
+            if (isDebug) debugLogEl.classList.remove('hidden');
+            const p = document.createElement('p');
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            debugLogEl.appendChild(p);
+            debugLogEl.scrollTop = debugLogEl.scrollHeight;
+        }
+    }
+
+    window.onerror = function(message, source, lineno, colno, error) {
+        logError(`Global: ${message} at ${lineno}:${colno}`);
+    };
+
     // --- Prompts ---
     function getSystemPrompt(level) {
         let levelDesc = "";
@@ -233,66 +263,103 @@ Strict Rules:
         apiKeyInput: document.getElementById('api-key-input'),
         modelNameInput: document.getElementById('model-name-input'),
         levelSelect: document.getElementById('level-select'),
-        levelBadge: document.getElementById('level-badge')
+        levelBadge: document.getElementById('level-badge'),
+        httpsWarning: document.getElementById('https-warning')
     };
 
     // --- Initialization ---
     function init() {
-        // Load settings to inputs
-        if (state.apiKey) {
-            els.apiKeyInput.value = state.apiKey;
+        try {
+            // 1. Attach Event Listeners FIRST (Critical for responsiveness)
+            // Use both click and touchstart to ensure better mobile response
+            // We use a flag to prevent double firing if browser fires both
+
+            const bindClick = (el, handler) => {
+                if(!el) return;
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handler(e);
+                });
+                // Note: Adding touchstart might be redundant if click works, but some mobile browsers prefer it.
+                // However, click is generally safer unless we implement debounce.
+                // Let's stick to standard click but ensure no errors block it.
+            };
+
+            bindClick(els.micBtn, handleMicClick);
+            bindClick(els.settingsBtn, openSettings);
+            bindClick(els.closeSettings, closeSettings);
+            bindClick(els.saveSettings, saveSettings);
+
+            // 2. HTTPS Check
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                els.httpsWarning.classList.remove('hidden');
+                logError("Warning: Not HTTPS");
+            }
+
+            // 3. Load Settings
+            if (state.apiKey) {
+                if(els.apiKeyInput) els.apiKeyInput.value = state.apiKey;
+            }
+
+            if(els.modelNameInput) els.modelNameInput.value = state.modelName;
+            if(els.levelSelect) els.levelSelect.value = state.userLevel;
+            updateLevelBadge();
+
+            // 4. Setup Voices (Safe Wrap)
+            if ('speechSynthesis' in window) {
+                const loadVoices = () => {
+                     const voices = window.speechSynthesis.getVoices();
+                     if (voices.length > 0) {
+                         state.voices = voices;
+                     }
+                };
+                loadVoices();
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+
+                // Fallback interval
+                const voiceInterval = setInterval(() => {
+                    if (state.voices.length === 0) loadVoices();
+                    else clearInterval(voiceInterval);
+                }, 500);
+            } else {
+                logError("Speech Synthesis API not supported.");
+            }
+
+        } catch (e) {
+            logError("Init Error: " + e.message);
         }
-        // Removed auto-opening of settings
-
-        els.modelNameInput.value = state.modelName;
-        els.levelSelect.value = state.userLevel;
-        updateLevelBadge();
-
-        // Setup Voices
-        const loadVoices = () => {
-             const voices = window.speechSynthesis.getVoices();
-             if (voices.length > 0) {
-                 state.voices = voices;
-             }
-        };
-        // Retry loading voices a few times as they might be async
-        loadVoices();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-        // Also fallback interval just in case
-        const voiceInterval = setInterval(() => {
-            if (state.voices.length === 0) loadVoices();
-            else clearInterval(voiceInterval);
-        }, 500);
-
-        // Event Listeners
-        els.micBtn.addEventListener('click', handleMicClick);
-        els.settingsBtn.addEventListener('click', openSettings);
-        els.closeSettings.addEventListener('click', closeSettings);
-        els.saveSettings.addEventListener('click', saveSettings);
     }
 
     // --- Interactions ---
     function handleMicClick() {
-        // Effective Key: User provided OR Global Key
-        const effectiveKey = state.apiKey || djangoGlobalKey;
+        try {
+            // Effective Key: User provided OR Global Key
+            const effectiveKey = state.apiKey || djangoGlobalKey;
 
-        if (!effectiveKey) {
-            alert("Iltimos, avval Sozlamalarda API kalitini kiriting!");
-            openSettings();
-            return;
-        }
+            if (!effectiveKey) {
+                alert("Iltimos, avval Sozlamalarda API kalitini kiriting!");
+                openSettings();
+                return;
+            }
 
-        if (state.isProcessing) return; // Busy
+            if (state.isProcessing) return; // Busy
 
-        if (state.isRecording) {
-            stopRecording();
-        } else {
-            startRecording();
+            if (state.isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        } catch (e) {
+            logError("Mic Click Error: " + e.message);
         }
     }
 
     async function startRecording() {
         try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                 throw new Error("Brauzeringiz ovoz yozishni qo'llab-quvvatlamaydi (yoki HTTPS yo'q).");
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
             // Determine supported mime type
@@ -319,8 +386,8 @@ Strict Rules:
             state.isRecording = true;
             updateUIState('recording');
         } catch (err) {
-            console.error(err);
-            alert("Mikrofonga ruxsat berilmadi yoki xatolik yuz berdi: " + err.message);
+            logError("Mic Error: " + err.message);
+            alert("Mikrofon xatosi: " + err.message + "\n(Iltimos, HTTPS dan foydalaning va ruxsat bering)");
         }
     }
 
@@ -329,7 +396,9 @@ Strict Rules:
             state.mediaRecorder.stop();
             state.isRecording = false;
             // Stop stream tracks
-            state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            if (state.mediaRecorder.stream) {
+                 state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
             updateUIState('processing');
         }
     }
@@ -353,7 +422,7 @@ Strict Rules:
                 addMessage('ai', responseText);
                 speakText(responseText);
             } catch (err) {
-                console.error(err);
+                logError("API Error: " + err.message);
                 addMessage('error', 'Xatolik yuz berdi: ' + err.message);
             } finally {
                 updateUIState('idle');
@@ -406,28 +475,34 @@ Strict Rules:
         state.isProcessing = (mode === 'processing');
 
         // Reset classes
-        els.micBtn.classList.remove('bg-red-500', 'bg-slate-900', 'dark:bg-slate-800', 'ring-animate');
-        els.iconMic.classList.add('hidden');
-        els.iconStop.classList.add('hidden');
-        els.iconLoading.classList.add('hidden');
+        if(els.micBtn) els.micBtn.classList.remove('bg-red-500', 'bg-slate-900', 'dark:bg-slate-800', 'ring-animate');
+        if(els.iconMic) els.iconMic.classList.add('hidden');
+        if(els.iconStop) els.iconStop.classList.add('hidden');
+        if(els.iconLoading) els.iconLoading.classList.add('hidden');
 
         if (mode === 'idle') {
-            els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
-            els.iconMic.classList.remove('hidden');
-            els.statusText.innerText = "TAYYOR";
-            els.statusText.className = "text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase h-4 transition-all";
+            if(els.micBtn) els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
+            if(els.iconMic) els.iconMic.classList.remove('hidden');
+            if(els.statusText) {
+                els.statusText.innerText = "TAYYOR";
+                els.statusText.className = "text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase h-4 transition-all";
+            }
         }
         else if (mode === 'recording') {
-            els.micBtn.classList.add('bg-red-500', 'ring-animate');
-            els.iconStop.classList.remove('hidden');
-            els.statusText.innerText = "ESHITILMOQDA...";
-            els.statusText.className = "text-xs font-bold text-red-500 tracking-wider uppercase h-4 transition-all animate-pulse";
+            if(els.micBtn) els.micBtn.classList.add('bg-red-500', 'ring-animate');
+            if(els.iconStop) els.iconStop.classList.remove('hidden');
+            if(els.statusText) {
+                els.statusText.innerText = "ESHITILMOQDA...";
+                els.statusText.className = "text-xs font-bold text-red-500 tracking-wider uppercase h-4 transition-all animate-pulse";
+            }
         }
         else if (mode === 'processing') {
-            els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
-            els.iconLoading.classList.remove('hidden');
-            els.statusText.innerText = "O'YLANMOQDA...";
-            els.statusText.className = "text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-wider uppercase h-4 transition-all animate-pulse";
+            if(els.micBtn) els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
+            if(els.iconLoading) els.iconLoading.classList.remove('hidden');
+            if(els.statusText) {
+                els.statusText.innerText = "O'YLANMOQDA...";
+                els.statusText.className = "text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-wider uppercase h-4 transition-all animate-pulse";
+            }
         }
     }
 
@@ -452,7 +527,7 @@ Strict Rules:
             nameClass = 'hidden'; // Don't show name for user
         } else if (sender === 'error') {
             div.innerHTML = `<div class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center font-bold border border-red-100 dark:border-red-900/50">${text}</div>`;
-            els.chatContainer.appendChild(div);
+            if(els.chatContainer) els.chatContainer.appendChild(div);
             scrollToBottom();
             return;
         }
@@ -479,7 +554,7 @@ Strict Rules:
         `;
 
         div.innerHTML = html;
-        els.chatContainer.appendChild(div);
+        if(els.chatContainer) els.chatContainer.appendChild(div);
 
         // Attach event listener for replay button if it exists
         if (sender === 'ai') {
@@ -498,11 +573,11 @@ Strict Rules:
 
     function scrollToBottom() {
         // Since the chat container is now flex-1 and scrollable, we scroll IT, not the window
-        els.chatContainer.scrollTop = els.chatContainer.scrollHeight;
+        if(els.chatContainer) els.chatContainer.scrollTop = els.chatContainer.scrollHeight;
     }
 
     function updateLevelBadge() {
-        els.levelBadge.innerText = state.userLevel;
+        if(els.levelBadge) els.levelBadge.innerText = state.userLevel;
     }
 
     // --- TTS Logic ---
@@ -537,19 +612,19 @@ Strict Rules:
 
     // --- Settings Logic ---
     function openSettings() {
-        els.settingsModal.classList.remove('hidden');
+        if(els.settingsModal) els.settingsModal.classList.remove('hidden');
     }
 
     function closeSettings() {
-        els.settingsModal.classList.add('hidden');
+        if(els.settingsModal) els.settingsModal.classList.add('hidden');
     }
 
     function saveSettings() {
-        const key = els.apiKeyInput.value.trim();
-        const model = els.modelNameInput.value.trim();
-        const level = els.levelSelect.value;
+        const key = els.apiKeyInput ? els.apiKeyInput.value.trim() : '';
+        const model = els.modelNameInput ? els.modelNameInput.value.trim() : '';
+        const level = els.levelSelect ? els.levelSelect.value : 'N4';
 
-        if (key && model) {
+        if (model) {
             state.apiKey = key;
             state.modelName = model;
             state.userLevel = level;
