@@ -17,6 +17,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 from .models import Word, Profile, Topic, WeeklyStats, UserWordProgress, Book, LeagueLog, Badge, UserBadge, SiteConfiguration
 from .forms import UserRegisterForm, WordForm
+from .tts_utils import get_edge_audio_sync
+from django.http import HttpResponse
 
 # =========================================================
 # 1. YORDAMCHI FUNKSIYALAR (HELPERS)
@@ -1159,3 +1161,37 @@ def ai_chat_view(request):
     config = SiteConfiguration.objects.first()
     global_api_key = config.gemini_api_key if config else ""
     return render(request, 'vocabulary/ai_chat.html', {'global_api_key': global_api_key})
+
+@login_required
+def ai_chat_test_view(request):
+    config = SiteConfiguration.objects.first()
+    global_api_key = config.gemini_api_key if config else ""
+    return render(request, 'vocabulary/ai_chat_v2.html', {'global_api_key': global_api_key})
+
+@login_required
+def edge_tts_view(request):
+    """
+    API endpoint to generate TTS audio.
+    Expects POST request with 'text' parameter.
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            text = data.get('text', '')
+        except:
+            text = request.POST.get('text', '')
+
+        if not text:
+             return JsonResponse({'error': 'No text provided'}, status=400)
+
+        try:
+            # Use 'ja-JP-NanamiNeural' for Japanese
+            # We can make voice configurable later
+            audio_data = get_edge_audio_sync(text, voice="ja-JP-NanamiNeural")
+            response = HttpResponse(audio_data, content_type='audio/mpeg')
+            response['Content-Disposition'] = 'inline; filename="tts_output.mp3"'
+            return response
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'POST required'}, status=405)

@@ -1,0 +1,560 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+<!-- Load Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: ['class', '.dark-mode'],
+        theme: {
+            extend: {
+                colors: {
+                    slate: {
+                        850: '#1e293b', // Custom dark shade
+                    }
+                }
+            }
+        }
+    }
+</script>
+<!-- Load Markdown Parser for nice text formatting -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+    /* Custom Scrollbar */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Animations */
+    @keyframes pulse-ring {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(2); opacity: 0; }
+    }
+    .ring-animate::before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px solid #ef4444;
+        animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+</style>
+
+<!-- Main Container: Full viewport height, flex column layout -->
+<!-- z-[2000] ensures it covers the base template's navigation -->
+<div class="fixed inset-0 bg-slate-50 dark:bg-slate-900 z-[2000] flex flex-col font-sans text-slate-900 dark:text-slate-100 h-[100dvh]">
+
+    <!-- 1. HEADER (Fixed height, shrink-0) -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-10 pb-3 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            </a>
+            <div>
+                <h1 class="text-lg font-black tracking-tight text-slate-800 dark:text-slate-100 leading-none">Sensei AI (Edge Audio)</h1>
+                <span id="level-badge" class="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded uppercase tracking-widest">N4</span>
+            </div>
+        </div>
+        <button id="settings-btn" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        </button>
+    </header>
+
+    <!-- HTTPS Warning (Hidden by default) -->
+    <div id="https-warning" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mx-4 mt-2 rounded shadow-md z-50">
+        <p class="font-bold">Diqqat!</p>
+        <p>Mikrofon ishlashi uchun sayt xavfsiz (HTTPS) ulanishda bo'lishi shart.</p>
+    </div>
+
+    <!-- 2. CHAT HISTORY (Flex-1, Grows to fill space, Scrolls internally) -->
+    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth bg-slate-50 dark:bg-slate-950 w-full">
+        <!-- Welcome Message -->
+        <div class="flex gap-4 max-w-3xl mx-auto">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center shrink-0 border border-indigo-200 dark:border-indigo-800">
+                <span class="text-sm">🤖</span>
+            </div>
+            <div class="space-y-1">
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-2xl rounded-tl-none shadow-sm text-slate-700 dark:text-slate-200 text-sm leading-relaxed relative group">
+                    <p class="font-bold text-indigo-600 dark:text-indigo-400 mb-1">Konnichiwa! 👋</p>
+                    <p>Men EasyNihongo Senseiman. Yapon tilini o'rganishda sizga yordam beraman.</p>
+                    <p class="mt-2 text-xs text-slate-400 dark:text-slate-500">Mikrofonni bosib, gapirishni boshlang! (Edge Audio Mode)</p>
+                </div>
+            </div>
+        </div>
+        <!-- Spacer to ensure last message isn't tight to footer -->
+        <div class="h-4"></div>
+    </main>
+
+    <!-- 3. CONTROLS (Footer - Static at bottom of flex container) -->
+    <footer class="bg-white/80 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 p-4 pb-8 z-20 shrink-0 transition-colors duration-300">
+        <div class="max-w-md mx-auto flex flex-col items-center gap-4">
+
+            <!-- Status Text -->
+            <p id="status-text" class="text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase h-4 transition-all">
+                TAYYOR
+            </p>
+
+            <!-- Main Button -->
+            <button id="mic-btn" class="relative group w-20 h-20 rounded-full bg-slate-900 dark:bg-slate-800 dark:border dark:border-slate-700 text-white flex items-center justify-center shadow-xl shadow-slate-300 dark:shadow-slate-900/50 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
+                <!-- Icon: Mic -->
+                <svg id="icon-mic" class="w-8 h-8 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                <!-- Icon: Stop (Hidden) -->
+                <div id="icon-stop" class="hidden w-6 h-6 bg-red-500 rounded-sm"></div>
+                <!-- Spinner (Hidden) -->
+                <svg id="icon-loading" class="hidden w-8 h-8 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </button>
+
+            <p class="text-[10px] text-slate-400 dark:text-slate-500">Boshlash/Tugatish uchun bosing</p>
+        </div>
+    </footer>
+
+    <!-- 4. SETTINGS MODAL -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[3000] overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm shadow-2xl p-6 transform transition-all scale-100 relative">
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white mb-4">Sozlamalar</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Gemini API Key</label>
+                        <input type="password" id="api-key-input" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="AIzaSy...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Model Name</label>
+                        <input type="text" id="model-name-input" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="gemini-2.5-flash">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Yapon Tili Darajangiz</label>
+                        <select id="level-select" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition appearance-none">
+                            <option value="Beginner">Beginner (Boshlang'ich)</option>
+                            <option value="N5">JLPT N5</option>
+                            <option value="N4">JLPT N4</option>
+                            <option value="N3">JLPT N3</option>
+                            <option value="N2">JLPT N2</option>
+                            <option value="N1">JLPT N1</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button id="close-settings" class="px-4 py-2 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-sm font-medium transition cursor-pointer">Bekor qilish</button>
+                    <button id="save-settings" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-md shadow-indigo-200 dark:shadow-none transition cursor-pointer">Saqlash</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Log -->
+    <div id="debug-log" class="hidden fixed bottom-0 left-0 w-full max-h-40 overflow-y-auto bg-black/80 text-green-400 text-[10px] p-2 font-mono z-[4000]"></div>
+
+</div>
+
+<!-- LOGIC -->
+<script>
+    // --- Error Logging for Mobile ---
+    const debugLogEl = document.getElementById('debug-log');
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDebug = urlParams.get('debug') === 'true';
+
+    function logError(msg) {
+        console.error(msg);
+        if (isDebug || true) {
+            if (isDebug) debugLogEl.classList.remove('hidden');
+            const p = document.createElement('p');
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            debugLogEl.appendChild(p);
+            debugLogEl.scrollTop = debugLogEl.scrollHeight;
+        }
+    }
+
+    window.onerror = function(message, source, lineno, colno, error) {
+        logError(`Global: ${message} at ${lineno}:${colno}`);
+    };
+
+    // --- Prompts ---
+    function getSystemPrompt(level) {
+        let levelDesc = "JLPT N5 level.";
+        switch(level) {
+            case "Beginner": levelDesc = "Absolute beginner. Use ONLY very simple words and greetings. Focus on greetings, introduction, and basic numbers."; break;
+            case "N5": levelDesc = "JLPT N5 level. Use basic vocabulary and simple sentence structures (Desu/Masu form). Focus on basic particles (wa, ga, o, ni) and present/past tense."; break;
+            case "N4": levelDesc = "JLPT N4 level. Use slightly more complex sentences and te-form. Focus on compound sentences and everyday conversation topics."; break;
+            case "N3": levelDesc = "JLPT N3 level. Intermediate Japanese. Casual speech is okay but keep it polite. Use more varied vocabulary and intermediate grammar points."; break;
+            case "N2": case "N1": levelDesc = "Advanced level. Speak naturally at near-native speed and complexity. Discuss complex topics, news, or abstract ideas."; break;
+        }
+        return `
+Role: You are "EasyNihongo Sensei", a strict but helpful Japanese language teacher.
+Target Audience Level: ${levelDesc}
+
+Strict Rules:
+1. LANGUAGE: Speak ONLY in Japanese.
+2. EXPLANATION: If you need to explain the meaning of a word, grammar rule, or correct a mistake, provide the explanation in Uzbek inside parentheses (...).
+   Example: こんにちは！元気ですか？ (Salom! Yaxshimisiz?)
+3. NO ROMAJI: Do NOT provide Romaji unless specifically asked. The user should read the Japanese script.
+4. CORRECTION: If the user makes a mistake, correct it in Japanese, then provide the Uzbek reason in parentheses.
+   Example: 違います。「私は」です。(Xato. "Watashi wa" bo'lishi kerak.)
+5. STYLE: Be encouraging. Keep responses concise (max 2-3 sentences).
+        `;
+    }
+
+    const djangoGlobalKey = "{{ global_api_key }}";
+
+    const state = {
+        apiKey: localStorage.getItem('gemini_api_key') || '',
+        modelName: localStorage.getItem('gemini_model_name') || 'gemini-2.5-flash',
+        userLevel: localStorage.getItem('gemini_user_level') || 'N4',
+        isRecording: false,
+        isProcessing: false,
+        mediaRecorder: null,
+        audioChunks: [],
+    };
+
+    const els = {
+        micBtn: document.getElementById('mic-btn'),
+        iconMic: document.getElementById('icon-mic'),
+        iconStop: document.getElementById('icon-stop'),
+        iconLoading: document.getElementById('icon-loading'),
+        statusText: document.getElementById('status-text'),
+        chatContainer: document.getElementById('chat-container'),
+        settingsModal: document.getElementById('settings-modal'),
+        settingsBtn: document.getElementById('settings-btn'),
+        closeSettings: document.getElementById('close-settings'),
+        saveSettings: document.getElementById('save-settings'),
+        apiKeyInput: document.getElementById('api-key-input'),
+        modelNameInput: document.getElementById('model-name-input'),
+        levelSelect: document.getElementById('level-select'),
+        levelBadge: document.getElementById('level-badge'),
+        httpsWarning: document.getElementById('https-warning')
+    };
+
+    function init() {
+        try {
+            const bindClick = (el, handler) => {
+                if(!el) return;
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handler(e);
+                });
+            };
+
+            bindClick(els.micBtn, handleMicClick);
+            bindClick(els.settingsBtn, openSettings);
+            bindClick(els.closeSettings, closeSettings);
+            bindClick(els.saveSettings, saveSettings);
+
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                els.httpsWarning.classList.remove('hidden');
+                logError("Warning: Not HTTPS");
+            }
+
+            if (state.apiKey) if(els.apiKeyInput) els.apiKeyInput.value = state.apiKey;
+            if(els.modelNameInput) els.modelNameInput.value = state.modelName;
+            if(els.levelSelect) els.levelSelect.value = state.userLevel;
+            updateLevelBadge();
+
+        } catch (e) {
+            logError("Init Error: " + e.message);
+        }
+    }
+
+    function handleMicClick() {
+        try {
+            const effectiveKey = state.apiKey || djangoGlobalKey;
+            if (!effectiveKey) {
+                alert("Iltimos, avval Sozlamalarda API kalitini kiriting!");
+                openSettings();
+                return;
+            }
+            if (state.isProcessing) return;
+            if (state.isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        } catch (e) {
+            logError("Mic Click Error: " + e.message);
+        }
+    }
+
+    async function startRecording() {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                 throw new Error("Brauzeringiz ovoz yozishni qo'llab-quvvatlamaydi (yoki HTTPS yo'q).");
+            }
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            let mimeType = 'audio/webm';
+            if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
+            else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+
+            state.mediaRecorder = new MediaRecorder(stream, { mimeType });
+            state.mediaRecorder.mimeType = mimeType;
+            state.audioChunks = [];
+
+            state.mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) state.audioChunks.push(event.data);
+            };
+
+            state.mediaRecorder.onstop = processAudio;
+            state.mediaRecorder.start();
+            state.isRecording = true;
+            updateUIState('recording');
+        } catch (err) {
+            logError("Mic Error: " + err.message);
+            alert("Mikrofon xatosi: " + err.message + "\n(Iltimos, HTTPS dan foydalaning va ruxsat bering)");
+        }
+    }
+
+    function stopRecording() {
+        if (state.mediaRecorder && state.isRecording) {
+            state.mediaRecorder.stop();
+            state.isRecording = false;
+            if (state.mediaRecorder.stream) state.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            updateUIState('processing');
+        }
+    }
+
+    async function processAudio() {
+        const mimeType = state.mediaRecorder.mimeType || 'audio/webm';
+        const audioBlob = new Blob(state.audioChunks, { type: mimeType });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+            const base64Audio = reader.result.split(',')[1];
+            addMessage('user', '🎤 Ovozli xabar...');
+
+            try {
+                // Step 1: Text Response (Gemini)
+                const responseText = await sendToGeminiText(base64Audio, mimeType);
+                addMessage('ai', responseText);
+
+                // Step 2: Audio Generation (Edge TTS Backend)
+                // Filter out parentheses logic to speak only Japanese
+                const cleanText = responseText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+
+                if (cleanText) {
+                    await playEdgeTTS(cleanText);
+                } else {
+                    console.log("No clean text to speak.");
+                }
+
+            } catch (err) {
+                logError("API Error: " + err.message);
+                addMessage('error', 'Xatolik yuz berdi: ' + err.message);
+            } finally {
+                updateUIState('idle');
+            }
+        };
+    }
+
+    // Step 1: Get Text from Gemini (Multimodal)
+    async function sendToGeminiText(base64Audio, mimeType) {
+        // Use v1beta and standard model for input
+        const model = 'gemini-2.5-flash';
+        const key = state.apiKey || djangoGlobalKey;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+
+        const payload = {
+            contents: [{
+                parts: [
+                    { text: getSystemPrompt(state.userLevel) },
+                    { inline_data: { mime_type: mimeType, data: base64Audio } }
+                ]
+            }]
+        };
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error?.message || "API Error");
+        }
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+    }
+
+    // Step 2: Get Audio (Edge TTS via Django Backend)
+    async function playEdgeTTS(text) {
+        // CSRF Token setup
+        const getCookie = (name) => {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        const response = await fetch('/api/tts/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ text: text })
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error("TTS Error: " + errText);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.play().catch(e => logError("Play Error: " + e));
+    }
+
+    function updateUIState(mode) {
+        state.isProcessing = (mode === 'processing');
+        if(els.micBtn) els.micBtn.classList.remove('bg-red-500', 'bg-slate-900', 'dark:bg-slate-800', 'ring-animate');
+        if(els.iconMic) els.iconMic.classList.add('hidden');
+        if(els.iconStop) els.iconStop.classList.add('hidden');
+        if(els.iconLoading) els.iconLoading.classList.add('hidden');
+
+        if (mode === 'idle') {
+            if(els.micBtn) els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
+            if(els.iconMic) els.iconMic.classList.remove('hidden');
+            if(els.statusText) {
+                els.statusText.innerText = "TAYYOR";
+                els.statusText.className = "text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider uppercase h-4 transition-all";
+            }
+        } else if (mode === 'recording') {
+            if(els.micBtn) els.micBtn.classList.add('bg-red-500', 'ring-animate');
+            if(els.iconStop) els.iconStop.classList.remove('hidden');
+            if(els.statusText) {
+                els.statusText.innerText = "ESHITILMOQDA...";
+                els.statusText.className = "text-xs font-bold text-red-500 tracking-wider uppercase h-4 transition-all animate-pulse";
+            }
+        } else if (mode === 'processing') {
+            if(els.micBtn) els.micBtn.classList.add('bg-slate-900', 'dark:bg-slate-800');
+            if(els.iconLoading) els.iconLoading.classList.remove('hidden');
+            if(els.statusText) {
+                els.statusText.innerText = "O'YLANMOQDA...";
+                els.statusText.className = "text-xs font-bold text-indigo-500 dark:text-indigo-400 tracking-wider uppercase h-4 transition-all animate-pulse";
+            }
+        }
+    }
+
+    function addMessage(sender, text) {
+        const div = document.createElement('div');
+        div.className = "flex gap-4 max-w-3xl mx-auto animate-fade-in-up";
+
+        let avatar = '';
+        let bubbleClass = '';
+        let replayButton = '';
+
+        if (sender === 'ai') {
+            avatar = '<div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center shrink-0 border border-indigo-200 dark:border-indigo-800"><span class="text-sm">🤖</span></div>';
+            bubbleClass = 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200';
+        } else if (sender === 'user') {
+            div.classList.add('flex-row-reverse');
+            avatar = '<div class="w-8 h-8 rounded-full bg-slate-900 dark:bg-slate-700 flex items-center justify-center shrink-0 text-white"><span class="text-xs font-bold">SIZ</span></div>';
+            bubbleClass = 'bg-slate-900 dark:bg-slate-700 text-white';
+        } else if (sender === 'error') {
+            div.innerHTML = `<div class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center font-bold border border-red-100 dark:border-red-900/50">${text}</div>`;
+            if(els.chatContainer) els.chatContainer.appendChild(div);
+            scrollToBottom();
+            return;
+        }
+
+        const msgContent = sender === 'ai' ? marked.parse(text) : text;
+        const bubbleInner = `
+            <div class="${bubbleClass} p-4 rounded-2xl ${sender === 'ai' ? 'rounded-tl-none relative pb-8' : 'rounded-tr-none'} shadow-sm text-sm leading-relaxed overflow-hidden">
+                ${msgContent}
+                ${sender === 'ai' ? `
+                <button class="replay-btn absolute bottom-2 right-2 p-1.5 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-full transition" title="Qayta o'qish">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                </button>` : ''}
+            </div>
+        `;
+
+        const html = `
+            ${avatar}
+            <div class="space-y-1 max-w-[80%]">
+                ${bubbleInner}
+            </div>
+        `;
+
+        div.innerHTML = html;
+        if(els.chatContainer) els.chatContainer.appendChild(div);
+
+        if (sender === 'ai') {
+            const btn = div.querySelector('.replay-btn');
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const cleanText = text.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+                    if(cleanText) playEdgeTTS(cleanText);
+                };
+            }
+        }
+
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        if(els.chatContainer) els.chatContainer.scrollTop = els.chatContainer.scrollHeight;
+    }
+
+    function updateLevelBadge() {
+        if(els.levelBadge) els.levelBadge.innerText = state.userLevel;
+    }
+
+    function openSettings() {
+        if(els.settingsModal) els.settingsModal.classList.remove('hidden');
+    }
+
+    function closeSettings() {
+        if(els.settingsModal) els.settingsModal.classList.add('hidden');
+    }
+
+    function saveSettings() {
+        const key = els.apiKeyInput ? els.apiKeyInput.value.trim() : '';
+        const model = els.modelNameInput ? els.modelNameInput.value.trim() : '';
+        const level = els.levelSelect ? els.levelSelect.value : 'N4';
+
+        if (model) {
+            state.apiKey = key;
+            state.modelName = model;
+            state.userLevel = level;
+
+            localStorage.setItem('gemini_api_key', key);
+            localStorage.setItem('gemini_model_name', model);
+            localStorage.setItem('gemini_user_level', level);
+
+            updateLevelBadge();
+            closeSettings();
+            alert("Sozlamalar saqlandi!");
+        } else {
+            alert("Barcha maydonlarni to'ldiring!");
+        }
+    }
+
+    init();
+
+</script>
+{% endblock %}
