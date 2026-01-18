@@ -360,12 +360,19 @@ Strict Rules:
         };
     }
 
-    // Step 1: Get Text
+    // Step 1: Get Text (Uses standard flash model for multimodal input)
     async function sendToGeminiText(base64Audio, mimeType) {
-        const model = state.modelName || 'gemini-2.5-flash';
+        // ALWAYS use a multimodal-capable model for input (e.g. gemini-2.5-flash),
+        // regardless of what the user selected in settings (which might be the TTS model).
+        // If the user's setting IS a flash model, use it. Otherwise default to 2.5-flash.
+        let inputModel = state.modelName || 'gemini-2.5-flash';
+        if (inputModel.includes('tts')) {
+            inputModel = 'gemini-2.5-flash'; // Fallback to stable input model if TTS model selected
+        }
+
         const key = state.apiKey || djangoGlobalKey;
         // Use v1beta for better native audio/multimodal support
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${inputModel}:generateContent?key=${key}`;
 
         const payload = {
             contents: [{
@@ -392,10 +399,14 @@ Strict Rules:
 
     // Step 2: Get Audio (Gemini TTS)
     async function fetchGeminiAudio(text) {
-        const model = state.modelName || 'gemini-2.5-flash';
+        // For Audio Generation, we SPECIFICALLY want the TTS model if available,
+        // or the user's selected model if it supports it.
+        // User requested: gemini-2.5-flash-preview-tts
+        const ttsModel = 'gemini-2.5-flash-preview-tts';
+
         const key = state.apiKey || djangoGlobalKey;
         // NOTE: Audio Generation via REST requires v1beta
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:generateContent?key=${key}`;
 
         const payload = {
             contents: [{
