@@ -346,7 +346,7 @@ IMPORTANT: You must return your response in JSON format with two fields:
                 // Update User Message with Transcription
                 const userText = data.transcription || "(Tushunarsiz ovoz)";
                 if(userMsgEl) {
-                    const bubble = userMsgEl.querySelector('div.bg-slate-900, div.dark\\:bg-slate-700');
+                    const bubble = userMsgEl.querySelector('.chat-bubble');
                     if(bubble) bubble.textContent = userText;
                 }
 
@@ -521,7 +521,7 @@ IMPORTANT: You must return your response in JSON format with two fields:
 
         const msgContent = sender === 'ai' ? marked.parse(text) : text;
         const bubbleInner = `
-            <div class="${bubbleClass} p-4 rounded-2xl ${sender === 'ai' ? 'rounded-tl-none relative pb-8' : 'rounded-tr-none'} shadow-sm text-sm leading-relaxed overflow-hidden">
+            <div class="chat-bubble ${bubbleClass} p-4 rounded-2xl ${sender === 'ai' ? 'rounded-tl-none relative pb-8' : 'rounded-tr-none'} shadow-sm text-sm leading-relaxed overflow-hidden">
                 ${msgContent}
                 ${sender === 'ai' ? `
                 <button class="replay-btn absolute bottom-2 right-2 p-1.5 text-indigo-400 dark:text-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-100 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-full transition" title="Qayta o'qish">
