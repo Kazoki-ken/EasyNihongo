@@ -364,7 +364,8 @@ Strict Rules:
     async function sendToGeminiText(base64Audio, mimeType) {
         const model = state.modelName || 'gemini-2.5-flash';
         const key = state.apiKey || djangoGlobalKey;
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`;
+        // Use v1beta for better native audio/multimodal support
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
         const payload = {
             contents: [{
@@ -393,8 +394,8 @@ Strict Rules:
     async function fetchGeminiAudio(text) {
         const model = state.modelName || 'gemini-2.5-flash';
         const key = state.apiKey || djangoGlobalKey;
-        // NOTE: Standard REST generateContent for TTS typically requires a specific config
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${key}`;
+        // NOTE: Audio Generation via REST requires v1beta
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
         const payload = {
             contents: [{
