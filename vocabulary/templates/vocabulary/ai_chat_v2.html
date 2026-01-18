@@ -204,6 +204,11 @@ Strict Rules:
 4. CORRECTION: If the user makes a mistake, correct it in Japanese, then provide the Uzbek reason in parentheses.
    Example: 違います。「私は」です。(Xato. "Watashi wa" bo'lishi kerak.)
 5. STYLE: Be encouraging. Keep responses concise (max 2-3 sentences).
+6. MEMORY: Remember the conversation context. Do NOT repeat "Hello" or introduce yourself again if you have already done so. Treat each message as part of an ongoing conversation.
+
+IMPORTANT: You must return your response in JSON format with two fields:
+1. "transcription": The exact Japanese text (or whatever language they spoke) you heard from the user. If the user was silent or unclear, guess or say "???".
+2. "response": Your helpful response as the teacher (following the language rules above).
         `;
     }
 
@@ -217,6 +222,7 @@ Strict Rules:
         isProcessing: false,
         mediaRecorder: null,
         audioChunks: [],
+        chatHistory: [] // Store conversation history: {role: 'user'|'model', parts: [{text: '...'}]}
     };
 
     const els = {
@@ -330,16 +336,31 @@ Strict Rules:
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
             const base64Audio = reader.result.split(',')[1];
-            addMessage('user', '🎤 Ovozli xabar...');
+            // Add placeholder and keep reference to update it later
+            const userMsgEl = addMessage('user', '🎤 Ovozli xabar...');
 
             try {
-                // Step 1: Text Response (Gemini)
-                const responseText = await sendToGeminiText(base64Audio, mimeType);
-                addMessage('ai', responseText);
+                // Step 1: Text Response (Gemini) - Now returns JSON object {transcription, response}
+                const data = await sendToGeminiText(base64Audio, mimeType);
+
+                // Update User Message with Transcription
+                const userText = data.transcription || "(Tushunarsiz ovoz)";
+                if(userMsgEl) {
+                    const bubble = userMsgEl.querySelector('div.bg-slate-900, div.dark\\:bg-slate-700');
+                    if(bubble) bubble.textContent = userText;
+                }
+
+                // Add AI Response
+                const aiText = data.response;
+                addMessage('ai', aiText);
+
+                // Update History
+                state.chatHistory.push({ role: 'user', parts: [{ text: userText }] });
+                state.chatHistory.push({ role: 'model', parts: [{ text: aiText }] });
 
                 // Step 2: Audio Generation (Edge TTS Backend)
                 // Filter out parentheses logic to speak only Japanese
-                const cleanText = responseText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
+                const cleanText = aiText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
 
                 if (cleanText) {
                     await playEdgeTTS(cleanText);
@@ -363,13 +384,25 @@ Strict Rules:
         const key = state.apiKey || djangoGlobalKey;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
+        // Construct Contents: History + Current Audio
+        const contents = [...state.chatHistory];
+        contents.push({
+            role: 'user',
+            parts: [
+                { inline_data: { mime_type: mimeType, data: base64Audio } }
+            ]
+        });
+
         const payload = {
-            contents: [{
+            system_instruction: {
                 parts: [
-                    { text: getSystemPrompt(state.userLevel) },
-                    { inline_data: { mime_type: mimeType, data: base64Audio } }
+                    { text: getSystemPrompt(state.userLevel) }
                 ]
-            }]
+            },
+            contents: contents,
+            generationConfig: {
+                responseMimeType: "application/json"
+            }
         };
 
         const response = await fetch(url, {
@@ -383,7 +416,15 @@ Strict Rules:
             throw new Error(errData.error?.message || "API Error");
         }
         const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        const rawText = data.candidates[0].content.parts[0].text;
+
+        try {
+            return JSON.parse(rawText);
+        } catch (e) {
+            console.error("Failed to parse JSON from Gemini:", rawText);
+            // Fallback if model fails to return JSON (rare)
+            return { transcription: "...", response: rawText };
+        }
     }
 
     // Step 2: Get Audio (Edge TTS via Django Backend)
@@ -475,7 +516,7 @@ Strict Rules:
             div.innerHTML = `<div class="w-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center font-bold border border-red-100 dark:border-red-900/50">${text}</div>`;
             if(els.chatContainer) els.chatContainer.appendChild(div);
             scrollToBottom();
-            return;
+            return div;
         }
 
         const msgContent = sender === 'ai' ? marked.parse(text) : text;
@@ -514,6 +555,7 @@ Strict Rules:
         }
 
         scrollToBottom();
+        return div;
     }
 
     function scrollToBottom() {
