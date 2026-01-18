@@ -1,5 +1,16 @@
 from django.contrib import admin
-from .models import Word, Topic, Profile, Book, WeeklyStats, UserWordProgress
+from .models import Word, Topic, Profile, Book, WeeklyStats, UserWordProgress, SiteConfiguration
+
+# 0. SITE CONFIGURATION
+@admin.register(SiteConfiguration)
+class SiteConfigurationAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'gemini_api_key')
+
+    # Prevent adding more than one instance
+    def has_add_permission(self, request):
+        if self.model.objects.exists():
+            return False
+        return super().has_add_permission(request)
 
 # 1. BOOK (Yangi)
 @admin.register(Book)

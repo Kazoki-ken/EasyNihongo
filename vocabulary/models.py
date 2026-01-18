@@ -3,6 +3,24 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+
+# 0. SITE CONFIGURATION (Yangi)
+class SiteConfiguration(models.Model):
+    gemini_api_key = models.CharField(max_length=255, default="", blank=True, help_text="Google Gemini API Key for AI Chat")
+
+    def save(self, *args, **kwargs):
+        if not self.pk and SiteConfiguration.objects.exists():
+            # If you want to prevent creating multiple instances
+            raise ValidationError('There can be only one SiteConfiguration instance')
+        return super(SiteConfiguration, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "Site Configuration"
+
+    class Meta:
+        verbose_name = "Site Configuration"
+        verbose_name_plural = "Site Configuration"
 
 # 0. KITOBLAR MODELI (Yangi)
 class Book(models.Model):
