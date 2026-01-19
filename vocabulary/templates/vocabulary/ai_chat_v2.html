@@ -222,7 +222,8 @@ IMPORTANT: You must return your response in JSON format with two fields:
         isProcessing: false,
         mediaRecorder: null,
         audioChunks: [],
-        chatHistory: [] // Store conversation history: {role: 'user'|'model', parts: [{text: '...'}]}
+        chatHistory: [], // Store conversation history: {role: 'user'|'model', parts: [{text: '...'}]}
+        voices: [] // For Client-side TTS fallback
     };
 
     const els = {
@@ -267,6 +268,21 @@ IMPORTANT: You must return your response in JSON format with two fields:
             if(els.modelNameInput) els.modelNameInput.value = state.modelName;
             if(els.levelSelect) els.levelSelect.value = state.userLevel;
             updateLevelBadge();
+
+            // Setup Voices for Fallback (Client-side TTS)
+            if ('speechSynthesis' in window) {
+                const loadVoices = () => {
+                     const voices = window.speechSynthesis.getVoices();
+                     if (voices.length > 0) state.voices = voices;
+                };
+                loadVoices();
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+                // Fallback interval
+                const voiceInterval = setInterval(() => {
+                    if (state.voices.length === 0) loadVoices();
+                    else clearInterval(voiceInterval);
+                }, 500);
+            }
 
         } catch (e) {
             logError("Init Error: " + e.message);
@@ -358,12 +374,17 @@ IMPORTANT: You must return your response in JSON format with two fields:
                 state.chatHistory.push({ role: 'user', parts: [{ text: userText }] });
                 state.chatHistory.push({ role: 'model', parts: [{ text: aiText }] });
 
-                // Step 2: Audio Generation (Edge TTS Backend)
-                // Filter out parentheses logic to speak only Japanese
+                // Step 2: Audio Generation (Edge TTS Backend with Fallback)
                 const cleanText = aiText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
 
                 if (cleanText) {
-                    await playEdgeTTS(cleanText);
+                    try {
+                        await playEdgeTTS(cleanText);
+                    } catch (ttsErr) {
+                        console.warn("Server TTS failed, switching to client fallback:", ttsErr);
+                        // If Server TTS fails (e.g., PythonAnywhere restriction), use Client TTS
+                        speakTextFallback(cleanText);
+                    }
                 } else {
                     console.log("No clean text to speak.");
                 }
@@ -466,6 +487,29 @@ IMPORTANT: You must return your response in JSON format with two fields:
         audio.play().catch(e => logError("Play Error: " + e));
     }
 
+    // --- Client-side TTS Fallback (from v1) ---
+    function speakTextFallback(text) {
+        if (!window.speechSynthesis) return;
+        console.log("Using Client-side TTS fallback for:", text);
+
+        let cleanText = text.replace(/\*\*/g, '').replace(/\[.*?\]/g, '');
+        // Remove Parentheses content (...) for TTS
+        cleanText = cleanText.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '');
+        if (!cleanText.trim()) return;
+
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+
+        // Find Japanese voice
+        const jpVoice = state.voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+        if (jpVoice) {
+            utterance.voice = jpVoice;
+            utterance.lang = 'ja-JP';
+        }
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    }
+
     function updateUIState(mode) {
         state.isProcessing = (mode === 'processing');
         if(els.micBtn) els.micBtn.classList.remove('bg-red-500', 'bg-slate-900', 'dark:bg-slate-800', 'ring-animate');
@@ -549,7 +593,13 @@ IMPORTANT: You must return your response in JSON format with two fields:
                 btn.onclick = (e) => {
                     e.stopPropagation();
                     const cleanText = text.replace(/\(.*?\)/g, '').replace(/（.*?）/g, '').trim();
-                    if(cleanText) playEdgeTTS(cleanText);
+                    if(cleanText) {
+                         // Try server TTS, if fail, fallback
+                        playEdgeTTS(cleanText).catch(err => {
+                            console.warn("Replay TTS failed, using fallback", err);
+                            speakTextFallback(cleanText);
+                        });
+                    }
                 };
             }
         }
