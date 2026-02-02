@@ -6,6 +6,7 @@ from . import views
 urlpatterns = [
     # 1. Asosiy Menyu (Hub) - Saytga kirganda birinchi chiqadigan sahifa
     path('', views.home, name='home'), 
+    path('test-design/', views.test_design_view, name='test_design'),
     
     # 2. Darslik Lug'ati (Hamma so'zlar)
     path('dictionary/', views.dashboard, name='dashboard'), 
