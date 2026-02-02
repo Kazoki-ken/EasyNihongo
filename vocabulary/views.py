@@ -298,6 +298,46 @@ def process_weekly_leagues():
 # =========================================================
 
 @login_required
+def test_design_view(request):
+    """
+    Test view for the new UI design.
+    """
+    check_daily_progress(request.user)
+
+    profile = request.user.profile
+
+    # Calculate progress percentages (Daily Goals)
+    vocab_progress = 0 # Placeholder for now, maybe total words vs goal?
+    writing_progress = min(int((profile.daily_write_count / 3) * 100), 100)
+    reading_progress = min(int((profile.daily_match_count / 3) * 100), 100) # Assuming Match is Reading
+    listening_progress = min(int((profile.daily_test_count / 3) * 100), 100) # Assuming Test is Listening
+    grammar_progress = 0 # Placeholder
+
+    stats = {
+        'vocabulary': vocab_progress,
+        'writing': writing_progress,
+        'reading': reading_progress,
+        'listening': listening_progress,
+        'grammar': grammar_progress
+    }
+
+    # Battle Stats (Placeholder or mapped from WeeklyStats)
+    w_stats = get_weekly_stats(request.user)
+    battle_stats = {
+        'battles': w_stats.games_played, # Total games as proxy
+        'wins': 0, # Not tracked separately yet
+        'losses': 0 # Not tracked separately yet
+    }
+
+    context = {
+        'user': request.user,
+        'profile': profile,
+        'stats': stats,
+        'battle_stats': battle_stats
+    }
+    return render(request, 'vocabulary/test_design.html', context)
+
+@login_required
 def home(request):
     check_daily_progress(request.user)
     check_badges(request.user) # Badge tekshirish

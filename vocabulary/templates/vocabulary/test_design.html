@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sakura Gakuen - Test UI</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #242529; /* Slightly lighter for cards */
+            --text-main: #ffffff;
+            --text-muted: #adb5bd;
+            --accent-blue: #3b82f6;
+            --nav-bg: #000000;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding-bottom: 100px; /* Space for bottom nav */
+            overflow-x: hidden;
+        }
+
+        /* Helper Classes */
+        .text-blue { color: #60a5fa; }
+        .bg-dark-card { background-color: var(--card-bg); border-radius: 20px; }
+
+        /* Header */
+        .app-header {
+            padding: 20px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-avatar {
+            width: 50px; height: 50px;
+            background-color: #6c757d;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: white;
+            margin-right: 10px;
+        }
+        .header-icons i {
+            font-size: 1.5rem;
+            margin-left: 15px;
+            color: var(--text-main);
+            position: relative;
+        }
+        .badge-dot {
+            position: absolute; top: -2px; right: -2px;
+            width: 10px; height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+        }
+
+        /* Stats Bars */
+        .stats-container {
+            padding: 10px 15px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            margin: 0 15px 20px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end; /* Align bars to bottom */
+            height: 160px; /* Fixed height for consistency */
+            position: relative;
+        }
+
+        .stat-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            width: 18%;
+        }
+
+        .stat-percent {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .progress-vertical {
+            width: 100%;
+            height: 80px; /* Max height of bar area */
+            background-color: #35363a;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            background-color: #4b5563; /* Default gray fill */
+            border-radius: 10px;
+            transition: height 0.5s ease;
+        }
+
+        /* Active fill color if > 0 */
+        .progress-fill.active { background-color: #60a5fa; }
+
+        .stat-label {
+            font-size: 0.7rem;
+            margin-top: 8px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Grid Menu */
+        .grid-menu {
+            margin: 0 15px 20px 15px;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+        .icon-box {
+            width: 55px; height: 55px;
+            background: linear-gradient(145deg, #2a2b30, #1f2024);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 8px;
+            font-size: 1.8rem;
+            color: #60a5fa;
+            box-shadow: 5px 5px 10px #1a1b1e, -5px -5px 10px #2e2f34;
+            transition: transform 0.2s;
+        }
+        .icon-box:active { transform: scale(0.95); }
+        /* Custom Colors for icons */
+        .icon-referral { color: #3b82f6; }
+        .icon-podcast { color: #ef4444; }
+        .icon-market { color: #10b981; }
+        .icon-bot { color: #f59e0b; }
+        .icon-assist { color: #8b5cf6; }
+        .icon-trans { color: #6366f1; }
+        .icon-control { color: #64748b; }
+        .icon-exclusive { color: #ec4899; }
+
+        .grid-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.2;
+        }
+
+        /* Jang Card */
+        .jang-card {
+            margin: 0 15px 20px 15px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 25px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            height: 160px;
+            color: white;
+        }
+        .jang-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+        .jang-stats {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 15px;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-around;
+            width: 80%;
+        }
+        .jang-stat-item {
+            text-align: center;
+        }
+        .jang-stat-label { font-size: 0.7rem; opacity: 0.8; margin-bottom: 2px; }
+        .jang-stat-val { font-size: 0.9rem; font-weight: bold; }
+
+        .jang-icon {
+            position: absolute;
+            right: -10px; bottom: -20px;
+            font-size: 6rem;
+            opacity: 0.8;
+            transform: rotate(-15deg);
+        }
+        .arrow-box {
+            position: absolute;
+            top: 20px; right: 20px;
+            background: white;
+            color: black;
+            width: 35px; height: 35px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav-container {
+            position: fixed;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background-color: #1e1e1e;
+            border-radius: 30px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .nav-pill-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.7rem;
+            transition: color 0.3s;
+        }
+        .nav-pill-item i {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+        .nav-pill-item.active { color: #3b82f6; }
+
+        /* The circular active home button style in screenshot */
+        .nav-home-circle {
+            width: 50px; height: 50px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            margin-top: -25px; /* pop out effect */
+            border: 5px solid var(--bg-dark);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+        .nav-home-circle i { font-size: 1.5rem; margin: 0; }
+
+        /* Lug'atim Banner (Bottom) */
+        .vocab-banner {
+            background: linear-gradient(90deg, #0ea5e9, #3b82f6);
+            margin: 0 15px;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            display: flex; align-items: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="app-header">
+        <div class="d-flex align-items-center">
+            <div class="user-avatar">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid rounded-circle">
+                {% else %}
+                    <i class="bi bi-person-fill"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">Salom, {{ user.first_name|default:user.username }}!</h5>
+                <small class="text-muted">Xush kelibsiz</small>
+            </div>
+        </div>
+        <div class="header-icons">
+            <i class="bi bi-chat-dots"></i>
+            <i class="bi bi-bell">
+                <span class="badge-dot"></span>
+            </i>
+        </div>
+    </div>
+
+    <!-- Stats Bars -->
+    <div class="stats-container">
+        <!-- Vocabulary -->
+        <div class="stat-column">
+            <div class="stat-percent">{{ stats.vocabulary }}%</div>
+            <div class="progress-vertical">
+                <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
+            </div>
+            <div class="stat-label">Vocabulary</div>
+        </div>
+
+        <!-- Writing -->
+        <div class="stat-column">
+            <div class="stat-percent">{{ stats.writing }}%</div>
+            <div class="progress-vertical">
+                <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
+            </div>
+            <div class="stat-label">Writing</div>
+        </div>
+
+        <!-- Reading -->
+        <div class="stat-column">
+            <div class="stat-percent">{{ stats.reading }}%</div>
+            <div class="progress-vertical">
+                <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
+            </div>
+            <div class="stat-label">Reading</div>
+        </div>
+
+        <!-- Listening -->
+        <div class="stat-column">
+            <div class="stat-percent">{{ stats.listening }}%</div>
+            <div class="progress-vertical">
+                <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
+            </div>
+            <div class="stat-label">Listening</div>
+        </div>
+
+        <!-- Grammar -->
+        <div class="stat-column">
+            <div class="stat-percent">{{ stats.grammar }}%</div>
+            <div class="progress-vertical">
+                <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
+            </div>
+            <div class="stat-label">Grammar</div>
+        </div>
+    </div>
+
+    <!-- Grid Menu -->
+    <div class="grid-menu">
+        <div class="row row-cols-4 g-2">
+            <!-- Row 1 -->
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-referral"><i class="bi bi-link-45deg"></i></div>
+                    <div class="grid-label">Referral</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-podcast"><i class="bi bi-mic-fill"></i></div>
+                    <div class="grid-label">Level Podcast</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-market"><i class="bi bi-cart-fill"></i></div>
+                    <div class="grid-label">Marketplace</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="{% url 'ai_chat' %}" class="grid-item">
+                    <div class="icon-box icon-bot"><i class="bi bi-chat-quote-fill"></i></div>
+                    <div class="grid-label">Alomat bot</div>
+                </a>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-assist"><i class="bi bi-headset"></i></div>
+                    <div class="grid-label">Speaking Assist...</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-trans"><i class="bi bi-translate"></i></div>
+                    <div class="grid-label">Translator</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-control"><i class="bi bi-sliders"></i></div>
+                    <div class="grid-label">System Control</div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="#" class="grid-item">
+                    <div class="icon-box icon-exclusive"><i class="bi bi-gem"></i></div>
+                    <div class="grid-label">Exclusive</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jang Card -->
+    <div class="jang-card" onclick="window.location.href='{% url 'leagues' %}'" style="cursor: pointer;">
+        <div class="jang-title">Jang</div>
+        <div class="arrow-box"><i class="bi bi-arrow-up-right"></i></div>
+
+        <div class="jang-stats">
+            <div class="jang-stat-item">
+                <div class="jang-stat-label">Janglar:</div>
+                <div class="jang-stat-val">{{ battle_stats.battles }}</div>
+            </div>
+            <div class="jang-stat-item">
+                <div class="jang-stat-label">Yutuqlar:</div>
+                <div class="jang-stat-val">{{ battle_stats.wins }}</div>
+            </div>
+            <div class="jang-stat-item">
+                <div class="jang-stat-label">Mag'lubiyat:</div>
+                <div class="jang-stat-val">{{ battle_stats.losses }}</div>
+            </div>
+        </div>
+
+        <i class="bi bi-joystick jang-icon"></i>
+    </div>
+
+    <!-- Lug'atim (Extra Banner for visual matching if needed, though not in full screenshot view) -->
+    <div class="vocab-banner">
+        <i class="bi bi-book-half me-3"></i> Lug'atim
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav-container">
+        <a href="{% url 'home' %}" class="nav-pill-item">
+            <div class="nav-home-circle">
+                <i class="bi bi-house-door-fill"></i>
+            </div>
+            <!-- Empty label for center item -->
+        </a>
+
+        <a href="{% url 'categories' %}" class="nav-pill-item">
+            <i class="bi bi-percent"></i>
+            <span>Darslar</span>
+        </a>
+
+        <a href="#" class="nav-pill-item">
+            <i class="bi bi-collection-play"></i>
+            <span>Resurslar</span>
+        </a>
+
+        <a href="#" class="nav-pill-item">
+            <i class="bi bi-grid-fill"></i>
+            <span>Ko'proq</span>
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
