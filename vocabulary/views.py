@@ -1163,12 +1163,6 @@ def ai_chat_view(request):
     return render(request, 'vocabulary/ai_chat.html', {'global_api_key': global_api_key})
 
 @login_required
-def ai_chat_test_view(request):
-    config = SiteConfiguration.objects.first()
-    global_api_key = config.gemini_api_key if config else ""
-    return render(request, 'vocabulary/ai_chat_v2.html', {'global_api_key': global_api_key})
-
-@login_required
 def edge_tts_view(request):
     """
     API endpoint to generate TTS audio.
