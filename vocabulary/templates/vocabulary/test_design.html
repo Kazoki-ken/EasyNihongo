@@ -12,10 +12,12 @@
     <style>
         :root {
             --bg-dark: #121212;
-            --card-bg: #242529; /* Slightly lighter for cards */
+            --card-bg: #1e1e1e;
             --text-main: #ffffff;
             --text-muted: #adb5bd;
-            --accent-blue: #3b82f6;
+            /* Sakura Pink Palette */
+            --accent-primary: #ff6b81;
+            --accent-secondary: #ff8fab;
             --nav-bg: #1e1e1e;
         }
 
@@ -25,86 +27,95 @@
             color: var(--text-main);
             padding-bottom: 90px; /* Space for bottom nav */
             overflow-x: hidden;
+            margin: 0;
         }
 
         /* Helper Classes */
-        .text-blue { color: #60a5fa; }
+        .text-sakura { color: var(--accent-primary); }
         .bg-dark-card { background-color: var(--card-bg); border-radius: 20px; }
 
-        /* Header */
+        /* Header (Sticky & Padded like old design) */
         .app-header {
-            padding: 20px 15px 5px 15px;
+            background-color: var(--bg-dark);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            /* Ensure it covers content behind it */
         }
         .user-avatar {
-            width: 50px; height: 50px;
-            background-color: #6c757d;
+            width: 45px; height: 45px;
+            background-color: #333;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 24px; color: white;
-            margin-right: 10px;
+            font-size: 20px; color: var(--text-muted);
+            margin-right: 12px;
+            overflow: hidden;
         }
         .header-icons i {
-            font-size: 1.5rem;
-            margin-left: 15px;
+            font-size: 1.4rem;
+            margin-left: 18px;
             color: var(--text-main);
             position: relative;
         }
         .badge-dot {
             position: absolute; top: -2px; right: -2px;
-            width: 10px; height: 10px;
-            background-color: #ef4444;
+            width: 8px; height: 8px;
+            background-color: var(--accent-primary);
             border-radius: 50%;
             border: 2px solid var(--bg-dark);
         }
 
         /* Stats Bars */
         .stats-container {
-            padding: 15px;
+            padding: 20px;
             background-color: var(--card-bg);
-            border-radius: 20px;
-            margin: 10px 15px 20px 15px;
-            position: relative;
+            border-radius: 24px;
+            margin: 10px 20px 25px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        /* Horizontal Daily Progress (Top) */
+        /* Horizontal Daily Progress */
         .daily-progress-section {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 15px;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .daily-bar-container {
             flex-grow: 1;
-            height: 10px;
-            background-color: #35363a;
-            border-radius: 5px;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
             margin-right: 15px;
             overflow: hidden;
         }
         .daily-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #10b981, #34d399);
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
             width: 0%;
             transition: width 0.5s ease;
-            border-radius: 5px;
+            border-radius: 4px;
         }
         .streak-display {
             display: flex;
             align-items: center;
             font-weight: bold;
-            color: #fbbf24;
+            color: #fbbf24; /* Fire color remains gold/orange */
             font-size: 0.9rem;
         }
         .streak-display i { margin-right: 5px; font-size: 1.1rem; }
         .daily-label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: 600;
             display: block;
         }
 
@@ -112,8 +123,8 @@
         .vertical-stats-row {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end; /* Align bars to bottom */
-            height: 100px; /* Fixed height for consistency */
+            align-items: flex-end;
+            height: 100px;
         }
 
         .stat-column {
@@ -126,16 +137,17 @@
         }
 
         .stat-percent {
-            font-size: 0.8rem;
-            margin-bottom: 5px;
+            font-size: 0.75rem;
+            margin-bottom: 6px;
             font-weight: bold;
+            color: var(--text-main);
         }
 
         .progress-vertical {
             width: 100%;
-            height: 60px; /* Max height of bar area */
-            background-color: #35363a;
-            border-radius: 10px;
+            height: 50px;
+            background-color: #2c2c2c;
+            border-radius: 8px;
             position: relative;
             overflow: hidden;
         }
@@ -143,13 +155,13 @@
         .progress-fill {
             position: absolute;
             bottom: 0; left: 0; width: 100%;
-            background-color: #4b5563; /* Default gray fill */
-            border-radius: 10px;
+            background-color: #444;
+            border-radius: 8px;
             transition: height 0.5s ease;
         }
 
-        /* Active fill color if > 0 */
-        .progress-fill.active { background-color: #60a5fa; }
+        /* Active fill color */
+        .progress-fill.active { background-color: var(--accent-primary); }
 
         .stat-label {
             font-size: 0.65rem;
@@ -159,83 +171,87 @@
             line-height: 1.2;
         }
 
-        /* Grid Menu */
+        /* Minimalist Grid Menu */
         .grid-menu {
-            margin: 0 15px 20px 15px;
+            margin: 0 20px 25px 20px;
         }
         .grid-item {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: var(--text-main);
             text-decoration: none;
+            transition: opacity 0.2s;
         }
+        .grid-item:active { opacity: 0.7; }
+
         .icon-box {
             width: 55px; height: 55px;
-            background: linear-gradient(145deg, #2a2b30, #1f2024);
-            border-radius: 16px;
+            background-color: var(--card-bg);
+            border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             margin-bottom: 8px;
-            font-size: 1.8rem;
-            color: #60a5fa;
-            box-shadow: 5px 5px 10px #1a1b1e, -5px -5px 10px #2e2f34;
-            transition: transform 0.2s;
+            font-size: 1.5rem;
+            /* Minimalist flat style */
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        .icon-box:active { transform: scale(0.95); }
-        /* Custom Colors for icons */
-        .icon-referral { color: #3b82f6; }
-        .icon-podcast { color: #ef4444; }
-        .icon-market { color: #10b981; }
-        .icon-bot { color: #f59e0b; }
-        .icon-assist { color: #8b5cf6; }
-        .icon-trans { color: #6366f1; }
-        .icon-control { color: #64748b; }
-        .icon-exclusive { color: #ec4899; }
+
+        /* Pastel/Sakura-matching icon colors */
+        .icon-referral { color: #60a5fa; }
+        .icon-podcast { color: #f87171; }
+        .icon-market { color: #34d399; }
+        .icon-bot { color: #fbbf24; }
+        .icon-assist { color: var(--accent-secondary); }
+        .icon-trans { color: #818cf8; }
+        .icon-control { color: #94a3b8; }
+        .icon-exclusive { color: #f472b6; }
 
         .grid-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-muted);
             line-height: 1.2;
+            font-weight: 500;
         }
 
-        /* AI / Promo Card */
+        /* AI Promo Card (Sakura Theme) */
         .ai-card {
-            margin: 0 15px 20px 15px;
-            /* Gradient for AI/Magic feel */
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-            border-radius: 25px;
+            margin: 0 20px 25px 20px;
+            /* Sakura Gradient */
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            border-radius: 24px;
             padding: 20px;
             position: relative;
             overflow: hidden;
-            height: 140px;
+            height: 130px;
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 20px rgba(255, 117, 140, 0.3);
         }
         .ai-title {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            margin-bottom: 5px;
-            line-height: 1.2;
+            margin-bottom: 4px;
             z-index: 2;
         }
         .ai-desc {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            font-size: 0.85rem;
+            opacity: 0.95;
             z-index: 2;
-            max-width: 70%;
+            max-width: 65%;
+            font-weight: 500;
         }
 
         .ai-icon-bg {
             position: absolute;
             right: -10px; bottom: -20px;
-            font-size: 6rem;
-            opacity: 0.2;
+            font-size: 5.5rem;
+            opacity: 0.25;
             transform: rotate(-10deg);
             z-index: 1;
         }
@@ -243,21 +259,21 @@
         .ai-action-btn {
             position: absolute;
             bottom: 20px; right: 20px;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.25);
             backdrop-filter: blur(5px);
-            padding: 8px 15px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 10px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             z-index: 2;
             display: flex; align-items: center;
         }
 
-        /* Fixed Bottom Nav (Restored) */
+        /* Fixed Bottom Nav */
         .bottom-nav-fixed {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: var(--nav-bg);
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255,255,255,0.05);
             padding: 10px 0 15px 0;
             z-index: 1000;
             display: flex;
@@ -266,15 +282,17 @@
         }
 
         .nav-item-fixed {
-            text-align: center; color: #6c757d;
+            text-align: center; color: var(--text-muted);
             text-decoration: none; transition: all 0.3s ease;
             position: relative;
             flex: 1;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .nav-item-fixed i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
-        .nav-item-fixed span { font-size: 0.75rem; font-weight: 600; }
-        .nav-item-fixed.active { color: var(--accent-blue); }
+        .nav-item-fixed i { font-size: 1.3rem; margin-bottom: 2px; transition: transform 0.2s; }
+        .nav-item-fixed span { font-size: 0.7rem; font-weight: 600; }
+
+        .nav-item-fixed.active { color: var(--accent-primary); }
         .nav-item-fixed.active i { transform: translateY(-2px); }
 
     </style>
@@ -286,14 +304,14 @@
         <div class="d-flex align-items-center">
             <div class="user-avatar">
                 {% if user.profile.avatar %}
-                    <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid rounded-circle">
+                    <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid">
                 {% else %}
                     <i class="bi bi-person-fill"></i>
                 {% endif %}
             </div>
             <div>
-                <h5 class="mb-0 fw-bold">Salom, {{ user.first_name|default:user.username }}!</h5>
-                <small class="text-muted">Xush kelibsiz</small>
+                <h6 class="mb-0 fw-bold">Salom, {{ user.first_name|default:user.username }}!</h6>
+                <small class="text-muted" style="font-size: 0.75rem;">Xush kelibsiz</small>
             </div>
         </div>
         <div class="header-icons">
@@ -318,56 +336,56 @@
             </div>
         </div>
 
-        <!-- Vertical Columns -->
+        <!-- Vertical Columns (Translated) -->
         <div class="vertical-stats-row">
-            <!-- Vocabulary -->
+            <!-- Lug'at (Vocabulary) -->
             <div class="stat-column">
                 <div class="stat-percent">{{ stats.vocabulary }}%</div>
                 <div class="progress-vertical">
                     <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
                 </div>
-                <div class="stat-label">Vocabulary</div>
+                <div class="stat-label">Lug'at</div>
             </div>
 
-            <!-- Writing -->
+            <!-- Yozish (Writing) -->
             <div class="stat-column">
                 <div class="stat-percent">{{ stats.writing }}%</div>
                 <div class="progress-vertical">
                     <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
                 </div>
-                <div class="stat-label">Writing</div>
+                <div class="stat-label">Yozish</div>
             </div>
 
-            <!-- Reading -->
+            <!-- O'qish (Reading) -->
             <div class="stat-column">
                 <div class="stat-percent">{{ stats.reading }}%</div>
                 <div class="progress-vertical">
                     <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
                 </div>
-                <div class="stat-label">Reading</div>
+                <div class="stat-label">O'qish</div>
             </div>
 
-            <!-- Listening -->
+            <!-- Tinglash (Listening) -->
             <div class="stat-column">
                 <div class="stat-percent">{{ stats.listening }}%</div>
                 <div class="progress-vertical">
                     <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
                 </div>
-                <div class="stat-label">Listening</div>
+                <div class="stat-label">Tinglash</div>
             </div>
 
-            <!-- Grammar -->
+            <!-- Grammatika (Grammar) -->
             <div class="stat-column">
                 <div class="stat-percent">{{ stats.grammar }}%</div>
                 <div class="progress-vertical">
                     <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
                 </div>
-                <div class="stat-label">Grammar</div>
+                <div class="stat-label">Grammatika</div>
             </div>
         </div>
     </div>
 
-    <!-- Grid Menu -->
+    <!-- Grid Menu (Minimalist) -->
     <div class="grid-menu">
         <div class="row row-cols-4 g-2">
             <!-- Row 1 -->
@@ -424,7 +442,7 @@
         </div>
     </div>
 
-    <!-- AI Promo Card (Replaces Jang) -->
+    <!-- AI Promo Card (Sakura Theme) -->
     <a href="{% url 'ai_chat' %}" class="ai-card">
         <div class="ai-title">AI Yordamchi</div>
         <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
@@ -439,7 +457,7 @@
     <!-- Fixed Bottom Nav -->
     <div class="bottom-nav-fixed">
         <a href="{% url 'home' %}" class="nav-item-fixed active">
-            <i class="bi bi-flower1"></i><span>Asosiy</span>
+            <i class="bi bi-house-door-fill"></i><span>Asosiy</span>
         </a>
         <a href="{% url 'categories' %}" class="nav-item-fixed">
             <i class="bi bi-book"></i><span>Yodlash</span>
