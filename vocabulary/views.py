@@ -329,11 +329,15 @@ def test_design_view(request):
         'losses': 0 # Not tracked separately yet
     }
 
+    daily_total_progress = profile.daily_test_count + profile.daily_match_count + profile.daily_write_count
+
     context = {
         'user': request.user,
         'profile': profile,
         'stats': stats,
-        'battle_stats': battle_stats
+        'battle_stats': battle_stats,
+        'daily_total_progress': daily_total_progress,
+        'streak': profile.streak
     }
     return render(request, 'vocabulary/test_design.html', context)
 

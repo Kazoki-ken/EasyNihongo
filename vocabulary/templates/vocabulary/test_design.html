@@ -16,14 +16,14 @@
             --text-main: #ffffff;
             --text-muted: #adb5bd;
             --accent-blue: #3b82f6;
-            --nav-bg: #000000;
+            --nav-bg: #1e1e1e;
         }
 
         body {
             font-family: 'Nunito', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
-            padding-bottom: 100px; /* Space for bottom nav */
+            padding-bottom: 90px; /* Space for bottom nav */
             overflow-x: hidden;
         }
 
@@ -33,7 +33,7 @@
 
         /* Header */
         .app-header {
-            padding: 20px 15px;
+            padding: 20px 15px 5px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -62,15 +62,58 @@
 
         /* Stats Bars */
         .stats-container {
-            padding: 10px 15px;
+            padding: 15px;
             background-color: var(--card-bg);
             border-radius: 20px;
-            margin: 0 15px 20px 15px;
+            margin: 10px 15px 20px 15px;
+            position: relative;
+        }
+
+        /* Horizontal Daily Progress (Top) */
+        .daily-progress-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .daily-bar-container {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #35363a;
+            border-radius: 5px;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        .daily-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+        .streak-display {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #fbbf24;
+            font-size: 0.9rem;
+        }
+        .streak-display i { margin-right: 5px; font-size: 1.1rem; }
+        .daily-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Vertical Columns */
+        .vertical-stats-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-end; /* Align bars to bottom */
-            height: 160px; /* Fixed height for consistency */
-            position: relative;
+            height: 100px; /* Fixed height for consistency */
         }
 
         .stat-column {
@@ -90,7 +133,7 @@
 
         .progress-vertical {
             width: 100%;
-            height: 80px; /* Max height of bar area */
+            height: 60px; /* Max height of bar area */
             background-color: #35363a;
             border-radius: 10px;
             position: relative;
@@ -109,7 +152,7 @@
         .progress-fill.active { background-color: #60a5fa; }
 
         .stat-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             margin-top: 8px;
             color: var(--text-muted);
             text-align: center;
@@ -157,111 +200,82 @@
             line-height: 1.2;
         }
 
-        /* Jang Card */
-        .jang-card {
+        /* AI / Promo Card */
+        .ai-card {
             margin: 0 15px 20px 15px;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            /* Gradient for AI/Magic feel */
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             border-radius: 25px;
             padding: 20px;
             position: relative;
             overflow: hidden;
-            height: 160px;
+            height: 140px;
             color: white;
-        }
-        .jang-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            line-height: 1;
-        }
-        .jang-stats {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            border-radius: 15px;
-            padding: 10px 15px;
             display: flex;
-            justify-content: space-around;
-            width: 80%;
+            flex-direction: column;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
         }
-        .jang-stat-item {
-            text-align: center;
+        .ai-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            line-height: 1.2;
+            z-index: 2;
         }
-        .jang-stat-label { font-size: 0.7rem; opacity: 0.8; margin-bottom: 2px; }
-        .jang-stat-val { font-size: 0.9rem; font-weight: bold; }
+        .ai-desc {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            z-index: 2;
+            max-width: 70%;
+        }
 
-        .jang-icon {
+        .ai-icon-bg {
             position: absolute;
             right: -10px; bottom: -20px;
             font-size: 6rem;
-            opacity: 0.8;
-            transform: rotate(-15deg);
+            opacity: 0.2;
+            transform: rotate(-10deg);
+            z-index: 1;
         }
-        .arrow-box {
+
+        .ai-action-btn {
             position: absolute;
-            top: 20px; right: 20px;
-            background: white;
-            color: black;
-            width: 35px; height: 35px;
+            bottom: 20px; right: 20px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            padding: 8px 15px;
             border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        /* Bottom Nav */
-        .bottom-nav-container {
-            position: fixed;
-            bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            width: 90%; max-width: 400px;
-            background-color: #1e1e1e;
-            border-radius: 30px;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 1000;
-        }
-
-        .nav-pill-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.7rem;
-            transition: color 0.3s;
-        }
-        .nav-pill-item i {
-            font-size: 1.2rem;
-            margin-bottom: 2px;
-        }
-        .nav-pill-item.active { color: #3b82f6; }
-
-        /* The circular active home button style in screenshot */
-        .nav-home-circle {
-            width: 50px; height: 50px;
-            background-color: #3b82f6;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: white;
-            margin-top: -25px; /* pop out effect */
-            border: 5px solid var(--bg-dark);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-        }
-        .nav-home-circle i { font-size: 1.5rem; margin: 0; }
-
-        /* Lug'atim Banner (Bottom) */
-        .vocab-banner {
-            background: linear-gradient(90deg, #0ea5e9, #3b82f6);
-            margin: 0 15px;
-            padding: 15px;
-            border-radius: 20px;
-            margin-bottom: 20px;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 0.9rem;
+            z-index: 2;
             display: flex; align-items: center;
         }
+
+        /* Fixed Bottom Nav (Restored) */
+        .bottom-nav-fixed {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--nav-bg);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 0 15px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item-fixed {
+            text-align: center; color: #6c757d;
+            text-decoration: none; transition: all 0.3s ease;
+            position: relative;
+            flex: 1;
+        }
+
+        .nav-item-fixed i { font-size: 1.4rem; display: block; margin-bottom: 2px; }
+        .nav-item-fixed span { font-size: 0.75rem; font-weight: 600; }
+        .nav-item-fixed.active { color: var(--accent-blue); }
+        .nav-item-fixed.active i { transform: translateY(-2px); }
 
     </style>
 </head>
@@ -290,51 +304,66 @@
         </div>
     </div>
 
-    <!-- Stats Bars -->
+    <!-- Stats Container -->
     <div class="stats-container">
-        <!-- Vocabulary -->
-        <div class="stat-column">
-            <div class="stat-percent">{{ stats.vocabulary }}%</div>
-            <div class="progress-vertical">
-                <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
+
+        <!-- Top Horizontal Progress & Streak -->
+        <div class="daily-label">Kunlik Maqsad ({{ daily_total_progress|default:"0" }}/9)</div>
+        <div class="daily-progress-section">
+            <div class="daily-bar-container">
+                <div class="daily-bar-fill" style="width: {% widthratio daily_total_progress|default:0 9 100 %}%;"></div>
             </div>
-            <div class="stat-label">Vocabulary</div>
+            <div class="streak-display">
+                <i class="bi bi-fire"></i> {{ streak|default:"0" }}
+            </div>
         </div>
 
-        <!-- Writing -->
-        <div class="stat-column">
-            <div class="stat-percent">{{ stats.writing }}%</div>
-            <div class="progress-vertical">
-                <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
+        <!-- Vertical Columns -->
+        <div class="vertical-stats-row">
+            <!-- Vocabulary -->
+            <div class="stat-column">
+                <div class="stat-percent">{{ stats.vocabulary }}%</div>
+                <div class="progress-vertical">
+                    <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
+                </div>
+                <div class="stat-label">Vocabulary</div>
             </div>
-            <div class="stat-label">Writing</div>
-        </div>
 
-        <!-- Reading -->
-        <div class="stat-column">
-            <div class="stat-percent">{{ stats.reading }}%</div>
-            <div class="progress-vertical">
-                <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
+            <!-- Writing -->
+            <div class="stat-column">
+                <div class="stat-percent">{{ stats.writing }}%</div>
+                <div class="progress-vertical">
+                    <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
+                </div>
+                <div class="stat-label">Writing</div>
             </div>
-            <div class="stat-label">Reading</div>
-        </div>
 
-        <!-- Listening -->
-        <div class="stat-column">
-            <div class="stat-percent">{{ stats.listening }}%</div>
-            <div class="progress-vertical">
-                <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
+            <!-- Reading -->
+            <div class="stat-column">
+                <div class="stat-percent">{{ stats.reading }}%</div>
+                <div class="progress-vertical">
+                    <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
+                </div>
+                <div class="stat-label">Reading</div>
             </div>
-            <div class="stat-label">Listening</div>
-        </div>
 
-        <!-- Grammar -->
-        <div class="stat-column">
-            <div class="stat-percent">{{ stats.grammar }}%</div>
-            <div class="progress-vertical">
-                <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
+            <!-- Listening -->
+            <div class="stat-column">
+                <div class="stat-percent">{{ stats.listening }}%</div>
+                <div class="progress-vertical">
+                    <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
+                </div>
+                <div class="stat-label">Listening</div>
             </div>
-            <div class="stat-label">Grammar</div>
+
+            <!-- Grammar -->
+            <div class="stat-column">
+                <div class="stat-percent">{{ stats.grammar }}%</div>
+                <div class="progress-vertical">
+                    <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
+                </div>
+                <div class="stat-label">Grammar</div>
+            </div>
         </div>
     </div>
 
@@ -395,56 +424,34 @@
         </div>
     </div>
 
-    <!-- Jang Card -->
-    <div class="jang-card" onclick="window.location.href='{% url 'leagues' %}'" style="cursor: pointer;">
-        <div class="jang-title">Jang</div>
-        <div class="arrow-box"><i class="bi bi-arrow-up-right"></i></div>
+    <!-- AI Promo Card (Replaces Jang) -->
+    <a href="{% url 'ai_chat' %}" class="ai-card">
+        <div class="ai-title">AI Yordamchi</div>
+        <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
 
-        <div class="jang-stats">
-            <div class="jang-stat-item">
-                <div class="jang-stat-label">Janglar:</div>
-                <div class="jang-stat-val">{{ battle_stats.battles }}</div>
-            </div>
-            <div class="jang-stat-item">
-                <div class="jang-stat-label">Yutuqlar:</div>
-                <div class="jang-stat-val">{{ battle_stats.wins }}</div>
-            </div>
-            <div class="jang-stat-item">
-                <div class="jang-stat-label">Mag'lubiyat:</div>
-                <div class="jang-stat-val">{{ battle_stats.losses }}</div>
-            </div>
+        <i class="bi bi-robot ai-icon-bg"></i>
+
+        <div class="ai-action-btn">
+            Kirish <i class="bi bi-arrow-right-short ms-1"></i>
         </div>
+    </a>
 
-        <i class="bi bi-joystick jang-icon"></i>
-    </div>
-
-    <!-- Lug'atim (Extra Banner for visual matching if needed, though not in full screenshot view) -->
-    <div class="vocab-banner">
-        <i class="bi bi-book-half me-3"></i> Lug'atim
-    </div>
-
-    <!-- Bottom Nav -->
-    <div class="bottom-nav-container">
-        <a href="{% url 'home' %}" class="nav-pill-item">
-            <div class="nav-home-circle">
-                <i class="bi bi-house-door-fill"></i>
-            </div>
-            <!-- Empty label for center item -->
+    <!-- Fixed Bottom Nav -->
+    <div class="bottom-nav-fixed">
+        <a href="{% url 'home' %}" class="nav-item-fixed active">
+            <i class="bi bi-flower1"></i><span>Asosiy</span>
         </a>
-
-        <a href="{% url 'categories' %}" class="nav-pill-item">
-            <i class="bi bi-percent"></i>
-            <span>Darslar</span>
+        <a href="{% url 'categories' %}" class="nav-item-fixed">
+            <i class="bi bi-book"></i><span>Yodlash</span>
         </a>
-
-        <a href="#" class="nav-pill-item">
-            <i class="bi bi-collection-play"></i>
-            <span>Resurslar</span>
+        <a href="{% url 'games_menu' %}" class="nav-item-fixed">
+            <i class="bi bi-controller"></i><span>O'yinlar</span>
         </a>
-
-        <a href="#" class="nav-pill-item">
-            <i class="bi bi-grid-fill"></i>
-            <span>Ko'proq</span>
+        <a href="{% url 'ai_chat' %}" class="nav-item-fixed">
+            <i class="bi bi-robot"></i><span>AI Chat</span>
+        </a>
+        <a href="{% url 'profile' %}" class="nav-item-fixed">
+            <i class="bi bi-person"></i><span>Profil</span>
         </a>
     </div>
 
