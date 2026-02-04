@@ -23,21 +23,36 @@
 
         body {
             font-family: 'Nunito', sans-serif;
-            background-color: var(--bg-dark);
+            background-color: #000000; /* Outer background for desktop */
             color: var(--text-main);
-            padding-bottom: 90px; /* Space for bottom nav */
+            padding-bottom: 90px;
             overflow-x: hidden;
             margin: 0;
+            display: flex;
+            justify-content: center; /* Center the app on desktop */
+            min-height: 100vh;
+        }
+
+        /* Main App Container (Mobile First, but limited width on Desktop) */
+        .app-container {
+            width: 100%;
+            max-width: 600px; /* Limit width for "App-like" feel on Desktop */
+            background-color: var(--bg-dark);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 50px rgba(255, 107, 129, 0.1); /* Subtle glow on desktop */
         }
 
         /* Helper Classes */
         .text-sakura { color: var(--accent-primary); }
         .bg-dark-card { background-color: var(--card-bg); border-radius: 20px; }
 
-        /* Header (Sticky & Padded like old design) */
+        /* Header (Sticky & Padded) */
         .app-header {
             background-color: var(--bg-dark);
             padding: 15px 20px;
+            /* Added extra top padding for mobile status bar area ~2cm feel */
+            padding-top: 45px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -45,20 +60,22 @@
             top: 0;
             z-index: 1000;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            /* Ensure it covers content behind it */
+            max-width: 600px; /* Match app container */
+            margin: 0 auto;
+            width: 100%;
         }
         .user-avatar {
-            width: 45px; height: 45px;
+            width: 50px; height: 50px;
             background-color: #333;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; color: var(--text-muted);
-            margin-right: 12px;
+            font-size: 22px; color: var(--text-muted);
+            margin-right: 15px;
             overflow: hidden;
         }
         .header-icons i {
-            font-size: 1.4rem;
-            margin-left: 18px;
+            font-size: 1.5rem;
+            margin-left: 20px;
             color: var(--text-main);
             position: relative;
         }
@@ -90,9 +107,9 @@
         }
         .daily-bar-container {
             flex-grow: 1;
-            height: 8px;
+            height: 10px;
             background-color: #333;
-            border-radius: 4px;
+            border-radius: 5px;
             margin-right: 15px;
             overflow: hidden;
         }
@@ -101,18 +118,18 @@
             background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
             width: 0%;
             transition: width 0.5s ease;
-            border-radius: 4px;
+            border-radius: 5px;
         }
         .streak-display {
             display: flex;
             align-items: center;
             font-weight: bold;
-            color: #fbbf24; /* Fire color remains gold/orange */
-            font-size: 0.9rem;
+            color: #fbbf24;
+            font-size: 1rem;
         }
-        .streak-display i { margin-right: 5px; font-size: 1.1rem; }
+        .streak-display i { margin-right: 5px; font-size: 1.2rem; }
         .daily-label {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 8px;
             font-weight: 600;
@@ -124,7 +141,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            height: 100px;
+            height: 110px;
         }
 
         .stat-column {
@@ -137,7 +154,7 @@
         }
 
         .stat-percent {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             margin-bottom: 6px;
             font-weight: bold;
             color: var(--text-main);
@@ -145,9 +162,9 @@
 
         .progress-vertical {
             width: 100%;
-            height: 50px;
+            height: 60px;
             background-color: #2c2c2c;
-            border-radius: 8px;
+            border-radius: 10px;
             position: relative;
             overflow: hidden;
         }
@@ -156,15 +173,13 @@
             position: absolute;
             bottom: 0; left: 0; width: 100%;
             background-color: #444;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: height 0.5s ease;
         }
-
-        /* Active fill color */
         .progress-fill.active { background-color: var(--accent-primary); }
 
         .stat-label {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             margin-top: 8px;
             color: var(--text-muted);
             text-align: center;
@@ -180,26 +195,30 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: var(--text-main);
             text-decoration: none;
-            transition: opacity 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
         }
-        .grid-item:active { opacity: 0.7; }
+        .grid-item:active { opacity: 0.7; transform: scale(0.95); }
+
+        /* Desktop Hover Effect */
+        @media (min-width: 992px) {
+            .grid-item:hover { transform: translateY(-5px); }
+        }
 
         .icon-box {
-            width: 55px; height: 55px;
+            width: 60px; height: 60px;
             background-color: var(--card-bg);
-            border-radius: 18px;
+            border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
-            margin-bottom: 8px;
-            font-size: 1.5rem;
-            /* Minimalist flat style */
+            margin-bottom: 10px;
+            font-size: 1.6rem;
             border: 1px solid rgba(255,255,255,0.03);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
         }
 
-        /* Pastel/Sakura-matching icon colors */
         .icon-referral { color: #60a5fa; }
         .icon-podcast { color: #f87171; }
         .icon-market { color: #34d399; }
@@ -210,47 +229,50 @@
         .icon-exclusive { color: #f472b6; }
 
         .grid-label {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
             line-height: 1.2;
             font-weight: 500;
         }
 
-        /* AI Promo Card (Sakura Theme) */
+        /* AI Promo Card */
         .ai-card {
             margin: 0 20px 25px 20px;
-            /* Sakura Gradient */
             background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
             border-radius: 24px;
-            padding: 20px;
+            padding: 25px;
             position: relative;
             overflow: hidden;
-            height: 130px;
+            height: 140px;
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
             text-decoration: none;
             box-shadow: 0 8px 20px rgba(255, 117, 140, 0.3);
+            transition: transform 0.3s ease;
+        }
+        @media (min-width: 992px) {
+            .ai-card:hover { transform: scale(1.02); }
         }
         .ai-title {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             z-index: 2;
         }
         .ai-desc {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             opacity: 0.95;
             z-index: 2;
-            max-width: 65%;
-            font-weight: 500;
+            max-width: 70%;
+            font-weight: 600;
         }
 
         .ai-icon-bg {
             position: absolute;
-            right: -10px; bottom: -20px;
-            font-size: 5.5rem;
+            right: -15px; bottom: -25px;
+            font-size: 6rem;
             opacity: 0.25;
             transform: rotate(-10deg);
             z-index: 1;
@@ -258,27 +280,32 @@
 
         .ai-action-btn {
             position: absolute;
-            bottom: 20px; right: 20px;
+            bottom: 25px; right: 25px;
             background: rgba(255,255,255,0.25);
             backdrop-filter: blur(5px);
-            padding: 6px 12px;
-            border-radius: 10px;
+            padding: 8px 16px;
+            border-radius: 12px;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             z-index: 2;
             display: flex; align-items: center;
         }
 
-        /* Fixed Bottom Nav */
+        /* Fixed Bottom Nav (Restricted Width for Desktop) */
         .bottom-nav-fixed {
-            position: fixed; bottom: 0; left: 0; width: 100%;
+            position: fixed; bottom: 0;
+            width: 100%;
+            max-width: 600px; /* Match app container */
             background: var(--nav-bg);
             border-top: 1px solid rgba(255,255,255,0.05);
-            padding: 10px 0 15px 0;
+            padding: 12px 0 20px 0;
             z-index: 1000;
             display: flex;
             justify-content: space-around;
             align-items: center;
+            /* Center horizontal relative to screen if body flexes, but fixed needs help */
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .nav-item-fixed {
@@ -289,188 +316,182 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        .nav-item-fixed i { font-size: 1.3rem; margin-bottom: 2px; transition: transform 0.2s; }
-        .nav-item-fixed span { font-size: 0.7rem; font-weight: 600; }
+        .nav-item-fixed i { font-size: 1.4rem; margin-bottom: 3px; transition: transform 0.2s; }
+        .nav-item-fixed span { font-size: 0.75rem; font-weight: 600; }
 
         .nav-item-fixed.active { color: var(--accent-primary); }
-        .nav-item-fixed.active i { transform: translateY(-2px); }
+        .nav-item-fixed.active i { transform: translateY(-3px); }
 
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <div class="app-header">
-        <div class="d-flex align-items-center">
-            <div class="user-avatar">
-                {% if user.profile.avatar %}
-                    <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid">
-                {% else %}
-                    <i class="bi bi-person-fill"></i>
-                {% endif %}
-            </div>
-            <div>
-                <h6 class="mb-0 fw-bold">Salom, {{ user.first_name|default:user.username }}!</h6>
-                <small class="text-muted" style="font-size: 0.75rem;">Xush kelibsiz</small>
-            </div>
-        </div>
-        <div class="header-icons">
-            <i class="bi bi-chat-dots"></i>
-            <i class="bi bi-bell">
-                <span class="badge-dot"></span>
-            </i>
-        </div>
-    </div>
-
-    <!-- Stats Container -->
-    <div class="stats-container">
-
-        <!-- Top Horizontal Progress & Streak -->
-        <div class="daily-label">Kunlik Maqsad ({{ daily_total_progress|default:"0" }}/9)</div>
-        <div class="daily-progress-section">
-            <div class="daily-bar-container">
-                <div class="daily-bar-fill" style="width: {% widthratio daily_total_progress|default:0 9 100 %}%;"></div>
-            </div>
-            <div class="streak-display">
-                <i class="bi bi-fire"></i> {{ streak|default:"0" }}
-            </div>
-        </div>
-
-        <!-- Vertical Columns (Translated) -->
-        <div class="vertical-stats-row">
-            <!-- Lug'at (Vocabulary) -->
-            <div class="stat-column">
-                <div class="stat-percent">{{ stats.vocabulary }}%</div>
-                <div class="progress-vertical">
-                    <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid">
+                    {% else %}
+                        <i class="bi bi-person-fill"></i>
+                    {% endif %}
                 </div>
-                <div class="stat-label">Lug'at</div>
-            </div>
-
-            <!-- Yozish (Writing) -->
-            <div class="stat-column">
-                <div class="stat-percent">{{ stats.writing }}%</div>
-                <div class="progress-vertical">
-                    <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
+                <div>
+                    <h6 class="mb-0 fw-bold fs-5">Salom, {{ user.first_name|default:user.username }}!</h6>
+                    <small class="text-muted" style="font-size: 0.8rem;">Xush kelibsiz</small>
                 </div>
-                <div class="stat-label">Yozish</div>
             </div>
-
-            <!-- O'qish (Reading) -->
-            <div class="stat-column">
-                <div class="stat-percent">{{ stats.reading }}%</div>
-                <div class="progress-vertical">
-                    <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
-                </div>
-                <div class="stat-label">O'qish</div>
-            </div>
-
-            <!-- Tinglash (Listening) -->
-            <div class="stat-column">
-                <div class="stat-percent">{{ stats.listening }}%</div>
-                <div class="progress-vertical">
-                    <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
-                </div>
-                <div class="stat-label">Tinglash</div>
-            </div>
-
-            <!-- Grammatika (Grammar) -->
-            <div class="stat-column">
-                <div class="stat-percent">{{ stats.grammar }}%</div>
-                <div class="progress-vertical">
-                    <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
-                </div>
-                <div class="stat-label">Grammatika</div>
+            <div class="header-icons">
+                <i class="bi bi-chat-dots"></i>
+                <i class="bi bi-bell">
+                    <span class="badge-dot"></span>
+                </i>
             </div>
         </div>
-    </div>
 
-    <!-- Grid Menu (Minimalist) -->
-    <div class="grid-menu">
-        <div class="row row-cols-4 g-2">
-            <!-- Row 1 -->
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-referral"><i class="bi bi-link-45deg"></i></div>
-                    <div class="grid-label">Referral</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-podcast"><i class="bi bi-mic-fill"></i></div>
-                    <div class="grid-label">Level Podcast</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-market"><i class="bi bi-cart-fill"></i></div>
-                    <div class="grid-label">Marketplace</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="{% url 'ai_chat' %}" class="grid-item">
-                    <div class="icon-box icon-bot"><i class="bi bi-chat-quote-fill"></i></div>
-                    <div class="grid-label">Alomat bot</div>
-                </a>
+        <!-- Stats Container -->
+        <div class="stats-container">
+            <!-- Top Horizontal Progress & Streak -->
+            <div class="daily-label">Kunlik Maqsad ({{ daily_total_progress|default:"0" }}/9)</div>
+            <div class="daily-progress-section">
+                <div class="daily-bar-container">
+                    <div class="daily-bar-fill" style="width: {% widthratio daily_total_progress|default:0 9 100 %}%;"></div>
+                </div>
+                <div class="streak-display">
+                    <i class="bi bi-fire"></i> {{ streak|default:"0" }}
+                </div>
             </div>
 
-            <!-- Row 2 -->
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-assist"><i class="bi bi-headset"></i></div>
-                    <div class="grid-label">Speaking Assist...</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-trans"><i class="bi bi-translate"></i></div>
-                    <div class="grid-label">Translator</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-control"><i class="bi bi-sliders"></i></div>
-                    <div class="grid-label">System Control</div>
-                </a>
-            </div>
-            <div class="col">
-                <a href="#" class="grid-item">
-                    <div class="icon-box icon-exclusive"><i class="bi bi-gem"></i></div>
-                    <div class="grid-label">Exclusive</div>
-                </a>
+            <!-- Vertical Columns (Translated) -->
+            <div class="vertical-stats-row">
+                <div class="stat-column">
+                    <div class="stat-percent">{{ stats.vocabulary }}%</div>
+                    <div class="progress-vertical">
+                        <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
+                    </div>
+                    <div class="stat-label">Lug'at</div>
+                </div>
+
+                <div class="stat-column">
+                    <div class="stat-percent">{{ stats.writing }}%</div>
+                    <div class="progress-vertical">
+                        <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
+                    </div>
+                    <div class="stat-label">Yozish</div>
+                </div>
+
+                <div class="stat-column">
+                    <div class="stat-percent">{{ stats.reading }}%</div>
+                    <div class="progress-vertical">
+                        <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
+                    </div>
+                    <div class="stat-label">O'qish</div>
+                </div>
+
+                <div class="stat-column">
+                    <div class="stat-percent">{{ stats.listening }}%</div>
+                    <div class="progress-vertical">
+                        <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
+                    </div>
+                    <div class="stat-label">Tinglash</div>
+                </div>
+
+                <div class="stat-column">
+                    <div class="stat-percent">{{ stats.grammar }}%</div>
+                    <div class="progress-vertical">
+                        <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
+                    </div>
+                    <div class="stat-label">Grammatika</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- AI Promo Card (Sakura Theme) -->
-    <a href="{% url 'ai_chat' %}" class="ai-card">
-        <div class="ai-title">AI Yordamchi</div>
-        <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
+        <!-- Grid Menu -->
+        <div class="grid-menu">
+            <div class="row row-cols-4 g-3">
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-referral"><i class="bi bi-link-45deg"></i></div>
+                        <div class="grid-label">Referral</div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-podcast"><i class="bi bi-mic-fill"></i></div>
+                        <div class="grid-label">Level Podcast</div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-market"><i class="bi bi-cart-fill"></i></div>
+                        <div class="grid-label">Marketplace</div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="{% url 'ai_chat' %}" class="grid-item">
+                        <div class="icon-box icon-bot"><i class="bi bi-chat-quote-fill"></i></div>
+                        <div class="grid-label">Alomat bot</div>
+                    </a>
+                </div>
 
-        <i class="bi bi-robot ai-icon-bg"></i>
-
-        <div class="ai-action-btn">
-            Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-assist"><i class="bi bi-headset"></i></div>
+                        <div class="grid-label">Speaking Assist...</div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-trans"><i class="bi bi-translate"></i></div>
+                        <div class="grid-label">Translator</div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-control"><i class="bi bi-sliders"></i></div>
+                        <div class="grid-label">System Control</div>
+                    </a>
+                </div>
+                <div class="col">
+                    <a href="#" class="grid-item">
+                        <div class="icon-box icon-exclusive"><i class="bi bi-gem"></i></div>
+                        <div class="grid-label">Exclusive</div>
+                    </a>
+                </div>
+            </div>
         </div>
-    </a>
 
-    <!-- Fixed Bottom Nav -->
-    <div class="bottom-nav-fixed">
-        <a href="{% url 'home' %}" class="nav-item-fixed active">
-            <i class="bi bi-house-door-fill"></i><span>Asosiy</span>
+        <!-- AI Promo Card -->
+        <a href="{% url 'ai_chat' %}" class="ai-card">
+            <div class="ai-title">AI Yordamchi</div>
+            <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
+
+            <i class="bi bi-robot ai-icon-bg"></i>
+
+            <div class="ai-action-btn">
+                Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+            </div>
         </a>
-        <a href="{% url 'categories' %}" class="nav-item-fixed">
-            <i class="bi bi-book"></i><span>Yodlash</span>
-        </a>
-        <a href="{% url 'games_menu' %}" class="nav-item-fixed">
-            <i class="bi bi-controller"></i><span>O'yinlar</span>
-        </a>
-        <a href="{% url 'ai_chat' %}" class="nav-item-fixed">
-            <i class="bi bi-robot"></i><span>AI Chat</span>
-        </a>
-        <a href="{% url 'profile' %}" class="nav-item-fixed">
-            <i class="bi bi-person"></i><span>Profil</span>
-        </a>
+
+        <!-- Fixed Bottom Nav -->
+        <div class="bottom-nav-fixed">
+            <a href="{% url 'home' %}" class="nav-item-fixed active">
+                <i class="bi bi-house-door-fill"></i><span>Asosiy</span>
+            </a>
+            <a href="{% url 'categories' %}" class="nav-item-fixed">
+                <i class="bi bi-book"></i><span>Yodlash</span>
+            </a>
+            <a href="{% url 'games_menu' %}" class="nav-item-fixed">
+                <i class="bi bi-controller"></i><span>O'yinlar</span>
+            </a>
+            <a href="{% url 'ai_chat' %}" class="nav-item-fixed">
+                <i class="bi bi-robot"></i><span>AI Chat</span>
+            </a>
+            <a href="{% url 'profile' %}" class="nav-item-fixed">
+                <i class="bi bi-person"></i><span>Profil</span>
+            </a>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
