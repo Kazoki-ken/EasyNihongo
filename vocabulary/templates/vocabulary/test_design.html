@@ -33,14 +33,12 @@
             min-height: 100vh;
         }
 
-        /* Main App Container (Mobile First, but limited width on Desktop) */
+        /* Main App Container (Full Width on Desktop) */
         .app-container {
             width: 100%;
-            max-width: 600px; /* Limit width for "App-like" feel on Desktop */
             background-color: var(--bg-dark);
             min-height: 100vh;
             position: relative;
-            box-shadow: 0 0 50px rgba(255, 107, 129, 0.1); /* Subtle glow on desktop */
         }
 
         /* Helper Classes */
@@ -51,8 +49,8 @@
         .app-header {
             background-color: var(--bg-dark);
             padding: 15px 20px;
-            /* Added extra top padding for mobile status bar area ~2cm feel */
-            padding-top: 45px;
+            /* Increased top padding for mobile status bar (~2cm) */
+            padding-top: 70px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -60,7 +58,6 @@
             top: 0;
             z-index: 1000;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            max-width: 600px; /* Match app container */
             margin: 0 auto;
             width: 100%;
         }
@@ -202,9 +199,20 @@
         }
         .grid-item:active { opacity: 0.7; transform: scale(0.95); }
 
-        /* Desktop Hover Effect */
+        /* Desktop Tweaks */
         @media (min-width: 992px) {
             .grid-item:hover { transform: translateY(-5px); }
+
+            /* Larger icons for Desktop/Windows users */
+            .icon-box {
+                width: 80px !important;
+                height: 80px !important;
+                font-size: 2.2rem !important;
+                border-radius: 24px !important;
+            }
+            .grid-label {
+                font-size: 0.9rem !important;
+            }
         }
 
         .icon-box {
@@ -291,11 +299,10 @@
             display: flex; align-items: center;
         }
 
-        /* Fixed Bottom Nav (Restricted Width for Desktop) */
+        /* Fixed Bottom Nav (Full Width) */
         .bottom-nav-fixed {
             position: fixed; bottom: 0;
             width: 100%;
-            max-width: 600px; /* Match app container */
             background: var(--nav-bg);
             border-top: 1px solid rgba(255,255,255,0.05);
             padding: 12px 0 20px 0;
@@ -303,9 +310,7 @@
             display: flex;
             justify-content: space-around;
             align-items: center;
-            /* Center horizontal relative to screen if body flexes, but fixed needs help */
-            left: 50%;
-            transform: translateX(-50%);
+            left: 0;
         }
 
         .nav-item-fixed {
@@ -363,46 +368,51 @@
                 </div>
             </div>
 
-            <!-- Vertical Columns (Translated) -->
+            <!-- Vertical Columns (Updated with Real Data) -->
             <div class="vertical-stats-row">
+                <!-- 1. Lug'at -->
                 <div class="stat-column">
-                    <div class="stat-percent">{{ stats.vocabulary }}%</div>
+                    <div class="stat-percent">{{ stats_columns.col1.value }}</div>
                     <div class="progress-vertical">
-                        <div class="progress-fill {% if stats.vocabulary > 0 %}active{% endif %}" style="height: {{ stats.vocabulary }}%;"></div>
+                        <div class="progress-fill {% if stats_columns.col1.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col1.percent }}%;"></div>
                     </div>
-                    <div class="stat-label">Lug'at</div>
+                    <div class="stat-label">{{ stats_columns.col1.label }}</div>
                 </div>
 
+                <!-- 2. O'yinlar -->
                 <div class="stat-column">
-                    <div class="stat-percent">{{ stats.writing }}%</div>
+                    <div class="stat-percent">{{ stats_columns.col2.value }}</div>
                     <div class="progress-vertical">
-                        <div class="progress-fill {% if stats.writing > 0 %}active{% endif %}" style="height: {{ stats.writing }}%;"></div>
+                        <div class="progress-fill {% if stats_columns.col2.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col2.percent }}%;"></div>
                     </div>
-                    <div class="stat-label">Yozish</div>
+                    <div class="stat-label">{{ stats_columns.col2.label }}</div>
                 </div>
 
+                <!-- 3. Aniqlik -->
                 <div class="stat-column">
-                    <div class="stat-percent">{{ stats.reading }}%</div>
+                    <div class="stat-percent">{{ stats_columns.col3.value }}</div>
                     <div class="progress-vertical">
-                        <div class="progress-fill {% if stats.reading > 0 %}active{% endif %}" style="height: {{ stats.reading }}%;"></div>
+                        <div class="progress-fill {% if stats_columns.col3.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col3.percent }}%;"></div>
                     </div>
-                    <div class="stat-label">O'qish</div>
+                    <div class="stat-label">{{ stats_columns.col3.label }}</div>
                 </div>
 
+                <!-- 4. Tinglash (Placeholder) -->
                 <div class="stat-column">
-                    <div class="stat-percent">{{ stats.listening }}%</div>
+                    <div class="stat-percent">0%</div>
                     <div class="progress-vertical">
-                        <div class="progress-fill {% if stats.listening > 0 %}active{% endif %}" style="height: {{ stats.listening }}%;"></div>
+                        <div class="progress-fill" style="height: 0%;"></div>
                     </div>
-                    <div class="stat-label">Tinglash</div>
+                    <div class="stat-label">{{ stats_columns.col4.label }}</div>
                 </div>
 
+                <!-- 5. Grammatika (Placeholder) -->
                 <div class="stat-column">
-                    <div class="stat-percent">{{ stats.grammar }}%</div>
+                    <div class="stat-percent">0%</div>
                     <div class="progress-vertical">
-                        <div class="progress-fill {% if stats.grammar > 0 %}active{% endif %}" style="height: {{ stats.grammar }}%;"></div>
+                        <div class="progress-fill" style="height: 0%;"></div>
                     </div>
-                    <div class="stat-label">Grammatika</div>
+                    <div class="stat-label">{{ stats_columns.col5.label }}</div>
                 </div>
             </div>
         </div>

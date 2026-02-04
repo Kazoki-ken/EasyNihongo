@@ -305,28 +305,34 @@ def test_design_view(request):
     check_daily_progress(request.user)
 
     profile = request.user.profile
-
-    # Calculate progress percentages (Daily Goals)
-    vocab_progress = 0 # Placeholder for now, maybe total words vs goal?
-    writing_progress = min(int((profile.daily_write_count / 3) * 100), 100)
-    reading_progress = min(int((profile.daily_match_count / 3) * 100), 100) # Assuming Match is Reading
-    listening_progress = min(int((profile.daily_test_count / 3) * 100), 100) # Assuming Test is Listening
-    grammar_progress = 0 # Placeholder
-
-    stats = {
-        'vocabulary': vocab_progress,
-        'writing': writing_progress,
-        'reading': reading_progress,
-        'listening': listening_progress,
-        'grammar': grammar_progress
-    }
-
-    # Battle Stats (Placeholder or mapped from WeeklyStats)
     w_stats = get_weekly_stats(request.user)
-    battle_stats = {
-        'battles': w_stats.games_played, # Total games as proxy
-        'wins': 0, # Not tracked separately yet
-        'losses': 0 # Not tracked separately yet
+
+    # 1. Lug'at (Total Words)
+    try:
+        created_count = Word.objects.filter(author=request.user).count()
+        saved_count = request.user.saved_words.count()
+    except AttributeError:
+        created_count = 0
+        saved_count = 0
+    total_words = created_count + saved_count
+
+    # 2. O'yinlar (Games Played)
+    games_played = w_stats.games_played
+    # Visual bar for games: cap at 100 for now
+    games_percent = min(games_played, 100)
+
+    # 3. Aniqlik (Accuracy)
+    accuracy = 0
+    if w_stats.total_questions > 0:
+        accuracy = int((w_stats.correct_answers / w_stats.total_questions) * 100)
+
+    # Stats Columns Configuration
+    stats_columns = {
+        'col1': {'label': "Lug'at", 'value': total_words, 'percent': 50}, # Fixed 50% as requested
+        'col2': {'label': "O'yinlar", 'value': games_played, 'percent': games_percent},
+        'col3': {'label': "Aniqlik", 'value': f"{accuracy}%", 'percent': accuracy},
+        'col4': {'label': "Tinglash", 'value': 0, 'percent': 0},
+        'col5': {'label': "Grammatika", 'value': 0, 'percent': 0},
     }
 
     daily_total_progress = profile.daily_test_count + profile.daily_match_count + profile.daily_write_count
@@ -334,8 +340,7 @@ def test_design_view(request):
     context = {
         'user': request.user,
         'profile': profile,
-        'stats': stats,
-        'battle_stats': battle_stats,
+        'stats_columns': stats_columns,
         'daily_total_progress': daily_total_progress,
         'streak': profile.streak
     }
