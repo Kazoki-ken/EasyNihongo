@@ -378,19 +378,45 @@ def home(request):
     check_daily_progress(request.user)
     check_badges(request.user) # Badge tekshirish
 
+    profile = request.user.profile
+    w_stats = get_weekly_stats(request.user)
+
+    # 1. Lug'at (Total Words)
     try:
         created_count = Word.objects.filter(author=request.user).count()
         saved_count = request.user.saved_words.count()
     except AttributeError:
         created_count = 0
         saved_count = 0
-    
     total_words = created_count + saved_count
+
+    # 2. O'yinlar (Games Played)
+    games_played = w_stats.games_played
+    games_percent = min(games_played, 100)
+
+    # 3. Aniqlik (Accuracy)
+    accuracy = 0
+    if w_stats.total_questions > 0:
+        accuracy = int((w_stats.correct_answers / w_stats.total_questions) * 100)
+
+    # Stats Columns Configuration
+    stats_columns = {
+        'col1': {'label': "Lug'at", 'value': total_words, 'percent': 50},
+        'col2': {'label': "O'yinlar", 'value': games_played, 'percent': games_percent},
+        'col3': {'label': "Aniqlik", 'value': f"{accuracy}%", 'percent': accuracy},
+        'col4': {'label': "Tinglash", 'value': 0, 'percent': 0},
+        'col5': {'label': "Grammatika", 'value': 0, 'percent': 0},
+    }
+
+    daily_total_progress = profile.daily_test_count + profile.daily_match_count + profile.daily_write_count
     
     context = {
-        'total_words': total_words,
         'user': request.user,
-        'profile': request.user.profile
+        'profile': profile,
+        'stats_columns': stats_columns,
+        'daily_total_progress': daily_total_progress,
+        'streak': profile.streak,
+        'total_words': total_words, # Keeping original context var just in case
     }
     return render(request, 'vocabulary/home.html', context)
 
