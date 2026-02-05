@@ -90,6 +90,13 @@
             color: var(--text-main);
             position: relative;
         }
+        /* Greeting text size */
+        .header-greeting {
+            font-size: 1rem; /* Smaller than fs-5 (1.25rem) */
+        }
+        @media (min-width: 992px) {
+            .header-greeting { font-size: 1.25rem; } /* Restore for desktop if needed */
+        }
         .badge-dot {
             position: absolute; top: -2px; right: -2px;
             width: 8px; height: 8px;
@@ -414,12 +421,13 @@
                     {% endif %}
                 </div>
                 <div>
-                    <h6 class="mb-0 fw-bold fs-5">Salom, {{ user.first_name|default:user.username }}!</h6>
+                    <h6 class="mb-0 fw-bold header-greeting">Salom, {{ user.first_name|default:user.username }}!</h6>
                     <small class="text-muted" style="font-size: 0.8rem;">Xush kelibsiz</small>
                 </div>
             </div>
             <div class="header-icons">
-                <i class="bi bi-moon-stars me-3" id="theme-toggle" style="cursor: pointer;"></i>
+                <!-- Hide theme toggle on mobile (d-none d-lg-inline-block) -->
+                <i class="bi bi-moon-stars me-3 d-none d-lg-inline-block" id="theme-toggle" style="cursor: pointer;"></i>
                 <i class="bi bi-chat-dots"></i>
                 <i class="bi bi-bell">
                     <span class="badge-dot"></span>
@@ -494,8 +502,8 @@
                     </div>
                 </div>
 
-                <!-- AI Promo Card (Moved to Left Column) -->
-                <a href="{% url 'ai_chat' %}" class="ai-card">
+                <!-- AI Promo Card (Desktop Only) -->
+                <a href="{% url 'ai_chat' %}" class="ai-card d-none d-lg-flex">
                     <div class="ai-title">AI Yordamchi</div>
                     <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
 
@@ -563,6 +571,18 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- AI Promo Card (Mobile Only - Placed AFTER Grid Menu) -->
+                <a href="{% url 'ai_chat' %}" class="ai-card d-flex d-lg-none">
+                    <div class="ai-title">AI Yordamchi</div>
+                    <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
+
+                    <i class="bi bi-robot ai-icon-bg"></i>
+
+                    <div class="ai-action-btn">
+                        Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+                    </div>
+                </a>
             </div>
 
         </div> <!-- End Desktop Grid -->
