@@ -307,6 +307,31 @@ def test_design_view(request):
     profile = request.user.profile
     w_stats = get_weekly_stats(request.user)
 
+    # =========================================================
+    # TEST UCHUN: Eski kodlar saqlab turilibdi (Testdan keyin o'chirilishi mumkin)
+    # =========================================================
+    # vocab_progress = 0
+    # writing_progress = min(int((profile.daily_write_count / 3) * 100), 100)
+    # reading_progress = min(int((profile.daily_match_count / 3) * 100), 100)
+    # listening_progress = min(int((profile.daily_test_count / 3) * 100), 100)
+    # grammar_progress = 0
+    # stats = {
+    #     'vocabulary': vocab_progress,
+    #     'writing': writing_progress,
+    #     'reading': reading_progress,
+    #     'listening': listening_progress,
+    #     'grammar': grammar_progress
+    # }
+    # battle_stats = {
+    #     'battles': w_stats.games_played,
+    #     'wins': 0,
+    #     'losses': 0
+    # }
+
+    # =========================================================
+    # TEST UCHUN: Yangi statistika logikasi (Jami so'zlar, O'yinlar, Aniqlik)
+    # =========================================================
+
     # 1. Lug'at (Total Words)
     try:
         created_count = Word.objects.filter(author=request.user).count()
@@ -341,6 +366,8 @@ def test_design_view(request):
         'user': request.user,
         'profile': profile,
         'stats_columns': stats_columns,
+        # 'stats': stats, # Eski statistika konteksti
+        # 'battle_stats': battle_stats, # Eski jang statistikasi
         'daily_total_progress': daily_total_progress,
         'streak': profile.streak
     }
