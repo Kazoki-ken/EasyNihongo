@@ -1,124 +1,433 @@
-{% extends 'vocabulary/base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sakura Gakuen</title>
 
-{% block content %}
-<div class="container py-4 text-center">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-    <h1 class="fw-bold mb-2" style="font-family: 'Nunito', sans-serif;">日進月歩</h1>
-    <p class="text-muted small mb-5">Kun hikmati: "Har kuni o'sish"</p>
+    <style>
+        :root {
+            /* Base Theme Variables (Unified with Home) */
+            --bg-body: #f8f9fa;
+            --bg-main: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #212529;
+            --text-muted: #adb5bd;
+            --border-color: rgba(0,0,0,0.05);
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --accent-primary: #ff6b81;
+        }
 
-    <div class="tree-wrapper mb-5 position-relative">
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-body);
+            padding-bottom: 90px;
+            color: var(--text-main);
+        }
+
+        /* Unified Bottom Nav Styles */
+        .bottom-nav-fixed {
+            position: fixed; bottom: 0;
+            width: 100%;
+            background: var(--nav-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 0 20px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            left: 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item-fixed {
+            text-align: center; color: var(--text-muted);
+            text-decoration: none; transition: all 0.3s ease;
+            position: relative;
+            flex: 1;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .nav-item-fixed i { font-size: 1.4rem; margin-bottom: 3px; transition: transform 0.2s; }
+        .nav-item-fixed span { font-size: 0.75rem; font-weight: 600; }
         
-        {% if user.profile.tree_state == 1 %}
-            <div class="animate-breathe">
-                <img src="{% static 'vocabulary/images/sakura_tree.png' %}" 
-                     alt="Sakura Tree" class="img-fluid tree-normal" style="max-height: 250px;">
-            </div>
-            <div class="mt-3">
-                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">
-                    <i class="bi bi-flower1 me-1"></i> Daraxtingiz gullamoqda!
-                </span>
-            </div>
+        .nav-item-fixed.active { color: var(--accent-primary); }
+        .nav-item-fixed.active i { transform: translateY(-3px); }
 
-        {% elif user.profile.tree_state == 2 %}
-            <div class="animate-shake">
-                <img src="{% static 'vocabulary/images/sakura_tree.png' %}" 
-                     alt="Withered Tree" class="img-fluid tree-withered" style="max-height: 250px;">
-            </div>
-            <div class="mt-3">
-                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-bold">
-                    <i class="bi bi-exclamation-triangle me-1"></i> Barglar to'kilmoqda...
-                </span>
-                <p class="text-muted small mt-2">Daraxtni saqlab qolish uchun bugun 9 ball to'plang!</p>
-            </div>
+        .sakura-card {
+            background: var(--card-bg); border-radius: 20px; border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        }
 
-        {% else %}
-            <div>
-                <img src="{% static 'vocabulary/images/sakura_tree.png' %}" 
-                     alt="Dead Tree" class="img-fluid tree-dead" style="max-height: 250px;">
-            </div>
-            <div class="mt-3">
-                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold">
-                    <i class="bi bi-x-circle me-1"></i> Daraxt quridi
-                </span>
-                <p class="text-muted small mt-2">Uni tiriltirish uchun bugungi barcha vazifalarni bajaring!</p>
-            </div>
-        {% endif %}
+        @keyframes sway {
+            0% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+            100% { transform: rotate(-1deg); }
+        }
+        .sakura-sway { animation: sway 4s ease-in-out infinite; display: inline-block; }
 
+        .app-header {
+            background: white; padding: 15px 20px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        @media (max-width: 570px) {
+            .container {
+                padding-left: 15px !important;
+                padding-right: 15px !important;
+                max-width: 100% !important;
+            }
+            h1 { font-size: 1.5rem !important; margin-bottom: 1rem !important; }
+            h2 { font-size: 1.3rem !important; }
+            h3 { font-size: 1.2rem !important; }
+            p, span { font-size: 0.9rem !important; }
+
+            .sakura-card, .card {
+                padding: 12px !important;
+                border-radius: 12px !important;
+                margin-bottom: 10px !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+            }
+
+            .sakura-card .rounded-circle, .card .rounded-circle {
+                width: 45px !important;
+                height: 45px !important;
+                padding: 8px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .sakura-card i, .card i {
+                font-size: 1.1rem !important;
+            }
+
+            .sakura-card span, .card h5 {
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+            }
+
+            .btn {
+                padding: 8px 16px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .fixed-bottom {
+                height: 60px !important;
+                padding-bottom: 5px !important;
+            }
+            body { padding-bottom: 70px !important; }
+        }
+
+        /* =========================================================
+            DARK MODE STYLES
+           ========================================================= */
+        body.dark-mode {
+            --bg-body: #121212;
+            --bg-main: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --nav-bg: #1e1e1e;
+            --border-color: rgba(255,255,255,0.05);
+            background-color: var(--bg-body) !important;
+            color: var(--text-main) !important;
+        }
+
+        /* Asosiy konteynerlar */
+        body.dark-mode main,
+        body.dark-mode .container,
+        body.dark-mode .container-fluid {
+            background-color: var(--bg-body) !important;
+            color: var(--text-main) !important;
+        }
+
+        /* 1. Elementlar */
+        body.dark-mode .bg-white,
+        body.dark-mode .card,
+        body.dark-mode .sakura-card,
+        body.dark-mode .question-card,
+        body.dark-mode .game-header,
+        body.dark-mode .list-group-item,
+        body.dark-mode .bottom-nav-fixed, /* Updated class */
+        body.dark-mode .container-fluid.sticky-top,
+        body.dark-mode .modal-content,
+        body.dark-mode .match-card,
+        body.dark-mode .rounded-circle,
+        body.dark-mode .icon-box,
+        body.dark-mode .input-group-text,
+        body.dark-mode .app-header {
+            background-color: var(--card-bg) !important;
+            color: #ffffff !important;
+            border-color: #333 !important;
+        }
+
+        /* 2. DUMALOQ IKONKALARNING OQ AYLANALARI (Tuzatish) */
+        body.dark-mode .rounded-circle,
+        body.dark-mode .icon-box,
+        body.dark-mode .input-group-text {
+            background-color: #2c2c2c !important;
+            color: #ffffff !important;
+            border-color: #444 !important;
+        }
+
+        /* 3. Matnlar uchun */
+        body.dark-mode .text-dark,
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3,
+        body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+        body.dark-mode strong, body.dark-mode .fw-bold {
+            color: #f8f9fa !important;
+        }
+
+        body.dark-mode .text-muted { color: #b0b0b0 !important; }
+
+        /* 4. INPUTLAR VA PLACEHOLDER (So'z qo'shish qismi uchun tuzatish) */
+        body.dark-mode .form-control,
+        body.dark-mode .custom-input-group,
+        body.dark-mode input,
+        body.dark-mode textarea,
+        body.dark-mode select {
+            background-color: #2c2c2c !important;
+            border-color: #444 !important;
+            color: #ffffff !important;
+        }
+
+        /* Placeholder ko'rinishi uchun */
+        body.dark-mode ::placeholder { color: #888 !important; opacity: 1; }
+
+        /* 5. Tugmalar */
+        body.dark-mode .btn-light,
+        body.dark-mode .answer-btn {
+            background-color: #2c2c2c !important;
+            color: #ffffff !important;
+            border: 1px solid #444 !important;
+        }
+
+        /* Alert va Progress fonlari */
+        body.dark-mode .bg-warning.bg-opacity-10 { background-color: rgba(255, 193, 7, 0.2) !important; }
+        body.dark-mode .bg-danger.bg-opacity-10 { background-color: rgba(220, 53, 69, 0.2) !important; }
+        body.dark-mode .bg-success.bg-opacity-10 { background-color: rgba(25, 135, 84, 0.2) !important; }
+        body.dark-mode .progress { background-color: #333 !important; }
+
+        /* 1. SOG'LOM DARAXT (Nafas olish animatsiyasi) */
+        .tree-normal {
+            filter: brightness(1.05) contrast(1.05);
+        }
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        .animate-breathe {
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        /* 2. KASAL DARAXT (Sarg'aygan va xira) */
+        .tree-withered {
+            filter: sepia(0.8) hue-rotate(-30deg) saturate(1.5) opacity(0.8);
+            transition: all 0.5s ease;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-2px) rotate(-1deg); }
+            75% { transform: translateX(2px) rotate(1deg); }
+            100% { transform: translateX(0); }
+        }
+        .animate-shake {
+            animation: shake 4s infinite; /* Shamolda qaltirash */
+        }
+
+        /* 3. QURIGAN DARAXT (Oq-qora va juda xira) */
+        .tree-dead {
+            filter: grayscale(100%) contrast(1.2) opacity(0.6);
+            transform: scale(0.95); /* Kichrayib qolgan */
+        }
+
+        /* Progress bar rangi (Sakura pushti) */
+        .bg-sakura {
+            background-color: #ff8fab !important;
+        }
+
+    </style>
+</head>
+<!-- <body class="{% if request.COOKIES.theme == 'dark' %}dark-mode{% endif %}"> -->
+
+<div class="container-fluid bg-white py-3 px-4 border-bottom sticky-top shadow-sm">
+    <div class="d-flex justify-content-between align-items-center">
+        <i class="bi     fs-3" style="cursor: pointer;"></i>
+        <h6 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 2px;"></h6>
+        <i class="bi bi-brightness-alt-low-fill fs-3" style="cursor: pointer;"></i>
     </div>
-
-    <div class="sakura-card p-4 mx-auto shadow-sm" style="max-width: 400px;">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-bold text-dark">Kunlik Maqsad</span>
-            
-            {% if user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count >= 9 %}
-                <span class="badge bg-success rounded-pill">Bajarildi ✅</span>
-            {% else %}
-                <span class="badge bg-primary rounded-pill">
-                    {{ user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count }} / 9 Ball
-                </span>
-            {% endif %}
-        </div>
-
-        <div class="progress mb-4" style="height: 10px; border-radius: 5px;">
-            <div class="progress-bar bg-sakura" role="progressbar" 
-                 style="width: {% widthratio user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count 9 100 %}%;" 
-                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            </div>
-        </div>
-
-        <div class="row text-center">
-            <div class="col-6 border-end">
-                <h3 class="fw-bold mb-0 text-dark counter-anim">{{ user.profile.streak }}</h3>
-                <small class="text-muted fw-bold" style="font-size: 0.7rem;">🔥 KUN</small>
-            </div>
-            <div class="col-6">
-                <h3 class="fw-bold mb-0 text-dark counter-anim">{{ total_words }}</h3> 
-                <small class="text-muted fw-bold" style="font-size: 0.7rem;">❤️ SO'ZLAR</small>
-            </div>
-        </div>
-    </div>
-
 </div>
 
-<style>
-    /* 1. SOG'LOM DARAXT (Nafas olish animatsiyasi) */
-    .tree-normal {
-        filter: brightness(1.05) contrast(1.05);
-    }
-    @keyframes breathe {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    .animate-breathe {
-        animation: breathe 3s infinite ease-in-out;
+<main>
+    <div class="container py-4 text-center">
+
+        <h1 class="fw-bold mb-2" style="font-family: 'Nunito', sans-serif;">日進月歩</h1>
+        <p class="text-muted small mb-5">Kun hikmati: "Har kuni o'sish"</p>
+
+        <div class="tree-wrapper mb-5 position-relative">
+            
+            {% if user.profile.tree_state == 1 %}
+                <div class="animate-breathe">
+                    <img src="{% static 'vocabulary/images/sakura_tree.png' %}"
+                         alt="Sakura Tree" class="img-fluid tree-normal" style="max-height: 250px;">
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-flower1 me-1"></i> Daraxtingiz gullamoqda!
+                    </span>
+                </div>
+
+            {% elif user.profile.tree_state == 2 %}
+                <div class="animate-shake">
+                    <img src="{% static 'vocabulary/images/sakura_tree.png' %}"
+                         alt="Withered Tree" class="img-fluid tree-withered" style="max-height: 250px;">
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Barglar to'kilmoqda...
+                    </span>
+                    <p class="text-muted small mt-2">Daraxtni saqlab qolish uchun bugun 9 ball to'plang!</p>
+                </div>
+
+            {% else %}
+                <div>
+                    <img src="{% static 'vocabulary/images/sakura_tree.png' %}"
+                         alt="Dead Tree" class="img-fluid tree-dead" style="max-height: 250px;">
+                </div>
+                <div class="mt-3">
+                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-x-circle me-1"></i> Daraxt quridi
+                    </span>
+                    <p class="text-muted small mt-2">Uni tiriltirish uchun bugungi barcha vazifalarni bajaring!</p>
+                </div>
+            {% endif %}
+
+        </div>
+
+        <div class="sakura-card p-4 mx-auto shadow-sm" style="max-width: 400px;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-dark">Kunlik Maqsad</span>
+
+                {% if user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count >= 9 %}
+                    <span class="badge bg-success rounded-pill">Bajarildi ✅</span>
+                {% else %}
+                    <span class="badge bg-primary rounded-pill">
+                        {{ user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count }} / 9 Ball
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="progress mb-4" style="height: 10px; border-radius: 5px;">
+                <div class="progress-bar bg-sakura" role="progressbar"
+                     style="width: {% widthratio user.profile.daily_test_count|add:user.profile.daily_match_count|add:user.profile.daily_write_count 9 100 %}%;"
+                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+
+            <div class="row text-center">
+                <div class="col-6 border-end">
+                    <h3 class="fw-bold mb-0 text-dark counter-anim">{{ user.profile.streak }}</h3>
+                    <small class="text-muted fw-bold" style="font-size: 0.7rem;">🔥 KUN</small>
+                </div>
+                <div class="col-6">
+                    <h3 class="fw-bold mb-0 text-dark counter-anim">{{ total_words }}</h3>
+                    <small class="text-muted fw-bold" style="font-size: 0.7rem;">❤️ SO'ZLAR</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+{% include 'vocabulary/includes/bottom_nav.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    /* OVOZ FUNKSIYASI (Hybrid: Web Speech API + Google Translate Backup) */
+    function speak(text) {
+        // Matnni tozalash (qavslar va ortiqcha belgilar)
+        let cleanText = text.replace(/\s*[\(（].*?[\)）]/g, "").trim();
+
+        // 1-USUL: Web Speech API (Native)
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Eski ovozni to'xtatish
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.85;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            // Yaponcha ovoz qidirish (ba'zi brauzerlarda kerak)
+            let voices = window.speechSynthesis.getVoices();
+            let japaneseVoice = voices.find(voice => voice.lang.includes('ja'));
+            if (japaneseVoice) {
+                utterance.voice = japaneseVoice;
+            }
+
+            // Xatolik bo'lsa (masalan, til paketi yo'q), 2-usulga o'tamiz
+            utterance.onerror = function(event) {
+                console.warn("SpeechSynthesis error, switching to backup:", event);
+                playBackupAudio(cleanText);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            // Agar brauzer umuman qo'llab-quvvatlamasa
+            playBackupAudio(cleanText);
+        }
     }
 
-    /* 2. KASAL DARAXT (Sarg'aygan va xira) */
-    .tree-withered {
-        filter: sepia(0.8) hue-rotate(-30deg) saturate(1.5) opacity(0.8);
-        transition: all 0.5s ease;
-    }
-    @keyframes shake {
-        0% { transform: translateX(0); }
-        25% { transform: translateX(-2px) rotate(-1deg); }
-        75% { transform: translateX(2px) rotate(1deg); }
-        100% { transform: translateX(0); }
-    }
-    .animate-shake {
-        animation: shake 4s infinite; /* Shamolda qaltirash */
+    // 2-USUL: Google Translate TTS (Backup)
+    function playBackupAudio(text) {
+        try {
+            const encodedText = encodeURIComponent(text);
+            const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=ja&client=tw-ob`;
+            const audio = new Audio(audioUrl);
+            audio.play().catch(e => console.error("Backup audio error:", e));
+        } catch (e) {
+            alert("Ovoz funksiyasi qurilmangizda ishlamayapti.");
+        }
     }
 
-    /* 3. QURIGAN DARAXT (Oq-qora va juda xira) */
-    .tree-dead {
-        filter: grayscale(100%) contrast(1.2) opacity(0.6);
-        transform: scale(0.95); /* Kichrayib qolgan */
-    }
+    /* TUNGI REJIM MANTIQI (Telefonda va Brauzerda xavfsiz) */
+    (function() {
+        const STORAGE_KEY = 'sakura_theme_vfinal';
+        const body = document.body;
 
-    /* Progress bar rangi (Sakura pushti) */
-    .bg-sakura {
-        background-color: #ff8fab !important;
-    }
-</style>
-{% endblock %}
+        const savedTheme = localStorage.getItem(STORAGE_KEY);
+        if (savedTheme === 'dark') { body.classList.add('dark-mode'); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('theme-toggle-btn');
+            const icon = document.getElementById('theme-icon');
+
+            if (body.classList.contains('dark-mode') && icon) {
+                icon.className = 'bi bi-sun-fill text-warning fs-5';
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (body.classList.contains('dark-mode')) {
+                        body.classList.remove('dark-mode');
+                        localStorage.setItem(STORAGE_KEY, 'light');
+                        if (icon) icon.className = 'bi bi-moon-fill text-secondary fs-5';
+                    } else {
+                        body.classList.add('dark-mode');
+                        localStorage.setItem(STORAGE_KEY, 'dark');
+                        if (icon) icon.className = 'bi bi-sun-fill text-warning fs-5';
+                    }
+                });
+            }
+        });
+    })();
+</script>
+</body>
+</html>
