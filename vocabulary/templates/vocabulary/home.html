@@ -1,543 +1,639 @@
-{% extends 'vocabulary/base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sakura Gakuen - Home</title>
 
-{% block header %}
-<!-- Replacing Base Header with Home Header -->
-<!-- Header -->
-<div class="app-header">
-    <div class="d-flex align-items-center">
-        <div class="user-avatar">
-            {% if user.profile.avatar %}
-                <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid">
-            {% else %}
-                <i class="bi bi-person-fill"></i>
-            {% endif %}
-        </div>
-        <div>
-            <h6 class="mb-0 fw-bold header-greeting">Salom, {{ user.first_name|default:user.username }}!</h6>
-            <small class="text-muted" style="font-size: 0.8rem;">Xush kelibsiz</small>
-        </div>
-    </div>
-    <div class="header-icons">
-        <!-- Hide theme toggle on mobile (d-none d-lg-inline-block) -->
-        <i class="bi bi-moon-stars me-3 d-none d-lg-inline-block" id="theme-toggle" style="cursor: pointer;"></i>
-        <i class="bi bi-chat-dots"></i>
-        <i class="bi bi-bell">
-            <span class="badge-dot"></span>
-        </i>
-    </div>
-</div>
-{% endblock %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-{% block content %}
-<style>
-    /* Home-Specific Styles */
+    <style>
+        :root {
+            /* Default: Dark Mode */
+            --bg-body: #000000;
+            --bg-main: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #adb5bd;
+            --border-color: rgba(255,255,255,0.05);
+            --nav-bg: #1e1e1e;
 
-    /* Variables are inherited from base.html (:root) */
-
-    /* Light Mode Override logic is handled by base.html JS (checking shared key)
-       BUT base.html defaults to Light. Home design was Dark default.
-       We need to ensure style compatibility.
-
-       Base.html: Light by default. Dark via .dark-mode.
-       Home Design: Dark by default. Light via .light-mode.
-
-       FIX: We will align Home CSS to match Base.html's "Light Default, Dark via .dark-mode" strategy.
-       Or, simpler: Just paste the CSS that works with the current Base.html.
-
-       Let's use the Home specific styles but scope them properly.
-    */
-
-    /* Header (Sticky & Padded) - Re-declaring specific overrides */
-    .app-header {
-        background-color: var(--bg-main); /* Uses var from base */
-        padding: 15px 20px;
-        padding-top: 70px; /* Mobile safe area default */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        border-bottom: 1px solid var(--border-color);
-        margin: 0 auto;
-        width: 100%;
-    }
-    .user-avatar {
-        width: 50px; height: 50px;
-        background-color: #333;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 22px; color: var(--text-muted);
-        margin-right: 15px;
-        overflow: hidden;
-    }
-    .header-icons i {
-        font-size: 1.5rem;
-        margin-left: 20px;
-        color: var(--text-main);
-        position: relative;
-    }
-    /* Greeting text size */
-    .header-greeting {
-        font-size: 1rem; /* Smaller than fs-5 (1.25rem) */
-    }
-    @media (min-width: 992px) {
-        .header-greeting { font-size: 1.25rem; }
-    }
-    .badge-dot {
-        position: absolute; top: -2px; right: -2px;
-        width: 8px; height: 8px;
-        background-color: var(--accent-primary);
-        border-radius: 50%;
-        border: 2px solid var(--bg-dark); /* bg-dark is not defined in base vars, use bg-body? */
-    }
-
-    /* Stats Bars */
-    .stats-container {
-        padding: 20px;
-        background-color: var(--card-bg);
-        border-radius: 24px;
-        margin: 10px 20px 25px 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-
-    /* Horizontal Daily Progress */
-    .daily-progress-section {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .daily-bar-container {
-        flex-grow: 1;
-        height: 10px;
-        background-color: #333;
-        border-radius: 5px;
-        margin-right: 15px;
-        overflow: hidden;
-    }
-    .daily-bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-        width: 0%;
-        transition: width 0.5s ease;
-        border-radius: 5px;
-    }
-    .streak-display {
-        display: flex;
-        align-items: center;
-        font-weight: bold;
-        color: #fbbf24;
-        font-size: 1rem;
-    }
-    .streak-display i { margin-right: 5px; font-size: 1.2rem; }
-    .daily-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-        font-weight: 600;
-        display: block;
-    }
-
-    /* Vertical Columns */
-    .vertical-stats-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        height: 110px;
-    }
-
-    .stat-column {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-end;
-        height: 100%;
-        width: 18%;
-    }
-
-    .stat-percent {
-        font-size: 0.8rem;
-        margin-bottom: 6px;
-        font-weight: bold;
-        color: var(--text-main);
-    }
-
-    .progress-vertical {
-        width: 100%;
-        height: 60px;
-        background-color: #2c2c2c;
-        border-radius: 10px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .progress-fill {
-        position: absolute;
-        bottom: 0; left: 0; width: 100%;
-        background-color: #444;
-        border-radius: 10px;
-        transition: height 0.5s ease;
-    }
-    .progress-fill.active { background-color: var(--accent-primary); }
-
-    .stat-label {
-        font-size: 0.7rem;
-        margin-top: 8px;
-        color: var(--text-muted);
-        text-align: center;
-        line-height: 1.2;
-    }
-
-    /* Minimalist Grid Menu */
-    .grid-menu {
-        margin: 0 20px 25px 20px;
-    }
-    .grid-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        margin-bottom: 20px;
-        color: var(--text-main);
-        text-decoration: none;
-        transition: transform 0.2s, opacity 0.2s;
-    }
-    .grid-item:active { opacity: 0.7; transform: scale(0.95); }
-
-    .icon-box {
-        width: 60px; height: 60px;
-        background-color: var(--card-bg);
-        border-radius: 20px;
-        display: flex; align-items: center; justify-content: center;
-        margin-bottom: 10px;
-        font-size: 1.6rem;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-
-    /* Desktop Layout (Responsive) */
-    @media (min-width: 992px) {
-        .app-container {
-            max-width: 1200px; /* Limit main container width on large screens */
-            margin: 0 auto;
-            background-color: transparent; /* Let body bg show through */
-            padding: 40px 20px;
-            min-height: auto;
-            display: block; /* Ensure it's not flexed weirdly */
+            /* Sakura Pink Palette */
+            --accent-primary: #ff6b81;
+            --accent-secondary: #ff8fab;
         }
 
-        .app-header {
-            background: transparent;
-            padding-top: 20px;
-            border-bottom: none;
-            margin-bottom: 20px;
-            position: relative; /* Not sticky on desktop */
+        /* Light Mode Override */
+        body.light-mode {
+            --bg-body: #f8f9fa;
+            --bg-main: #ffffff;
+            --card-bg: #f1f3f5;
+            --text-main: #212529;
+            --text-muted: #6c757d;
+            --border-color: rgba(0,0,0,0.05);
+            --nav-bg: #ffffff;
         }
 
-        /* 2-Column Grid Layout */
-        .desktop-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr; /* Left Sidebar (Fixed), Right Content (Auto) */
-            gap: 30px;
-            align-items: start;
-        }
-
-        /* Left Sidebar Area */
-        .left-sidebar {
-            background-color: var(--bg-main);
-            border-radius: 30px;
-            padding: 20px 0;
-            border: 1px solid var(--border-color);
-        }
-
-        .stats-container {
-            margin: 0 20px 25px 20px;
-            background-color: var(--card-bg); /* Inner card slightly lighter/darker */
-            box-shadow: none;
-        }
-
-        /* Right Content Area */
-        .right-content {
-            background-color: var(--bg-main);
-            border-radius: 30px;
-            padding: 40px;
-            border: 1px solid var(--border-color);
-            min-height: 600px;
-        }
-
-        .grid-menu {
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: 90px;
+            overflow-x: hidden;
             margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        .grid-item:hover { transform: translateY(-5px); }
+        /* Main App Container */
+        .app-container {
+            width: 100%;
+            background-color: var(--bg-main);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Helper Classes */
+        .text-sakura { color: var(--accent-primary); }
+        .bg-dark-card { background-color: var(--card-bg); border-radius: 20px; }
+
+        /* Header (Sticky & Padded) */
+        .app-header {
+            background-color: var(--bg-main);
+            padding: 15px 20px;
+            padding-top: 70px; /* Mobile safe area default */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+            margin: 0 auto;
+            width: 100%;
+        }
+        .user-avatar {
+            width: 50px; height: 50px;
+            background-color: #333;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: var(--text-muted);
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        .header-icons i {
+            font-size: 1.5rem;
+            margin-left: 20px;
+            color: var(--text-main);
+            position: relative;
+        }
+        /* Greeting text size */
+        .header-greeting {
+            font-size: 1rem; /* Smaller than fs-5 (1.25rem) */
+        }
+        @media (min-width: 992px) {
+            .header-greeting { font-size: 1.25rem; } /* Restore for desktop if needed */
+        }
+        .badge-dot {
+            position: absolute; top: -2px; right: -2px;
+            width: 8px; height: 8px;
+            background-color: var(--accent-primary);
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+        }
+
+        /* Stats Bars */
+        .stats-container {
+            padding: 20px;
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            margin: 10px 20px 25px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Horizontal Daily Progress */
+        .daily-progress-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .daily-bar-container {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        .daily-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+        .streak-display {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            color: #fbbf24;
+            font-size: 1rem;
+        }
+        .streak-display i { margin-right: 5px; font-size: 1.2rem; }
+        .daily-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 600;
+            display: block;
+        }
+
+        /* Vertical Columns */
+        .vertical-stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 110px;
+        }
+
+        .stat-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            width: 18%;
+        }
+
+        .stat-percent {
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .progress-vertical {
+            width: 100%;
+            height: 60px;
+            background-color: #2c2c2c;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            background-color: #444;
+            border-radius: 10px;
+            transition: height 0.5s ease;
+        }
+        .progress-fill.active { background-color: var(--accent-primary); }
+
+        .stat-label {
+            font-size: 0.7rem;
+            margin-top: 8px;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Minimalist Grid Menu */
+        .grid-menu {
+            margin: 0 20px 25px 20px;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            text-decoration: none;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .grid-item:active { opacity: 0.7; transform: scale(0.95); }
 
         .icon-box {
-            width: 80px !important;
-            height: 80px !important;
-            font-size: 2.5rem !important;
-            border-radius: 24px !important;
+            width: 60px; height: 60px;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 10px;
+            font-size: 1.6rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
+
+        /* Desktop Layout (Responsive) */
+        @media (min-width: 992px) {
+            .app-container {
+                max-width: 1200px; /* Limit main container width on large screens */
+                margin: 0 auto;
+                background-color: transparent; /* Let body bg show through */
+                padding: 40px 20px;
+                min-height: auto;
+                display: block; /* Ensure it's not flexed weirdly */
+            }
+
+            .app-header {
+                background: transparent;
+                padding-top: 20px;
+                border-bottom: none;
+                margin-bottom: 20px;
+                position: relative; /* Not sticky on desktop */
+            }
+
+            /* 2-Column Grid Layout */
+            .desktop-grid {
+                display: grid;
+                grid-template-columns: 350px 1fr; /* Left Sidebar (Fixed), Right Content (Auto) */
+                gap: 30px;
+                align-items: start;
+            }
+
+            /* Left Sidebar Area */
+            .left-sidebar {
+                background-color: var(--bg-main);
+                border-radius: 30px;
+                padding: 20px 0;
+                border: 1px solid var(--border-color);
+            }
+
+            .stats-container {
+                margin: 0 20px 25px 20px;
+                background-color: var(--card-bg); /* Inner card slightly lighter/darker */
+                box-shadow: none;
+            }
+
+            /* Right Content Area */
+            .right-content {
+                background-color: var(--bg-main);
+                border-radius: 30px;
+                padding: 40px;
+                border: 1px solid var(--border-color);
+                min-height: 600px;
+            }
+
+            .grid-menu {
+                margin: 0;
+            }
+
+            .grid-item:hover { transform: translateY(-5px); }
+
+            .icon-box {
+                width: 80px !important;
+                height: 80px !important;
+                font-size: 2.5rem !important;
+                border-radius: 24px !important;
+            }
+            .grid-label {
+                font-size: 1rem !important;
+                margin-top: 10px;
+            }
+
+            /* AI Card in Sidebar */
+            .ai-card {
+                margin: 0 20px 20px 20px;
+                height: 160px;
+            }
+        }
+
+        .icon-referral { color: #60a5fa; }
+        .icon-podcast { color: #f87171; }
+        .icon-market { color: #34d399; }
+        .icon-bot { color: #fbbf24; }
+        .icon-assist { color: var(--accent-secondary); }
+        .icon-trans { color: #818cf8; }
+        .icon-control { color: #94a3b8; }
+        .icon-exclusive { color: #f472b6; }
+
         .grid-label {
-            font-size: 1rem !important;
-            margin-top: 10px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.2;
+            font-weight: 500;
         }
 
-        /* AI Card in Sidebar */
+        /* AI Promo Card */
         .ai-card {
-            margin: 0 20px 20px 20px;
-            height: 160px;
+            margin: 0 20px 25px 20px;
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            border-radius: 24px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            height: 140px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 8px 20px rgba(255, 117, 140, 0.3);
+            transition: transform 0.3s ease;
         }
-    }
+        @media (min-width: 992px) {
+            .ai-card:hover { transform: scale(1.02); }
+        }
+        .ai-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            z-index: 2;
+        }
+        .ai-desc {
+            font-size: 0.95rem;
+            opacity: 0.95;
+            z-index: 2;
+            max-width: 70%;
+            font-weight: 600;
+        }
 
-    .icon-referral { color: #60a5fa; }
-    .icon-podcast { color: #f87171; }
-    .icon-market { color: #34d399; }
-    .icon-bot { color: #fbbf24; }
-    .icon-assist { color: var(--accent-secondary); }
-    .icon-trans { color: #818cf8; }
-    .icon-control { color: #94a3b8; }
-    .icon-exclusive { color: #f472b6; }
+        .ai-icon-bg {
+            position: absolute;
+            right: -15px; bottom: -25px;
+            font-size: 6rem;
+            opacity: 0.25;
+            transform: rotate(-10deg);
+            z-index: 1;
+        }
 
-    .grid-label {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        line-height: 1.2;
-        font-weight: 500;
-    }
+        .ai-action-btn {
+            position: absolute;
+            bottom: 25px; right: 25px;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(5px);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            z-index: 2;
+            display: flex; align-items: center;
+        }
 
-    /* AI Promo Card */
-    .ai-card {
-        margin: 0 20px 25px 20px;
-        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-        border-radius: 24px;
-        padding: 25px;
-        position: relative;
-        overflow: hidden;
-        height: 140px;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        text-decoration: none;
-        box-shadow: 0 8px 20px rgba(255, 117, 140, 0.3);
-        transition: transform 0.3s ease;
-    }
-    @media (min-width: 992px) {
-        .ai-card:hover { transform: scale(1.02); }
-    }
-    .ai-title {
-        font-size: 1.8rem;
-        font-weight: 800;
-        margin-bottom: 5px;
-        z-index: 2;
-    }
-    .ai-desc {
-        font-size: 0.95rem;
-        opacity: 0.95;
-        z-index: 2;
-        max-width: 70%;
-        font-weight: 600;
-    }
+        /* Bottom Nav styles are now imported from includes/bottom_nav.html and base styles */
+        /* To ensure compatibility, we can keep using base styling or rely on the include's classes */
+        /* The included file uses .bottom-nav-fixed which is styled here or in base.html */
 
-    .ai-icon-bg {
-        position: absolute;
-        right: -15px; bottom: -25px;
-        font-size: 6rem;
-        opacity: 0.25;
-        transform: rotate(-10deg);
-        z-index: 1;
-    }
+        .bottom-nav-fixed {
+            position: fixed; bottom: 0;
+            width: 100%;
+            background: var(--nav-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 0 20px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            left: 0;
+            backdrop-filter: blur(10px);
+        }
 
-    .ai-action-btn {
-        position: absolute;
-        bottom: 25px; right: 25px;
-        background: rgba(255,255,255,0.25);
-        backdrop-filter: blur(5px);
-        padding: 8px 16px;
-        border-radius: 12px;
-        font-weight: bold;
-        font-size: 0.9rem;
-        z-index: 2;
-        display: flex; align-items: center;
-    }
-</style>
+        .nav-item-fixed {
+            text-align: center; color: var(--text-muted);
+            text-decoration: none; transition: all 0.3s ease;
+            position: relative;
+            flex: 1;
+            display: flex; flex-direction: column; align-items: center;
+        }
 
-<div class="app-container">
+        .nav-item-fixed i { font-size: 1.4rem; margin-bottom: 3px; transition: transform 0.2s; }
+        .nav-item-fixed span { font-size: 0.75rem; font-weight: 600; }
 
-    <!-- DESKTOP 2-COLUMN WRAPPER (This div does nothing on mobile but becomes a grid on desktop) -->
-    <div class="desktop-grid">
+        .nav-item-fixed.active { color: var(--accent-primary); }
+        .nav-item-fixed.active i { transform: translateY(-3px); }
 
-        <!-- LEFT COLUMN (Mobile: Top) -->
-        <div class="left-sidebar">
-            <!-- Stats Container -->
-            <div class="stats-container">
-                <!-- Top Horizontal Progress & Streak -->
-                <div class="daily-label">Kunlik Maqsad ({{ daily_total_progress|default:"0" }}/9)</div>
-                <div class="daily-progress-section">
-                    <div class="daily-bar-container">
-                        <div class="daily-bar-fill" style="width: {% widthratio daily_total_progress|default:0 9 100 %}%;"></div>
-                    </div>
-                    <div class="streak-display">
-                        <i class="bi bi-fire"></i> {{ streak|default:"0" }}
-                    </div>
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" alt="User" class="img-fluid">
+                    {% else %}
+                        <i class="bi bi-person-fill"></i>
+                    {% endif %}
                 </div>
-
-                <!-- Vertical Columns -->
-                <div class="vertical-stats-row">
-                    <!-- 1. Lug'at -->
-                    <div class="stat-column">
-                        <div class="stat-percent">{{ stats_columns.col1.value }}</div>
-                        <div class="progress-vertical">
-                            <div class="progress-fill {% if stats_columns.col1.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col1.percent }}%;"></div>
-                        </div>
-                        <div class="stat-label">{{ stats_columns.col1.label }}</div>
-                    </div>
-
-                    <!-- 2. O'yinlar -->
-                    <div class="stat-column">
-                        <div class="stat-percent">{{ stats_columns.col2.value }}</div>
-                        <div class="progress-vertical">
-                            <div class="progress-fill {% if stats_columns.col2.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col2.percent }}%;"></div>
-                        </div>
-                        <div class="stat-label">{{ stats_columns.col2.label }}</div>
-                    </div>
-
-                    <!-- 3. Aniqlik -->
-                    <div class="stat-column">
-                        <div class="stat-percent">{{ stats_columns.col3.value }}</div>
-                        <div class="progress-vertical">
-                            <div class="progress-fill {% if stats_columns.col3.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col3.percent }}%;"></div>
-                        </div>
-                        <div class="stat-label">{{ stats_columns.col3.label }}</div>
-                    </div>
-
-                    <!-- 4. Tinglash -->
-                    <div class="stat-column">
-                        <div class="stat-percent">0%</div>
-                        <div class="progress-vertical">
-                            <div class="progress-fill" style="height: 0%;"></div>
-                        </div>
-                        <div class="stat-label">{{ stats_columns.col4.label }}</div>
-                    </div>
-
-                    <!-- 5. Grammatika -->
-                    <div class="stat-column">
-                        <div class="stat-percent">0%</div>
-                        <div class="progress-vertical">
-                            <div class="progress-fill" style="height: 0%;"></div>
-                        </div>
-                        <div class="stat-label">{{ stats_columns.col5.label }}</div>
-                    </div>
+                <div>
+                    <h6 class="mb-0 fw-bold header-greeting">Salom, {{ user.first_name|default:user.username }}!</h6>
+                    <small class="text-muted" style="font-size: 0.8rem;">Xush kelibsiz</small>
                 </div>
             </div>
-
-            <!-- AI Promo Card (Desktop Only) -->
-            <a href="{% url 'ai_chat' %}" class="ai-card d-none d-lg-flex">
-                <div class="ai-title">AI Yordamchi</div>
-                <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
-
-                <i class="bi bi-robot ai-icon-bg"></i>
-
-                <div class="ai-action-btn">
-                    Kirish <i class="bi bi-arrow-right-short ms-1"></i>
-                </div>
-            </a>
+            <div class="header-icons">
+                <!-- Hide theme toggle on mobile (d-none d-lg-inline-block) -->
+                <i class="bi bi-moon-stars me-3 d-none d-lg-inline-block" id="theme-toggle" style="cursor: pointer;"></i>
+                <i class="bi bi-chat-dots"></i>
+                <i class="bi bi-bell">
+                    <span class="badge-dot"></span>
+                </i>
+            </div>
         </div>
 
-        <!-- RIGHT COLUMN (Mobile: Bottom) -->
-        <div class="right-content">
-            <!-- Grid Menu -->
-            <div class="grid-menu">
-                <div class="row row-cols-4 g-3">
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-referral"><i class="bi bi-link-45deg"></i></div>
-                            <div class="grid-label">Referral</div>
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-podcast"><i class="bi bi-mic-fill"></i></div>
-                            <div class="grid-label">Level Podcast</div>
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-market"><i class="bi bi-cart-fill"></i></div>
-                            <div class="grid-label">Marketplace</div>
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="{% url 'ai_chat' %}" class="grid-item">
-                            <div class="icon-box icon-bot"><i class="bi bi-chat-quote-fill"></i></div>
-                            <div class="grid-label">Alomat bot</div>
-                        </a>
+        <!-- DESKTOP 2-COLUMN WRAPPER (This div does nothing on mobile but becomes a grid on desktop) -->
+        <div class="desktop-grid">
+
+            <!-- LEFT COLUMN (Mobile: Top) -->
+            <div class="left-sidebar">
+                <!-- Stats Container -->
+                <div class="stats-container">
+                    <!-- Top Horizontal Progress & Streak -->
+                    <div class="daily-label">Kunlik Maqsad ({{ daily_total_progress|default:"0" }}/9)</div>
+                    <div class="daily-progress-section">
+                        <div class="daily-bar-container">
+                            <div class="daily-bar-fill" style="width: {% widthratio daily_total_progress|default:0 9 100 %}%;"></div>
+                        </div>
+                        <div class="streak-display">
+                            <i class="bi bi-fire"></i> {{ streak|default:"0" }}
+                        </div>
                     </div>
 
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-assist"><i class="bi bi-headset"></i></div>
-                            <div class="grid-label">Speaking Assist...</div>
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-trans"><i class="bi bi-translate"></i></div>
-                            <div class="grid-label">Translator</div>
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-control"><i class="bi bi-sliders"></i></div>
-                            <div class="grid-label">System Control</div>
-                        </a>
-                    </div>
-                    <div class="col">
-                        <a href="#" class="grid-item">
-                            <div class="icon-box icon-exclusive"><i class="bi bi-gem"></i></div>
-                            <div class="grid-label">Exclusive</div>
-                        </a>
+                    <!-- Vertical Columns -->
+                    <div class="vertical-stats-row">
+                        <!-- 1. Lug'at -->
+                        <div class="stat-column">
+                            <div class="stat-percent">{{ stats_columns.col1.value }}</div>
+                            <div class="progress-vertical">
+                                <div class="progress-fill {% if stats_columns.col1.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col1.percent }}%;"></div>
+                            </div>
+                            <div class="stat-label">{{ stats_columns.col1.label }}</div>
+                        </div>
+
+                        <!-- 2. O'yinlar -->
+                        <div class="stat-column">
+                            <div class="stat-percent">{{ stats_columns.col2.value }}</div>
+                            <div class="progress-vertical">
+                                <div class="progress-fill {% if stats_columns.col2.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col2.percent }}%;"></div>
+                            </div>
+                            <div class="stat-label">{{ stats_columns.col2.label }}</div>
+                        </div>
+
+                        <!-- 3. Aniqlik -->
+                        <div class="stat-column">
+                            <div class="stat-percent">{{ stats_columns.col3.value }}</div>
+                            <div class="progress-vertical">
+                                <div class="progress-fill {% if stats_columns.col3.percent > 0 %}active{% endif %}" style="height: {{ stats_columns.col3.percent }}%;"></div>
+                            </div>
+                            <div class="stat-label">{{ stats_columns.col3.label }}</div>
+                        </div>
+
+                        <!-- 4. Tinglash -->
+                        <div class="stat-column">
+                            <div class="stat-percent">0%</div>
+                            <div class="progress-vertical">
+                                <div class="progress-fill" style="height: 0%;"></div>
+                            </div>
+                            <div class="stat-label">{{ stats_columns.col4.label }}</div>
+                        </div>
+
+                        <!-- 5. Grammatika -->
+                        <div class="stat-column">
+                            <div class="stat-percent">0%</div>
+                            <div class="progress-vertical">
+                                <div class="progress-fill" style="height: 0%;"></div>
+                            </div>
+                            <div class="stat-label">{{ stats_columns.col5.label }}</div>
+                        </div>
                     </div>
                 </div>
+
+                <!-- AI Promo Card (Desktop Only) -->
+                <a href="{% url 'ai_chat' %}" class="ai-card d-none d-lg-flex">
+                    <div class="ai-title">AI Yordamchi</div>
+                    <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
+
+                    <i class="bi bi-robot ai-icon-bg"></i>
+
+                    <div class="ai-action-btn">
+                        Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+                    </div>
+                </a>
             </div>
 
-            <!-- AI Promo Card (Mobile Only - Placed AFTER Grid Menu) -->
-            <a href="{% url 'ai_chat' %}" class="ai-card d-flex d-lg-none">
-                <div class="ai-title">AI Yordamchi</div>
-                <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
+            <!-- RIGHT COLUMN (Mobile: Bottom) -->
+            <div class="right-content">
+                <!-- Grid Menu -->
+                <div class="grid-menu">
+                    <div class="row row-cols-4 g-3">
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-referral"><i class="bi bi-link-45deg"></i></div>
+                                <div class="grid-label">Referral</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-podcast"><i class="bi bi-mic-fill"></i></div>
+                                <div class="grid-label">Level Podcast</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-market"><i class="bi bi-cart-fill"></i></div>
+                                <div class="grid-label">Marketplace</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="{% url 'ai_chat' %}" class="grid-item">
+                                <div class="icon-box icon-bot"><i class="bi bi-chat-quote-fill"></i></div>
+                                <div class="grid-label">Alomat bot</div>
+                            </a>
+                        </div>
 
-                <i class="bi bi-robot ai-icon-bg"></i>
-
-                <div class="ai-action-btn">
-                    Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-assist"><i class="bi bi-headset"></i></div>
+                                <div class="grid-label">Speaking Assist...</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-trans"><i class="bi bi-translate"></i></div>
+                                <div class="grid-label">Translator</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-control"><i class="bi bi-sliders"></i></div>
+                                <div class="grid-label">System Control</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="#" class="grid-item">
+                                <div class="icon-box icon-exclusive"><i class="bi bi-gem"></i></div>
+                                <div class="grid-label">Exclusive</div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </a>
-        </div>
 
-    </div> <!-- End Desktop Grid -->
-</div>
+                <!-- AI Promo Card (Mobile Only - Placed AFTER Grid Menu) -->
+                <a href="{% url 'ai_chat' %}" class="ai-card d-flex d-lg-none">
+                    <div class="ai-title">AI Yordamchi</div>
+                    <div class="ai-desc">Yapon tilini sun'iy intellekt bilan o'rganing</div>
 
-<!-- JS Logic for Theme Toggle specific to Home page (inherits storage key from base, but needs toggle listener) -->
-<script>
-    // Theme logic is now centralized in Base, but we need to wire up the Home-specific toggle button
-    document.addEventListener('DOMContentLoaded', () => {
-        const toggleBtn = document.getElementById('theme-toggle');
+                    <i class="bi bi-robot ai-icon-bg"></i>
+
+                    <div class="ai-action-btn">
+                        Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+                    </div>
+                </a>
+            </div>
+
+        </div> <!-- End Desktop Grid -->
+
+        <!-- Shared Bottom Nav -->
+        {% include 'vocabulary/includes/bottom_nav.html' %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // SYNC WITH GLOBAL THEME (base.html uses 'sakura_theme_vfinal')
         const STORAGE_KEY = 'sakura_theme_vfinal';
 
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode'); // Base uses dark-mode class
-                const isDark = document.body.classList.contains('dark-mode');
-
-                localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
-                window.dispatchEvent(new Event('storage'));
-            });
+        function applyTheme(theme) {
+            // Logic: This page is Dark by Default.
+            // If theme is 'light' (or null, assuming site default is light), we add .light-mode
+            if (theme === 'light' || !theme) {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
         }
-    });
-</script>
-{% endblock %}
+
+        // 1. Initial Load
+        applyTheme(localStorage.getItem(STORAGE_KEY));
+
+        // 2. Toggle Logic
+        const toggleBtn = document.getElementById('theme-toggle');
+        toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            const newTheme = isLight ? 'light' : 'dark';
+
+            // Save to shared key so Profile/Base updates too
+            localStorage.setItem(STORAGE_KEY, newTheme);
+
+            // Dispatch event for other listeners in same window (optional but good practice)
+            window.dispatchEvent(new Event('storage'));
+        });
+
+        // 3. Listen for changes in other tabs/pages
+        window.addEventListener('storage', (event) => {
+            if (event.key === STORAGE_KEY) {
+                applyTheme(event.newValue);
+            }
+        });
+    </script>
+</body>
+</html>
