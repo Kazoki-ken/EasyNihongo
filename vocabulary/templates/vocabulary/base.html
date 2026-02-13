@@ -56,9 +56,18 @@
         .sakura-sway { animation: sway 4s ease-in-out infinite; display: inline-block; }
 
         .app-header {
-            background: white; padding: 15px 20px; border-bottom: 1px solid #eee;
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 1000;
+            background-color: var(--bg-main, #ffffff);
+            padding: 15px 20px;
+            padding-top: 70px; /* Mobile safe area default */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.05));
+            margin: 0 auto;
+            width: 100%;
         }
 
         @media (max-width: 570px) {
@@ -184,12 +193,8 @@
 </head>
 <!-- <body class="{% if request.COOKIES.theme == 'dark' %}dark-mode{% endif %}"> -->
 
-<div class="container-fluid bg-white py-3 px-4 border-bottom sticky-top shadow-sm">
-    <div class="d-flex justify-content-between align-items-center">
-        <i class="bi     fs-3" style="cursor: pointer;"></i> 
-        <h6 class="fw-bold mb-0 text-uppercase" style="letter-spacing: 2px;"></h6>
-        <i class="bi bi-brightness-alt-low-fill fs-3" style="cursor: pointer;"></i> 
-    </div>
+<div class="app-header">
+    <!-- Header content intentionally left empty/minimal as per request -->
 </div>
 
 <main>
