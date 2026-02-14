@@ -50,13 +50,14 @@
     /* Left accent bar for visual hierarchy */
     .word-accent-bar {
         position: absolute;
-        left: 0; top: 0; bottom: 0;
+        left: 8px; top: 12px; bottom: 12px; /* "sal o'nga tortilgan" va kichikroq */
         width: 6px;
+        border-radius: 4px; /* Yumaloq burchak */
         background: linear-gradient(180deg, #ff758c 0%, #ff7eb3 100%);
     }
 
     .word-content {
-        padding: 15px 15px 15px 25px; /* Left padding for accent bar */
+        padding: 15px 15px 15px 30px; /* Left padding oshirildi bar sig'ishi uchun */
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -186,7 +187,7 @@
                         <div class="hiragana-text">{{ word.hiragana }}</div>
                         {% endif %}
 
-                        <div class="meaning-text">{{ word.meaning }}</div>
+                        <div class="meaning-text">Tarjima: {{ word.meaning }}</div>
                     </div>
 
                     <div class="d-flex flex-column justify-content-center">
