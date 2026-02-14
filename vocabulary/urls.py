@@ -9,7 +9,8 @@ urlpatterns = [
     path('test-design/', views.test_design_view, name='test_design'),
     
     # 2. Darslik Lug'ati (Hamma so'zlar)
-    path('dictionary/', views.dashboard, name='dashboard'), 
+    path('dictionary/', views.dashboard, name='dashboard'),
+    path('test-dictionary/', views.test_dictionary_view, name='test_dictionary_pink'),
     
     # 3. Shaxsiy Lug'at va Profil
     path('my-vocabulary/', views.my_vocabulary, name='my_vocabulary'),
