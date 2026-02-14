@@ -450,6 +450,30 @@ def dashboard(request):
     return render(request, 'vocabulary/dashboard.html', context)
 
 @login_required
+def test_dictionary_view(request):
+    """Test view for the new Dictionary UI."""
+    query = request.GET.get('q')
+    words = Word.objects.filter(author__isnull=True)
+
+    if query:
+        words = words.filter(
+            Q(japanese_word__icontains=query) |
+            Q(hiragana__icontains=query) |
+            Q(meaning__icontains=query)
+        )
+
+    words = words.order_by('created_at').distinct()
+    paginator = Paginator(words, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'words': page_obj,
+        'title': 'Test Lugʻat',
+    }
+    return render(request, 'vocabulary/test_dictionary.html', context)
+
+@login_required
 def my_vocabulary(request):
     progress_map = {
         p.word_id: p for p in UserWordProgress.objects.filter(user=request.user)
