@@ -194,13 +194,15 @@
                 <div class="col-6 col-md-6">
                     <a href="{% url 'book_details' book.id %}" class="text-decoration-none">
                         <!-- Using same pink gradient for consistency as requested -->
-                        <div class="pink-gradient-card">
+                        <div class="pink-gradient-card" {% if book.image_url %}style="background: linear-gradient(0deg, rgba(255,117,140,0.85), rgba(255,117,140,0.85)), url('{{ book.image_url }}'); background-size: cover; background-position: center;"{% endif %}>
                             <div>
                                 <div class="pink-card-title text-truncate">{{ book.title }}</div>
                                 <div class="pink-card-subtitle">{{ book.topics.count }} ta bo'lim</div>
                             </div>
 
+                            {% if not book.image_url %}
                             <i class="bi bi-book-fill pink-card-icon-bg"></i>
+                            {% endif %}
 
                             <div class="pink-card-action">
                                 O'qish <i class="bi bi-arrow-right-short"></i>
