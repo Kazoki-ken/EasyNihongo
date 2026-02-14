@@ -20,6 +20,8 @@
         border: none;
         padding: 12px 20px;
         font-size: 0.95rem;
+        /* Input should take all available space on the left */
+        flex-grow: 1;
     }
     .pink-search-input:focus {
         box-shadow: none;
@@ -27,8 +29,16 @@
     .pink-search-btn {
         background: none;
         border: none;
-        padding-right: 20px;
+        padding: 0 20px; /* Symmetry */
         color: #ff6b81;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* Touch friendly active state */
+    .pink-search-btn:active {
+        opacity: 0.7;
     }
 
     /* Word Card Style (Pink Minimalist) */
@@ -155,18 +165,23 @@
 
     <!-- Search Bar -->
     <form method="get" action="" class="mb-4 px-2">
-        <div class="input-group pink-search-bar">
-            <span class="input-group-text border-0 bg-transparent ps-3">
-                <i class="bi bi-search text-muted"></i>
-            </span>
+        <div class="input-group pink-search-bar d-flex align-items-center">
+            <!-- INPUT (Left) -->
             <input type="text" name="q" class="form-control pink-search-input"
                    placeholder="Yaponcha yoki O'zbekcha qidirish..."
                    value="{{ request.GET.q|default:'' }}">
+
+            <!-- ACTIONS (Right) -->
             {% if request.GET.q %}
-            <a href="{% url 'test_dictionary_pink' %}" class="btn pink-search-btn d-flex align-items-center">
-                <i class="bi bi-x-lg"></i>
+            <a href="{% url 'test_dictionary_pink' %}" class="text-secondary me-2 text-decoration-none" style="font-size: 1.2rem;">
+                <i class="bi bi-x"></i>
             </a>
             {% endif %}
+
+            <!-- SUBMIT BUTTON (Magnifying Glass) -->
+            <button type="submit" class="pink-search-btn">
+                <i class="bi bi-search" style="font-size: 1.1rem;"></i>
+            </button>
         </div>
     </form>
 
