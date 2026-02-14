@@ -121,6 +121,37 @@
     body.dark-mode .section-title {
         color: #f8f9fa;
     }
+
+    /* Mobile-Specific Adjustment (< 500px) */
+    @media (max-width: 500px) {
+        .game-card {
+            min-height: 100px; /* Reduced height for small screens */
+            padding: 15px;     /* Tighter padding */
+        }
+
+        .game-title {
+            font-size: 1.25rem; /* Smaller title */
+            margin-bottom: 4px;
+        }
+
+        .game-subtitle {
+            font-size: 0.75rem;
+            max-width: 90%; /* Allow text to use more width */
+        }
+
+        .game-card-icon-bg {
+            font-size: 4rem; /* Smaller icon */
+            bottom: -10px;
+            right: -5px;
+        }
+
+        .game-action-badge {
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            bottom: 10px;
+            right: 10px;
+        }
+    }
 </style>
 
 <div class="container games-container">
