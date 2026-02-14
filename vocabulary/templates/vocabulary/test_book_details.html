@@ -42,8 +42,20 @@
         position: relative;
         z-index: 2;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column; /* Mobile first stack */
+    }
+
+    @media (min-width: 768px) {
+        .header-content {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .book-info-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
     }
 
     .back-link {
@@ -52,10 +64,28 @@
         font-size: 0.9rem;
         display: inline-flex;
         align-items: center;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
         transition: color 0.2s;
     }
     .back-link:hover { color: white; }
+
+    .book-cover-img {
+        width: 80px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+        margin-bottom: 15px; /* Mobile spacing */
+    }
+
+    @media (min-width: 768px) {
+        .book-cover-img {
+            margin-bottom: 0;
+            width: 100px;
+            height: 140px;
+        }
+    }
 
     .book-title {
         font-weight: 800;
@@ -175,20 +205,28 @@
 
     <!-- Header Card -->
     <div class="pink-header-card">
-        <div class="header-content d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
 
-            <div class="mb-3 mb-sm-0">
-                <a href="{% url 'categories' %}" class="back-link">
-                    <i class="bi bi-chevron-left me-1"></i> Orqaga
-                </a>
-                <h1 class="book-title">{{ book.title }}</h1>
-                <div class="book-subtitle">
-                    {{ topics.count }} ta bo'lim
-                    {% if book.description %} • {{ book.description }}{% endif %}
+        <a href="{% url 'categories' %}" class="back-link">
+            <i class="bi bi-chevron-left me-1"></i> Orqaga
+        </a>
+
+        <div class="header-content">
+
+            <div class="book-info-wrapper">
+                <!-- Hardcoded Test Image (User Requested Link - Note: This is a post link, might not render directly without direct image URL) -->
+                <!-- Placeholder for now to ensure layout works, user will verify -->
+                <img src="https://cdn.pixabay.com/photo/2015/11/19/21/10/glasses-1052010_640.jpg" alt="Book Cover" class="book-cover-img">
+
+                <div class="mb-3 mb-md-0">
+                    <h1 class="book-title">{{ book.title }}</h1>
+                    <div class="book-subtitle">
+                        {{ topics.count }} ta bo'lim
+                        {% if book.description %} • {{ book.description }}{% endif %}
+                    </div>
                 </div>
             </div>
 
-            <button id="save-book-btn" class="save-book-btn ms-auto {% if is_saved %}saved{% endif %}" data-book-id="{{ book.id }}">
+            <button id="save-book-btn" class="save-book-btn ms-auto ms-md-0 mt-3 mt-md-0 {% if is_saved %}saved{% endif %}" data-book-id="{{ book.id }}">
                 <i class="bi {% if is_saved %}bi-check-lg{% else %}bi-bookmark{% endif %}"></i>
                 <span>{% if is_saved %}Saqlangan{% else %}Kitobni saqlash{% endif %}</span>
             </button>
