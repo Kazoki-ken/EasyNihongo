@@ -512,6 +512,20 @@ def book_details_view(request, book_id):
     })
 
 @login_required
+def test_book_details_view(request, book_id):
+    """
+    Test view for the new book details design.
+    """
+    book = get_object_or_404(Book, id=book_id)
+    topics = book.topics.all()
+    is_saved = request.user in book.saves.all()
+    return render(request, 'vocabulary/test_book_details.html', {
+        'book': book,
+        'topics': topics,
+        'is_saved': is_saved
+    })
+
+@login_required
 def toggle_book_save(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     if request.user in book.saves.all():

@@ -1,0 +1,265 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    .book-container {
+        padding-top: 20px;
+        padding-bottom: 3rem;
+    }
+
+    /* --- 1. PINK HEADER CARD --- */
+    .pink-header-card {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        border-radius: 20px;
+        padding: 25px;
+        color: white;
+        box-shadow: 0 10px 25px rgba(255, 117, 140, 0.4);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Decoration circles */
+    .pink-header-card::before {
+        content: "";
+        position: absolute;
+        top: -20px; right: -20px;
+        width: 100px; height: 100px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+    }
+    .pink-header-card::after {
+        content: "";
+        position: absolute;
+        bottom: -30px; left: -10px;
+        width: 80px; height: 80px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+    }
+
+    .header-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .back-link {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 5px;
+        transition: color 0.2s;
+    }
+    .back-link:hover { color: white; }
+
+    .book-title {
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .book-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    /* Save Book Button (White variant) */
+    .save-book-btn {
+        background: white;
+        color: #ff6b81;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: inline-flex; align-items: center; gap: 8px;
+        text-decoration: none; /* In case it's an anchor */
+        cursor: pointer;
+    }
+    .save-book-btn:active { transform: scale(0.96); }
+    .save-book-btn.saved {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: none;
+    }
+
+
+    /* --- 2. MINI TOPIC CARD (Pink Gradient) --- */
+    /* Similar to categories.html but potentially smaller/simpler */
+    .mini-topic-card {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        border-radius: 20px;
+        padding: 20px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 8px 16px rgba(255, 117, 140, 0.25);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px; /* Smaller height than categories */
+        text-decoration: none;
+    }
+
+    .mini-topic-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(255, 117, 140, 0.35);
+        color: white;
+    }
+
+    .mini-card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        z-index: 2;
+        line-height: 1.2;
+    }
+
+    .mini-card-subtitle {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        font-weight: 600;
+        z-index: 2;
+    }
+
+    /* Icon Bg */
+    .mini-card-icon-bg {
+        position: absolute;
+        right: -5px;
+        bottom: -10px;
+        font-size: 4rem;
+        opacity: 0.2;
+        transform: rotate(-10deg);
+        z-index: 1;
+        color: white;
+    }
+
+    /* Action Badge */
+    .mini-card-action {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(5px);
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 0.75rem;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+
+    /* Dark Mode */
+    body.dark-mode .pink-header-card {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    body.dark-mode .mini-topic-card {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+</style>
+
+<div class="container book-container">
+
+    <!-- Header Card -->
+    <div class="pink-header-card">
+        <div class="header-content d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
+
+            <div class="mb-3 mb-sm-0">
+                <a href="{% url 'categories' %}" class="back-link">
+                    <i class="bi bi-chevron-left me-1"></i> Orqaga
+                </a>
+                <h1 class="book-title">{{ book.title }}</h1>
+                <div class="book-subtitle">
+                    {{ topics.count }} ta bo'lim
+                    {% if book.description %} • {{ book.description }}{% endif %}
+                </div>
+            </div>
+
+            <button id="save-book-btn" class="save-book-btn ms-auto {% if is_saved %}saved{% endif %}" data-book-id="{{ book.id }}">
+                <i class="bi {% if is_saved %}bi-check-lg{% else %}bi-bookmark{% endif %}"></i>
+                <span>{% if is_saved %}Saqlangan{% else %}Kitobni saqlash{% endif %}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Topics Grid -->
+    <h5 class="fw-bold mb-3 ms-1 text-muted small text-uppercase">Mavzular</h5>
+
+    <div class="row g-3">
+        {% for topic in topics %}
+        <div class="col-6 col-md-4 col-lg-3"> <!-- Mobile: 2 per row, Desktop: 3-4 -->
+            <a href="{% url 'topic_words' topic.id %}" class="mini-topic-card">
+                <div>
+                    <div class="mini-card-title text-truncate">{{ topic.name }}</div>
+                    <div class="mini-card-subtitle">{{ topic.word_set.count }} ta so'z</div>
+                </div>
+
+                <i class="bi bi-list-ul mini-card-icon-bg"></i>
+
+                <div class="mini-card-action">
+                    Kirish <i class="bi bi-arrow-right-short ms-1"></i>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">Bu kitobda hali mavzular yo'q.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    // --- Save Book Logic ---
+    const saveBookBtn = document.getElementById('save-book-btn');
+
+    if (saveBookBtn) {
+        saveBookBtn.addEventListener('click', function() {
+            const bookId = this.getAttribute('data-book-id');
+            const icon = this.querySelector('i');
+            const span = this.querySelector('span');
+
+            // Loading state
+            icon.className = 'bi bi-hourglass-split';
+
+            fetch(`/books/save/${bookId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.saved) {
+                        this.classList.add('saved');
+                        icon.className = 'bi bi-check-lg';
+                        span.textContent = "Saqlangan";
+                    } else {
+                        this.classList.remove('saved');
+                        icon.className = 'bi bi-bookmark';
+                        span.textContent = "Kitobni saqlash";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error:", err);
+                    // Revert UI on error (simple toggle back)
+                    if (this.classList.contains('saved')) {
+                        icon.className = 'bi bi-check-lg';
+                    } else {
+                        icon.className = 'bi bi-bookmark';
+                    }
+                });
+        });
+    }
+</script>
+
+{% endblock %}

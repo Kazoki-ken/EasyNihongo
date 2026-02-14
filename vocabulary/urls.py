@@ -28,6 +28,9 @@ urlpatterns = [
     path('categories/', views.categories_view, name='categories'),
     path('topic/<int:topic_id>/', views.topic_words, name='topic_words'),
     path('books/<int:book_id>/', views.book_details_view, name='book_details'),
+    # --- TEST BOOK VIEW ---
+    path('test-book/<int:book_id>/', views.test_book_details_view, name='test_book_details'),
+    # ----------------------
     path('books/save/<int:book_id>/', views.toggle_book_save, name='toggle_book_save'),
     # vocabulary/urls.py ga qo'shing
     path('save_all_topic/<int:topic_id>/', views.save_all_topic_words, name='save_all_topic_words'),
