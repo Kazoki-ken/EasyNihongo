@@ -1,0 +1,206 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    .games-container {
+        padding-top: 20px;
+        padding-bottom: 3rem;
+    }
+
+    /* Game Card Style - Pink Gradient */
+    .game-card {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        border-radius: 24px;
+        padding: 25px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 10px 20px rgba(255, 117, 140, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-decoration: none;
+        display: block;
+        height: 100%;
+        min-height: 160px;
+    }
+
+    .game-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(255, 117, 140, 0.4);
+        color: white;
+    }
+
+    .game-card:active {
+        transform: scale(0.98);
+    }
+
+    .game-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+        z-index: 2;
+        position: relative;
+        line-height: 1.2;
+    }
+
+    .game-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        font-weight: 600;
+        z-index: 2;
+        position: relative;
+        max-width: 80%;
+    }
+
+    /* Big faded icon in the background */
+    .game-card-icon-bg {
+        position: absolute;
+        right: -15px;
+        bottom: -20px;
+        font-size: 6rem;
+        opacity: 0.25;
+        transform: rotate(-15deg);
+        z-index: 1;
+        color: white;
+    }
+
+    /* Action Badge */
+    .game-action-badge {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(5px);
+        padding: 8px 16px;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+
+    /* Disabled State */
+    .game-card.disabled {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        color: #adb5bd;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+    .game-card.disabled .game-card-icon-bg {
+        color: #ced4da;
+        opacity: 0.5;
+    }
+    .game-card.disabled:hover {
+        transform: none;
+    }
+
+    .section-title {
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-left: 10px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Dark Mode */
+    body.dark-mode .game-card {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+    }
+    body.dark-mode .game-card.disabled {
+        background: #2c2c2c;
+        color: #6c757d;
+    }
+    body.dark-mode .game-card.disabled .game-card-icon-bg {
+        color: #495057;
+    }
+    body.dark-mode .section-title {
+        color: #f8f9fa;
+    }
+</style>
+
+<div class="container games-container">
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark mb-1">🎮 O'yinlarxonasi</h2>
+        <p class="text-muted">Bilimingizni sinab ko'ring va tangalar yig'ing</p>
+    </div>
+
+    <!-- Main Games Section -->
+    <div class="section-title text-muted">Asosiy O'yinlar</div>
+
+    <div class="row g-4 mb-5">
+
+        <!-- 1. Test Game -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'test_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Test O'yini</div>
+                    <div class="game-subtitle">4 ta variantdan to'g'risini toping</div>
+                </div>
+
+                <i class="bi bi-patch-question-fill game-card-icon-bg"></i>
+
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- 2. Match Game -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'match_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Juftliklar</div>
+                    <div class="game-subtitle">So'z va tarjimani birlashtiring</div>
+                </div>
+
+                <i class="bi bi-puzzle-fill game-card-icon-bg"></i>
+
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- 3. Write Game -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'write_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Yozish Mashqi</div>
+                    <div class="game-subtitle">So'z tarjimasini yozma kiriting</div>
+                </div>
+
+                <i class="bi bi-pencil-square game-card-icon-bg"></i>
+
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Coming Soon Section -->
+    <div class="section-title text-muted">Tez Orada</div>
+
+    <div class="row g-4">
+        <!-- 4. Listening Game (Disabled) -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="game-card disabled">
+                <div>
+                    <div class="game-title">Eshitish <i class="bi bi-lock-fill ms-1" style="font-size: 0.7em;"></i></div>
+                    <div class="game-subtitle">Eshitib tushunish ko'nikmasi</div>
+                </div>
+
+                <i class="bi bi-headphones game-card-icon-bg"></i>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
