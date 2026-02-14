@@ -26,7 +26,6 @@ urlpatterns = [
     path('delete-word/<int:word_id>/', views.delete_word, name='delete_word'),
     path('add-word/', views.add_word, name='add_word'),
     path('categories/', views.categories_view, name='categories'),
-    path('test-categories/', views.test_categories_design_view, name='test_categories_pink'),
     path('topic/<int:topic_id>/', views.topic_words, name='topic_words'),
     path('books/<int:book_id>/', views.book_details_view, name='book_details'),
     path('books/save/<int:book_id>/', views.toggle_book_save, name='toggle_book_save'),
