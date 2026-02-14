@@ -33,9 +33,6 @@ urlpatterns = [
     path('save_all_topic/<int:topic_id>/', views.save_all_topic_words, name='save_all_topic_words'),
     path('quiz/', views.quiz_home, name='quiz_home'),
     path('games/', views.games_menu, name='games_menu'),      # 1. O'yinlar menyusi
-    # --- TEST GAMES MENU ---
-    path('test-games/', views.test_games_view, name='test_games'),
-    # -----------------------
     path('games/test/setup/', views.test_setup, name='test_setup'), # 2. Testni sozlash (Limit tanlash)
     path('games/test/start/', views.test_start, name='test_start'), # 3. Testni boshlash (Session tozalash)
     path('games/test/play/', views.test_play, name='test_play'),    # 4. O'yin jarayoni

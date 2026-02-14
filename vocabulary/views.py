@@ -737,13 +737,6 @@ def admin_dashboard(request):
 def games_menu(request):
     return render(request, 'vocabulary/games_menu.html')
 
-@login_required
-def test_games_view(request):
-    """
-    Test view for the new games menu design.
-    """
-    return render(request, 'vocabulary/test_games.html')
-
 # --- TEST O'YINI ---
 
 @login_required
