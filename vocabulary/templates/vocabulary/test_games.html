@@ -8,27 +8,26 @@
         padding-bottom: 3rem;
     }
 
-    /* Game Card Style - Horizontal Pink Bar */
+    /* Game Card Style - Pink Gradient (Compact Version) */
     .game-card {
         background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-        border-radius: 20px; /* Slower radius for bar shape */
-        padding: 15px 20px;
+        border-radius: 20px;
+        padding: 20px; /* Reduced from 25px */
         color: white;
         position: relative;
         overflow: hidden;
         border: none;
-        box-shadow: 0 4px 12px rgba(255, 117, 140, 0.25);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 8px 16px rgba(255, 117, 140, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
         text-decoration: none;
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        min-height: 80px; /* Reduced height to match old style */
+        display: block;
+        height: 100%;
+        min-height: 120px; /* Reduced from 160px */
     }
 
     .game-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 117, 140, 0.35);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(255, 117, 140, 0.4);
         color: white;
     }
 
@@ -36,82 +35,63 @@
         transform: scale(0.98);
     }
 
-    /* Left Icon Circle */
-    .game-icon-circle {
-        width: 50px;
-        height: 50px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(5px);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 15px;
-        flex-shrink: 0;
-    }
-
-    .game-icon-circle i {
-        font-size: 1.5rem;
-        color: white;
-    }
-
-    /* Text Content */
-    .game-content {
-        flex-grow: 1;
-    }
-
     .game-title {
-        font-size: 1.1rem;
+        font-size: 1.4rem; /* Slightly smaller */
         font-weight: 800;
-        margin-bottom: 2px;
-        line-height: 1.2;
+        margin-bottom: 6px;
+        z-index: 2;
+        position: relative;
+        line-height: 1.1;
     }
 
     .game-subtitle {
         font-size: 0.85rem;
-        opacity: 0.9;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
+        opacity: 0.95;
+        font-weight: 600;
+        z-index: 2;
+        position: relative;
+        max-width: 75%; /* More space for icon */
     }
 
-    /* Right Action */
-    .game-action-icon {
-        font-size: 1.2rem;
-        opacity: 0.8;
-    }
-
-    /* Decoration */
-    .game-card::after {
-        content: "";
+    /* Big faded icon in the background - Adjusted for compact size */
+    .game-card-icon-bg {
         position: absolute;
-        right: -20px;
-        bottom: -20px;
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        pointer-events: none;
+        right: -10px;
+        bottom: -15px;
+        font-size: 5rem; /* Reduced from 6rem */
+        opacity: 0.25;
+        transform: rotate(-15deg);
+        z-index: 1;
+        color: white;
+    }
+
+    /* Action Badge - Adjusted position */
+    .game-action-badge {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(5px);
+        padding: 6px 12px; /* Smaller padding */
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 0.75rem;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        color: white;
     }
 
     /* Disabled State */
     .game-card.disabled {
-        background: #f8f9fa;
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
         color: #adb5bd;
         box-shadow: none;
-        border: 1px solid #e9ecef;
         cursor: not-allowed;
     }
-    .game-card.disabled .game-icon-circle {
-        background: #e9ecef;
-    }
-    .game-card.disabled .game-icon-circle i {
-        color: #adb5bd;
-    }
-    .game-card.disabled .game-title {
-        color: #6c757d;
+    .game-card.disabled .game-card-icon-bg {
+        color: #ced4da;
+        opacity: 0.5;
     }
     .game-card.disabled:hover {
         transform: none;
@@ -121,22 +101,22 @@
         font-weight: 800;
         color: #2c3e50;
         margin-bottom: 15px;
-        padding-left: 5px;
-        font-size: 0.9rem;
+        padding-left: 10px;
+        font-size: 1.1rem;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
     /* Dark Mode */
     body.dark-mode .game-card {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
     }
     body.dark-mode .game-card.disabled {
         background: #2c2c2c;
-        border-color: #333;
+        color: #6c757d;
     }
-    body.dark-mode .game-card.disabled .game-icon-circle {
-        background: #333;
+    body.dark-mode .game-card.disabled .game-card-icon-bg {
+        color: #495057;
     }
     body.dark-mode .section-title {
         color: #f8f9fa;
@@ -145,75 +125,80 @@
 
 <div class="container games-container">
 
-    <div class="text-center mb-4">
-        <h3 class="fw-bold text-dark mb-1">🎮 O'yinlarxonasi</h3>
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark mb-1">🎮 O'yinlarxonasi</h2>
+        <p class="text-muted">Bilimingizni sinab ko'ring va tangalar yig'ing</p>
     </div>
 
     <!-- Main Games Section -->
     <div class="section-title text-muted">Asosiy O'yinlar</div>
 
-    <div class="d-flex flex-column">
+    <div class="row g-3 mb-5"> <!-- Reduced gutter -->
 
         <!-- 1. Test Game -->
-        <a href="{% url 'test_setup' %}" class="game-card">
-            <div class="game-icon-circle">
-                <i class="bi bi-patch-question-fill"></i>
-            </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'test_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Test O'yini</div>
+                    <div class="game-subtitle">4 ta variantdan to'g'risini toping</div>
+                </div>
 
-            <div class="game-content">
-                <div class="game-title">Test O'yini</div>
-                <div class="game-subtitle">4 ta variantdan toping</div>
-            </div>
+                <i class="bi bi-patch-question-fill game-card-icon-bg"></i>
 
-            <i class="bi bi-chevron-right game-action-icon"></i>
-        </a>
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
 
         <!-- 2. Match Game -->
-        <a href="{% url 'match_setup' %}" class="game-card">
-            <div class="game-icon-circle">
-                <i class="bi bi-puzzle-fill"></i>
-            </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'match_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Juftliklar</div>
+                    <div class="game-subtitle">So'z va tarjimani birlashtiring</div>
+                </div>
 
-            <div class="game-content">
-                <div class="game-title">Juftliklar</div>
-                <div class="game-subtitle">So'z va tarjimani birlashtiring</div>
-            </div>
+                <i class="bi bi-puzzle-fill game-card-icon-bg"></i>
 
-            <i class="bi bi-chevron-right game-action-icon"></i>
-        </a>
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
 
         <!-- 3. Write Game -->
-        <a href="{% url 'write_setup' %}" class="game-card">
-            <div class="game-icon-circle">
-                <i class="bi bi-pencil-square"></i>
-            </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'write_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Yozish Mashqi</div>
+                    <div class="game-subtitle">So'z tarjimasini yozma kiriting</div>
+                </div>
 
-            <div class="game-content">
-                <div class="game-title">Yozish Mashqi</div>
-                <div class="game-subtitle">So'z tarjimasini yozing</div>
-            </div>
+                <i class="bi bi-pencil-square game-card-icon-bg"></i>
 
-            <i class="bi bi-chevron-right game-action-icon"></i>
-        </a>
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
 
     </div>
 
     <!-- Coming Soon Section -->
-    <div class="section-title text-muted mt-3">Tez Orada</div>
+    <div class="section-title text-muted">Tez Orada</div>
 
-    <div class="d-flex flex-column">
+    <div class="row g-3">
         <!-- 4. Listening Game (Disabled) -->
-        <div class="game-card disabled">
-            <div class="game-icon-circle">
-                <i class="bi bi-headphones"></i>
-            </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="game-card disabled">
+                <div>
+                    <div class="game-title">Eshitish <i class="bi bi-lock-fill ms-1" style="font-size: 0.7em;"></i></div>
+                    <div class="game-subtitle">Eshitib tushunish ko'nikmasi</div>
+                </div>
 
-            <div class="game-content">
-                <div class="game-title">Eshitish</div>
-                <div class="game-subtitle">Tez kunda...</div>
+                <i class="bi bi-headphones game-card-icon-bg"></i>
             </div>
-
-            <i class="bi bi-lock-fill game-action-icon"></i>
         </div>
     </div>
 
