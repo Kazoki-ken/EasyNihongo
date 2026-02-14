@@ -1,0 +1,383 @@
+{% extends 'vocabulary/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    /* SAKURA THEME (Consistent Variables) */
+    :root {
+        --sakura-pink-primary: #ff6b81;
+        --sakura-pink-secondary: #ff8fab;
+        --sakura-bg-gradient: linear-gradient(135deg, #fff0f5 0%, #ffeef2 100%);
+        --sakura-card-bg: #ffffff;
+        --sakura-text-dark: #2c3e50;
+        --sakura-text-muted: #6c757d;
+        --sakura-shadow: 0 8px 24px rgba(255, 107, 129, 0.15);
+    }
+
+    body {
+        background: var(--sakura-bg-gradient);
+    }
+
+    .profile-container {
+        padding-top: 20px;
+        padding-bottom: 90px;
+        max-width: 800px; /* Center layout on desktop */
+        margin: 0 auto;
+    }
+
+    /* 1. Header Section (Avatar + Name) */
+    .profile-header {
+        text-align: center;
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 15px;
+    }
+
+    .user-avatar-lg {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        background-color: #f1f3f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--sakura-text-muted);
+    }
+
+    .league-badge-overlay {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 36px;
+        height: 36px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        font-size: 1.2rem;
+        color: #ffbf00; /* Gold */
+    }
+
+    .profile-name {
+        font-weight: 800;
+        font-size: 1.6rem;
+        color: var(--sakura-text-dark);
+        margin-bottom: 5px;
+    }
+
+    .profile-username {
+        color: var(--sakura-text-muted);
+        font-size: 0.95rem;
+    }
+
+    .btn-edit-profile {
+        font-size: 0.8rem;
+        color: var(--sakura-pink-primary);
+        text-decoration: none;
+        margin-top: 5px;
+        display: inline-block;
+        font-weight: 600;
+    }
+
+    /* 2. Stats Grid (Coins, Streak, Level) */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: var(--sakura-card-bg);
+        border-radius: 20px;
+        padding: 15px 10px;
+        text-align: center;
+        box-shadow: var(--sakura-shadow);
+        border: none;
+        transition: transform 0.2s;
+    }
+    .stat-card:active { transform: scale(0.98); }
+
+    .stat-icon {
+        font-size: 1.6rem;
+        margin-bottom: 5px;
+    }
+    .stat-value {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--sakura-text-dark);
+        line-height: 1.2;
+    }
+    .stat-label {
+        font-size: 0.75rem;
+        color: var(--sakura-text-muted);
+        font-weight: 600;
+    }
+
+    .icon-coin { color: #fbbf24; }   /* Yellow */
+    .icon-fire { color: #f87171; }   /* Red/Orange */
+    .icon-xp { color: #60a5fa; }     /* Blue */
+
+
+    /* 3. Section Headers */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 0 5px;
+    }
+    .section-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--sakura-text-dark);
+        display: flex;
+        align-items: center;
+    }
+    .section-icon {
+        color: var(--sakura-pink-primary);
+        margin-right: 8px;
+        font-size: 1.2rem;
+    }
+
+    /* 4. Weekly Progress Card */
+    .progress-card {
+        background: white;
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: var(--sakura-shadow);
+        margin-bottom: 30px;
+    }
+
+    .progress-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--sakura-text-muted);
+    }
+    .progress-val { color: var(--sakura-text-dark); }
+
+    .custom-progress {
+        height: 12px;
+        background-color: #f1f3f5;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 5px;
+    }
+    .progress-bar-sakura {
+        background: linear-gradient(90deg, var(--sakura-pink-primary), var(--sakura-pink-secondary));
+        height: 100%;
+        border-radius: 10px;
+    }
+
+    /* 5. Achievements (Grid Layout) */
+    .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 15px;
+    }
+
+    .badge-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .badge-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        margin-bottom: 8px;
+        position: relative;
+        transition: transform 0.2s;
+        border: 2px solid transparent;
+    }
+
+    .badge-img {
+        width: 45px;
+        height: 45px;
+        object-fit: contain;
+    }
+
+    /* Earned State */
+    .badge-earned .badge-circle {
+        border-color: #ffd700; /* Gold border */
+        background: linear-gradient(135deg, #fff9c4 0%, #fff 100%);
+    }
+
+    /* Locked State */
+    .badge-locked {
+        opacity: 0.6;
+        filter: grayscale(100%);
+    }
+    .badge-locked .badge-circle {
+        background-color: #f8f9fa;
+    }
+    .lock-overlay {
+        position: absolute;
+        bottom: 0; right: 0;
+        background: #ced4da;
+        color: white;
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.8rem;
+        border: 2px solid white;
+    }
+
+    .badge-name {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--sakura-text-dark);
+        line-height: 1.2;
+    }
+
+    /* Dark Mode Overrides */
+    body.dark-mode {
+        background: #121212 !important;
+        --sakura-bg-gradient: none;
+        --sakura-card-bg: #1e1e1e;
+        --sakura-text-dark: #f8f9fa;
+        --sakura-text-muted: #adb5bd;
+        --sakura-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    body.dark-mode .progress-card { background: #1e1e1e; }
+    body.dark-mode .custom-progress { background-color: #333; }
+    body.dark-mode .badge-circle { background-color: #2c2c2c; }
+    body.dark-mode .user-avatar-lg { border-color: #1e1e1e; background-color: #333; }
+    body.dark-mode .league-badge-overlay { background-color: #333; }
+
+</style>
+
+<div class="container profile-container">
+
+    <!-- 1. Header -->
+    <div class="profile-header">
+        <div class="avatar-wrapper">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="user-avatar-lg">
+            {% else %}
+                <div class="user-avatar-lg"><i class="bi bi-person"></i></div>
+            {% endif %}
+
+            <!-- League Badge (Optional) -->
+            <div class="league-badge-overlay">
+                {% if user.profile.league == 'Bronze' %}🥉{% elif user.profile.league == 'Silver' %}🥈{% elif user.profile.league == 'Gold' %}🥇{% else %}🏆{% endif %}
+            </div>
+        </div>
+
+        <div class="profile-name">{{ user.first_name|default:user.username }}</div>
+        <div class="profile-username">@{{ user.username }} | {{ user.profile.league }} Ligasi</div>
+
+        <!-- Placeholder for Edit Profile (Functional later) -->
+        <a href="#" class="btn-edit-profile">Profilni tahrirlash <i class="bi bi-pencil-square"></i></a>
+    </div>
+
+    <!-- 2. Stats Grid -->
+    <div class="stats-grid">
+        <!-- Coins -->
+        <div class="stat-card">
+            <div class="stat-icon icon-coin"><i class="bi bi-coin"></i></div>
+            <div class="stat-value">{{ user.profile.coins }}</div>
+            <div class="stat-label">Tangalar</div>
+        </div>
+        <!-- Streak -->
+        <div class="stat-card">
+            <div class="stat-icon icon-fire"><i class="bi bi-fire"></i></div>
+            <div class="stat-value">{{ user.profile.streak }}</div>
+            <div class="stat-label">Kunlik Streak</div>
+        </div>
+        <!-- XP / Words Learned -->
+        <div class="stat-card">
+            <div class="stat-icon icon-xp"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="stat-value">{{ weekly_stats.xp_earned }}</div>
+            <div class="stat-label">Haftalik XP</div>
+        </div>
+    </div>
+
+    <!-- 3. Weekly Progress -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="bi bi-bar-chart-fill section-icon"></i> Haftalik Statistika
+        </div>
+    </div>
+
+    <div class="progress-card">
+        <!-- XP Progress -->
+        <div class="progress-row">
+            <span>To'plangan XP</span>
+            <span class="progress-val">{{ weekly_stats.xp_earned }} XP</span>
+        </div>
+        <div class="custom-progress">
+            <!-- Example: cap at 500XP for visual bar -->
+            <div class="progress-bar-sakura" style="width: {% widthratio weekly_stats.xp_earned 500 100 %}%;"></div>
+        </div>
+
+        <div class="row mt-3 text-center">
+            <div class="col-6 border-end">
+                <div class="h5 mb-0 fw-bold text-dark">{{ weekly_stats.words_learned }}</div>
+                <small class="text-muted" style="font-size: 0.75rem;">Yodlangan so'zlar</small>
+            </div>
+            <div class="col-6">
+                <div class="h5 mb-0 fw-bold text-dark">{{ weekly_stats.correct_answers }}</div>
+                <small class="text-muted" style="font-size: 0.75rem;">To'g'ri javoblar</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Achievements -->
+    <div class="section-header">
+        <div class="section-title">
+            <i class="bi bi-award-fill section-icon"></i> Yutuqlar (Achievements)
+        </div>
+    </div>
+
+    <div class="achievements-grid">
+        {% for item in badges_display %}
+            <div class="badge-item {% if item.is_earned %}badge-earned{% else %}badge-locked{% endif %}">
+                <div class="badge-circle" title="{{ item.badge.description }}">
+                    {% if item.badge.icon %}
+                        <img src="{{ item.badge.icon.url }}" alt="{{ item.badge.name }}" class="badge-img">
+                    {% else %}
+                        <i class="bi bi-trophy-fill text-warning fs-3"></i>
+                    {% endif %}
+
+                    {% if not item.is_earned %}
+                        <div class="lock-overlay"><i class="bi bi-lock-fill"></i></div>
+                    {% endif %}
+                </div>
+                <div class="badge-name">{{ item.badge.name }}</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- 5. Logout / Settings (Optional) -->
+    <div class="mt-5 text-center">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm rounded-pill px-4">
+            <i class="bi bi-box-arrow-right me-1"></i> Chiqish
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}
