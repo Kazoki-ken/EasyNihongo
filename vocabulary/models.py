@@ -26,8 +26,7 @@ class SiteConfiguration(models.Model):
 class Book(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
-    # Rasm uchun ImageField ishlatish mumkin, lekin hozircha oddiy saqlaymiz yoki icon
-    # image = models.ImageField(upload_to='books/', blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True, help_text="Kitob muqovasi rasmining havolasi (URL)")
     saves = models.ManyToManyField(User, related_name='saved_books', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
