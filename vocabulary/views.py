@@ -542,6 +542,30 @@ def topic_words(request, topic_id):
     return render(request, 'vocabulary/topic_words.html', context)
 
 @login_required
+def test_topic_view(request, topic_id):
+    """
+    Test view for the new topic words design.
+    """
+    topic = get_object_or_404(Topic, id=topic_id)
+    words_qs = Word.objects.filter(author__isnull=True, topics=topic).order_by('created_at').distinct()
+    paginator = Paginator(words_qs, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    words_all_saved = True
+    saved_ids = request.user.saved_words.values_list('id', flat=True)
+    has_unsaved = words_qs.exclude(id__in=saved_ids).exists()
+    words_all_saved = not has_unsaved
+
+    context = {
+        'words': page_obj,
+        'topic': topic,
+        'topic_name': topic.name,
+        'words_all_saved': words_all_saved
+    }
+    return render(request, 'vocabulary/test_topic.html', context)
+
+@login_required
 def save_all_topic_words(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
     words = Word.objects.filter(author__isnull=True, topics=topic).distinct()
