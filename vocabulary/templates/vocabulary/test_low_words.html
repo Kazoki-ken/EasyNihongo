@@ -1,0 +1,193 @@
+{% extends 'vocabulary/base.html' %}
+
+{% block content %}
+
+<style>
+    .low-words-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .warning-icon-circle {
+        width: 120px;
+        height: 120px;
+        background-color: #2c290a; /* Dark yellow/brown circle bg */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        border: 2px solid #5a5300;
+    }
+
+    .warning-icon {
+        font-size: 3.5rem;
+        color: #fbbf24; /* Yellow icon */
+    }
+
+    .warning-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        color: var(--text-main);
+    }
+
+    .warning-emoji {
+        margin-left: 5px;
+        font-size: 1.5rem;
+    }
+
+    .warning-desc {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        max-width: 320px;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+
+    .count-badge {
+        font-weight: bold;
+        color: var(--text-main);
+    }
+
+    /* Buttons */
+    .btn-add-word {
+        background-color: #0d6efd; /* Bootstrap Primary Blue */
+        color: white;
+        border: none;
+        padding: 14px 20px;
+        border-radius: 50px; /* Fully rounded */
+        width: 100%;
+        max-width: 320px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        font-size: 1rem;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn-add-word:hover {
+        background-color: #0b5ed7;
+        transform: scale(1.02);
+        color: white;
+    }
+
+    .btn-select-category {
+        background-color: #212529; /* Dark button */
+        color: white;
+        border: 1px solid #343a40;
+        padding: 14px 20px;
+        border-radius: 50px;
+        width: 100%;
+        max-width: 320px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        font-size: 1rem;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn-select-category:hover {
+        background-color: #2c3034;
+        transform: scale(1.02);
+        color: white;
+    }
+
+    .icon-wrapper {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    .add-icon-bg {
+        background-color: rgba(0,0,0,0.2);
+    }
+
+    .cat-icon-bg {
+        background-color: rgba(255,255,255,0.1);
+    }
+
+    .back-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .back-link:hover {
+        color: var(--text-main);
+    }
+
+    /* Input placeholder styling (visual only based on image) */
+    .dummy-input {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        height: 45px;
+        width: 100%;
+        max-width: 320px;
+        margin-bottom: 20px;
+        border: none;
+    }
+
+</style>
+
+<div class="low-words-container">
+
+    <!-- Icon Circle -->
+    <div class="warning-icon-circle">
+        <!-- Using a generic book-x icon or similar -->
+        <i class="bi bi-journal-x warning-icon"></i>
+    </div>
+
+    <!-- Title -->
+    <div class="warning-title">
+        So'z yetarli emas <span class="warning-emoji">😔</span>
+    </div>
+
+    <!-- Description -->
+    <div class="warning-desc">
+        Ushbu o'yinni boshlash uchun lug'atingizda kamida <span class="count-badge">4 ta</span> so'z bo'lishi kerak.
+    </div>
+
+    <!-- Visual Divider / Dummy Input (from image) -->
+    <!-- Ideally this isn't an input but maybe a visual separator or a progress bar placeholder?
+         The image shows a white rect. I'll make it a dummy visual element. -->
+    <div class="dummy-input mb-4"></div>
+
+    <!-- Add Word Button -->
+    <a href="{% url 'add_word' %}" class="btn-add-word">
+        <div class="icon-wrapper add-icon-bg">
+            <i class="bi bi-plus"></i>
+        </div>
+        Yangi so'z qo'shish
+    </a>
+
+    <!-- Select Category Button -->
+    <a href="{% url 'categories' %}" class="btn-select-category">
+        <div class="icon-wrapper cat-icon-bg">
+            <i class="bi bi-collection"></i>
+        </div>
+        Bo'limlardan tanlash
+    </a>
+
+    <!-- Back Link -->
+    <a href="{% url 'games_menu' %}" class="back-link">
+        O'yinlar menyusiga qaytish
+    </a>
+
+</div>
+
+{% endblock %}
