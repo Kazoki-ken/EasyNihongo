@@ -3,108 +3,259 @@
 {% block content %}
 
 <style>
-    /* 1. PC uchun asl holat */
-    .dashboard-container {
-        padding-top: 90px;
+    .test-dictionary-container {
+        padding-top: 20px;
         padding-bottom: 3rem;
     }
-    .japan-word {
-        font-size: 1.5rem; /* PC da katta */
+
+    /* Search Bar Style (Pink Theme) */
+    .pink-search-bar {
+        background-color: white;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(255, 107, 129, 0.1);
+        border: 1px solid rgba(255, 107, 129, 0.2);
+        overflow: hidden;
+    }
+    .pink-search-input {
+        border: none;
+        padding: 12px 20px;
+        font-size: 0.95rem;
+        /* Input should take all available space on the left */
+        flex-grow: 1;
+    }
+    .pink-search-input:focus {
+        box-shadow: none;
+    }
+    .pink-search-btn {
+        background: none;
+        border: none;
+        padding: 0 20px; /* Symmetry */
+        color: #ff6b81;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* Touch friendly active state */
+    .pink-search-btn:active {
+        opacity: 0.7;
     }
 
-    /* 2. TELEFON UCHUN O'ZGARISHLAR */
-    @media (max-width: 576px) {
-        .dashboard-container {
-            padding-top: 20px !important; /* Tepasidagi bo'sh joyni yo'qotdik */
-        }
-        .japan-word {
-            font-size: 1.2rem !important; /* So'zlarni kichraytirdik */
-        }
-        .sakura-card {
-            padding: 15px !important; /* Kartochka ichini ixchamladik */
-        }
-        h4 {
-            font-size: 1.2rem !important; /* "Darslik Lug'ati" so'zini kichraytirdik */
-            margin-bottom: 10px !important;
-        }
-        /* Qidiruv qutisini ixchamlash */
-        .form-control {
-            padding-top: 10px !important;
-            padding-bottom: 10px !important;
-            font-size: 0.9rem !important;
-        }
+    /* Word Card Style (Pink Minimalist) */
+    .word-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.03);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+
+    .word-card:active {
+        transform: scale(0.98);
+    }
+
+    /* Left accent bar for visual hierarchy */
+    .word-accent-bar {
+        position: absolute;
+        left: 8px; top: 12px; bottom: 12px; /* "sal o'nga tortilgan" va kichikroq */
+        width: 6px;
+        border-radius: 4px; /* Yumaloq burchak */
+        background: linear-gradient(180deg, #ff758c 0%, #ff7eb3 100%);
+    }
+
+    .word-content {
+        padding: 15px 15px 15px 30px; /* Left padding oshirildi bar sig'ishi uchun */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .jp-text {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 2px;
+        line-height: 1.2;
+    }
+
+    .hiragana-text {
+        font-size: 0.85rem;
+        color: #ff6b81;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .meaning-text {
+        font-size: 0.95rem;
+        color: #6c757d;
+        line-height: 1.3;
+        font-weight: 500;
+    }
+
+    .action-btn {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        background-color: #f8f9fa;
+        color: #adb5bd;
+        transition: all 0.2s;
+        border: none;
+        margin-left: 10px;
+    }
+
+    .action-btn:active {
+        background-color: #e9ecef;
+    }
+
+    .action-btn.saved {
+        color: #ff6b81;
+        background-color: rgba(255, 107, 129, 0.1);
+    }
+
+    .action-btn.audio {
+        color: #4dabf7;
+        background-color: rgba(77, 171, 247, 0.1);
+    }
+
+    /* Pagination (Simple) */
+    .page-link-custom {
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #dee2e6;
+        color: #6c757d;
+        margin: 0 3px;
+        padding: 8px 14px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .page-link-custom.active {
+        background: #ff6b81;
+        color: white;
+        border-color: #ff6b81;
+        box-shadow: 0 4px 10px rgba(255, 107, 129, 0.3);
+    }
+
+    /* Dark Mode Support */
+    body.dark-mode .word-card {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    body.dark-mode .jp-text { color: #f8f9fa; }
+    body.dark-mode .meaning-text { color: #adb5bd; }
+    body.dark-mode .action-btn { background-color: #2c2c2c; }
+    body.dark-mode .pink-search-bar {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    body.dark-mode .pink-search-input {
+        background-color: transparent;
+        color: white;
     }
 </style>
 
-<div class="container dashboard-container">
+<div class="container test-dictionary-container">
     
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="fw-bold m-0 text-dark">📚 Darslik Lug'ati</h4>
+    <div class="text-center mb-4">
+        <h4 class="fw-bold text-dark mb-1">📖 Lug'at</h4>
+        <p class="text-muted small">Barcha so'zlarni qidirish va o'rganish</p>
     </div>
 
-    <form method="get" action="" class="mb-4">
-        <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white border">
-            <input type="text" name="q" class="form-control border-0 ps-4" 
-                   placeholder="So'z qidirish..." 
+    <!-- Search Bar -->
+    <form method="get" action="" class="mb-4 px-2">
+        <div class="input-group pink-search-bar d-flex align-items-center">
+            <!-- INPUT (Left) -->
+            <input type="text" name="q" class="form-control pink-search-input"
+                   placeholder="Yaponcha yoki O'zbekcha qidirish..."
                    value="{{ request.GET.q|default:'' }}">
-            <button class="btn btn-white border-0 pe-4" type="submit">
-                <i class="bi bi-search text-primary"></i>
+
+            <!-- ACTIONS (Right) -->
+            {% if request.GET.q %}
+            <a href="{% url 'dashboard' %}" class="text-secondary me-2 text-decoration-none" style="font-size: 1.2rem;">
+                <i class="bi bi-x"></i>
+            </a>
+            {% endif %}
+
+            <!-- SUBMIT BUTTON (Magnifying Glass) -->
+            <button type="submit" class="pink-search-btn">
+                <i class="bi bi-search" style="font-size: 1.1rem;"></i>
             </button>
         </div>
     </form>
 
-    <div class="row g-3">
+    <!-- Words List -->
+    <div class="row g-2">
         {% for word in words %}
-        <div class="col-12">
-            <div class="sakura-card p-3 bg-white shadow-sm rounded-4 border-0 position-relative">
+        <div class="col-12 col-md-6"> <!-- 1 col mobile, 2 col desktop -->
+            <div class="word-card">
+                <div class="word-accent-bar"></div>
                 
-                <div class="d-flex flex-column">
-                    <div class="d-flex align-items-center mb-1">
-                        <h5 class="fw-bold text-primary mb-0 me-2 japan-word">
-                            {{ word.japanese_word }}
-                        </h5>
+                <div class="word-content">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-baseline">
+                            <div class="jp-text">{{ word.japanese_word }}</div>
+                        </div>
+
+                        {% if word.hiragana %}
+                        <div class="hiragana-text">{{ word.hiragana }}</div>
+                        {% endif %}
                         
-                        <i class="bi bi-volume-up-fill text-secondary" 
-                           style="cursor: pointer; font-size: 1.2rem;" 
-                           onclick="speak('{{ word.japanese_word|escapejs }}')">
-                        </i>
+                        <div class="meaning-text">Tarjima: {{ word.meaning }}</div>
                     </div>
 
-                    {% if word.hiragana %}
-                    <p class="text-muted small mb-1 fst-italic">({{ word.hiragana }})</p>
-                    {% endif %}
-
-                    <p class="mb-3 text-dark small"><strong>Ma'nosi:</strong> {{ word.meaning }}</p>
-
-                    <div class="border-top pt-2 d-flex justify-content-between align-items-center">
-                        <button class="btn p-0 text-decoration-none d-flex align-items-center save-btn" 
-                                data-word-id="{{ word.id }}" 
-                                style="border: none; background: none;">
-                            
-                            <i class="bi {% if request.user in word.saves.all %}bi-heart-fill text-danger{% else %}bi-heart text-secondary{% endif %} fs-5 me-2 heart-icon-{{ word.id }}"></i>
-                            
-                            <span class="small text-muted save-text-{{ word.id }}">
-                                {% if request.user in word.saves.all %}Saqlangan{% else %}Saqlash{% endif %}
-                            </span>
+                    <div class="d-flex flex-column justify-content-center">
+                        <!-- Audio Button -->
+                        <button class="action-btn audio mb-2" onclick="speak('{{ word.japanese_word|escapejs }}')">
+                            <i class="bi bi-volume-up-fill"></i>
                         </button>
 
-                        <small class="text-muted" style="font-size: 0.7rem;">
-                            {{ word.created_at|date:"d.m.y" }}
-                        </small>
+                        <!-- Save Button -->
+                        <button class="action-btn save-btn {% if request.user in word.saves.all %}saved{% endif %}"
+                                data-word-id="{{ word.id }}">
+                            <i class="bi {% if request.user in word.saves.all %}bi-heart-fill{% else %}bi-heart{% endif %} heart-icon-{{ word.id }}"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="text-center py-5">
-            <p class="text-muted mt-2">So'zlar topilmadi.</p>
+            <div class="mb-3">
+                <i class="bi bi-journal-x text-muted" style="font-size: 3rem; opacity: 0.5;"></i>
+            </div>
+            <p class="text-muted">So'zlar topilmadi.</p>
         </div>
         {% endfor %}
     </div>
 
     <!-- Pagination -->
-    {% include "vocabulary/includes/pagination.html" with page_obj=words param_name="page" %}
+    {% if words.has_other_pages %}
+    <div class="d-flex justify-content-center mt-4">
+        {% if words.has_previous %}
+            <a href="?page={{ words.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-link-custom">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        {% endif %}
 
+        {% for i in words.paginator.page_range %}
+            {% if words.number == i %}
+                <span class="page-link-custom active">{{ i }}</span>
+            {% elif i > words.number|add:'-3' and i < words.number|add:'3' %}
+                <a href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-link-custom">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if words.has_next %}
+            <a href="?page={{ words.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-link-custom">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="pb-5"></div>
 </div>
 
 <script>
@@ -112,23 +263,36 @@
         button.addEventListener('click', function() {
             const wordId = this.getAttribute('data-word-id');
             const icon = document.querySelector(`.heart-icon-${wordId}`);
-            const text = document.querySelector(`.save-text-${wordId}`);
 
-            // Serverga so'rov yuborish
+            // Toggle visual state immediately for responsiveness
+            const isCurrentlySaved = this.classList.contains('saved');
+
+            if (isCurrentlySaved) {
+                this.classList.remove('saved');
+                icon.classList.remove('bi-heart-fill');
+                icon.classList.add('bi-heart');
+            } else {
+                this.classList.add('saved');
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill');
+            }
+
+            // Server request
             fetch(`/toggle_save/${wordId}/`)
                 .then(response => response.json())
                 .then(data => {
+                    // Re-sync with server state if mismatch (optional safety)
                     if (data.saved) {
-                        icon.classList.remove('bi-heart', 'text-secondary');
-                        icon.classList.add('bi-heart-fill', 'text-danger');
-                        text.textContent = "Saqlangan";
+                        this.classList.add('saved');
+                        icon.classList.remove('bi-heart');
+                        icon.classList.add('bi-heart-fill');
                     } else {
-                        icon.classList.remove('bi-heart-fill', 'text-danger');
-                        icon.classList.add('bi-heart', 'text-secondary');
-                        text.textContent = "Saqlash";
+                        this.classList.remove('saved');
+                        icon.classList.remove('bi-heart-fill');
+                        icon.classList.add('bi-heart');
                     }
                 })
-                .catch(error => console.error('Xatolik:', error));
+                .catch(error => console.error('Error:', error));
         });
     });
 </script>
