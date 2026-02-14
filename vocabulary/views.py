@@ -499,6 +499,28 @@ def categories_view(request):
     })
 
 @login_required
+def test_categories_design_view(request):
+    query = request.GET.get('q')
+    tab = request.GET.get('tab', 'main')
+    topics = Topic.objects.filter(book__isnull=True)
+    books = Book.objects.all()
+
+    if query:
+        topics = topics.filter(name__icontains=query)
+        books = books.filter(title__icontains=query)
+
+    paginator = Paginator(topics, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'vocabulary/test_categories_pink.html', {
+        'page_obj': page_obj,
+        'books': books,
+        'search_query': query,
+        'active_tab': tab
+    })
+
+@login_required
 def book_details_view(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     topics = book.topics.all()
