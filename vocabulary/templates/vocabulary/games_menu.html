@@ -1,78 +1,237 @@
-
-
 {% extends 'vocabulary/base.html' %}
 
 {% block content %}
-<div class="container" style="padding-top: 30px;">
-    
-    <div class="text-center mb-4">
-        <h3 class="fw-bold text-dark">🎮 O'yinlarxonasi</h3>
-    </div>
 
-    <h6 class="text-muted ms-2 mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">Asosiy O'yinlar</h6>
-    <div class="list-group w-100 mb-4">
+<style>
+    .games-container {
+        padding-top: 20px;
+        padding-bottom: 3rem;
+    }
+
+    /* Game Card Style - Pink Gradient (Compact Version) */
+    .game-card {
+        background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+        border-radius: 20px;
+        padding: 20px; /* Reduced from 25px */
+        color: white;
+        position: relative;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 8px 16px rgba(255, 117, 140, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-decoration: none;
+        display: block;
+        height: 100%;
+        min-height: 120px; /* Reduced from 160px */
+    }
+
+    .game-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(255, 117, 140, 0.4);
+        color: white;
+    }
+
+    .game-card:active {
+        transform: scale(0.98);
+    }
+
+    .game-title {
+        font-size: 1.4rem; /* Slightly smaller */
+        font-weight: 800;
+        margin-bottom: 6px;
+        z-index: 2;
+        position: relative;
+        line-height: 1.1;
+    }
+
+    .game-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.95;
+        font-weight: 600;
+        z-index: 2;
+        position: relative;
+        max-width: 75%; /* More space for icon */
+    }
+
+    /* Big faded icon in the background - Adjusted for compact size */
+    .game-card-icon-bg {
+        position: absolute;
+        right: -10px;
+        bottom: -15px;
+        font-size: 5rem; /* Reduced from 6rem */
+        opacity: 0.25;
+        transform: rotate(-15deg);
+        z-index: 1;
+        color: white;
+    }
+
+    /* Action Badge - Adjusted position */
+    .game-action-badge {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(5px);
+        padding: 6px 12px; /* Smaller padding */
+        border-radius: 10px;
+        font-weight: bold;
+        font-size: 0.75rem;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+
+    /* Disabled State */
+    .game-card.disabled {
+        background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+        color: #adb5bd;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+    .game-card.disabled .game-card-icon-bg {
+        color: #ced4da;
+        opacity: 0.5;
+    }
+    .game-card.disabled:hover {
+        transform: none;
+    }
+
+    .section-title {
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        padding-left: 10px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Dark Mode */
+    body.dark-mode .game-card {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    body.dark-mode .game-card.disabled {
+        background: #2c2c2c;
+        color: #6c757d;
+    }
+    body.dark-mode .game-card.disabled .game-card-icon-bg {
+        color: #495057;
+    }
+    body.dark-mode .section-title {
+        color: #f8f9fa;
+    }
+
+    /* Mobile-Specific Adjustment (< 500px) */
+    @media (max-width: 500px) {
+        .game-card {
+            min-height: 100px; /* Reduced height for small screens */
+            padding: 15px;     /* Tighter padding */
+        }
         
-        <a href="{% url 'test_setup' %}" class="list-group-item list-group-item-action d-flex align-items-center p-3 shadow-sm border-0 mb-3 rounded-4">
-            
-            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
-                 style="width: 55px; height: 55px; min-width: 55px; background-color: #e8f0fe;">
-                <i class="bi bi-patch-question-fill text-primary" style="font-size: 1.8rem;"></i>
-            </div>
-            
-            <div>
-                <h5 class="mb-0 fw-bold text-dark">Test O'yini</h5>
-                <small class="text-muted">4 ta variantdan toping</small>
-            </div>
-            <i class="bi bi-chevron-right ms-auto text-muted"></i>
-        </a>
+        .game-title {
+            font-size: 1.25rem; /* Smaller title */
+            margin-bottom: 4px;
+        }
 
-        <a href="{% url 'match_setup' %}" class="list-group-item list-group-item-action d-flex align-items-center p-3 shadow-sm border-0 mb-3 rounded-4">
-            
-            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
-                 style="width: 55px; height: 55px; min-width: 55px; background-color: #fff8e1;">
-                <i class="bi bi-puzzle-fill text-warning" style="font-size: 1.8rem;"></i>
-            </div>
-            
-            <div>
-                <h5 class="mb-0 fw-bold text-dark">Juftliklar</h5>
-                <small class="text-muted">So'z va tarjimani birlashtiring</small>
-            </div>
-            <i class="bi bi-chevron-right ms-auto text-muted"></i>
-        </a>
+        .game-subtitle {
+            font-size: 0.75rem;
+            max-width: 90%; /* Allow text to use more width */
+        }
 
-        <a href="{% url 'write_setup' %}" class="list-group-item list-group-item-action d-flex align-items-center p-3 shadow-sm border-0 mb-3 rounded-4">
-            
-            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" 
-                 style="width: 55px; height: 55px; min-width: 55px; background-color: #e8f5e9;">
-                <i class="bi bi-pencil-square text-success" style="font-size: 1.8rem;"></i>
-            </div>
-            
-            <div>
-                <h5 class="mb-0 fw-bold text-dark">Yozish mashqi</h5>
-                <small class="text-muted">Tarjimasini yozing</small>
-            </div>
-            <i class="bi bi-chevron-right ms-auto text-muted"></i>
-        </a>
+        .game-card-icon-bg {
+            font-size: 4rem; /* Smaller icon */
+            bottom: -10px;
+            right: -5px;
+        }
+
+        .game-action-badge {
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            bottom: 10px;
+            right: 10px;
+        }
+    }
+</style>
+
+<div class="container games-container">
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark mb-1">🎮 O'yinlarxonasi</h2>
+        <p class="text-muted">Bilimingizni sinab ko'ring va tangalar yig'ing</p>
+    </div>
+
+    <!-- Main Games Section -->
+    <div class="section-title text-muted">Asosiy O'yinlar</div>
+
+    <div class="row g-3 mb-5"> <!-- Reduced gutter -->
+
+        <!-- 1. Test Game -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'test_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Test O'yini</div>
+                    <div class="game-subtitle">4 ta variantdan to'g'risini toping</div>
+                </div>
+
+                <i class="bi bi-patch-question-fill game-card-icon-bg"></i>
+
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- 2. Match Game -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'match_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Juftliklar</div>
+                    <div class="game-subtitle">So'z va tarjimani birlashtiring</div>
+                </div>
+
+                <i class="bi bi-puzzle-fill game-card-icon-bg"></i>
+
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- 3. Write Game -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'write_setup' %}" class="game-card">
+                <div>
+                    <div class="game-title">Yozish Mashqi</div>
+                    <div class="game-subtitle">So'z tarjimasini yozma kiriting</div>
+                </div>
+
+                <i class="bi bi-pencil-square game-card-icon-bg"></i>
+
+                <div class="game-action-badge">
+                    Boshlash <i class="bi bi-play-fill ms-1"></i>
+                </div>
+            </a>
+        </div>
 
     </div>
 
-    <h6 class="text-muted ms-2 mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">Boshqa O'yinlar</h6>
-    <div class="list-group w-100">
+    <!-- Coming Soon Section -->
+    <div class="section-title text-muted">Tez Orada</div>
 
-        <button class="list-group-item d-flex align-items-center p-3 shadow-sm border-0 mb-3 rounded-4" disabled style="opacity: 0.7; background-color: #f8f9fa;">
+    <div class="row g-3">
+        <!-- 4. Listening Game (Disabled) -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="game-card disabled">
+                <div>
+                    <div class="game-title">Eshitish <i class="bi bi-lock-fill ms-1" style="font-size: 0.7em;"></i></div>
+                    <div class="game-subtitle">Eshitib tushunish ko'nikmasi</div>
+                </div>
 
-            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                 style="width: 55px; height: 55px; min-width: 55px; background-color: #e0e0e0;">
-                <i class="bi bi-headphones text-secondary" style="font-size: 1.8rem;"></i>
+                <i class="bi bi-headphones game-card-icon-bg"></i>
             </div>
-
-            <div>
-                <h5 class="mb-0 fw-bold text-muted">Eshitish <span class="badge bg-secondary ms-1" style="font-size: 0.6em;">Tez kunda</span></h5>
-                <small class="text-muted">Eshitib tushunish mashqi</small>
-            </div>
-            <i class="bi bi-lock-fill ms-auto text-muted"></i>
-        </button>
-
+        </div>
     </div>
+
 </div>
 {% endblock %}
