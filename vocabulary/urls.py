@@ -2,7 +2,6 @@
 
 from django.urls import path
 from . import views
-from . import test_views  # Import the new test_views (again)
 
 urlpatterns = [
     # 1. Asosiy Menyu (Hub) - Saytga kirganda birinchi chiqadigan sahifa
@@ -43,9 +42,6 @@ urlpatterns = [
     path('games/match/result/', views.match_result, name='match_result'), # Natija
     path('match/setup/', views.match_setup, name='match_setup'),
 
-    # --- TEST VIEWS ---
-    path('test-profile/', test_views.test_profile_view, name='test_profile'),
-    # ------------------
 
 # ... Match o'yini ...
     path('games/write/setup/', views.write_setup, name='write_setup'),    # Sozlash
