@@ -4,7 +4,7 @@
 {% block content %}
 
 <style>
-    /* SAKURA UI - PROFILE (Matches home.html) */
+    /* SAKURA UI - COMPACT PROFILE */
     :root {
         /* Inheriting from base/home style logic */
         --bg-body: #f8f9fa; /* Light mode default */
@@ -36,18 +36,18 @@
     }
 
     .profile-container {
-        padding: 20px 20px 40px 20px;
+        padding: 15px 15px 30px 15px; /* Reduced padding */
         max-width: 800px;
         margin: 0 auto;
     }
 
-    /* 1. Profile Header (Sakura Style) */
+    /* 1. Profile Header (Compact) */
     .profile-header-card {
         background: var(--card-bg);
-        border-radius: 24px;
-        padding: 30px 20px;
+        border-radius: 20px;
+        padding: 20px 15px; /* Reduced from 30px 20px */
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 15px var(--accent-shadow);
         position: relative;
         overflow: hidden;
@@ -56,8 +56,8 @@
     /* Sakura Petal Background Effect (Subtle) */
     .sakura-bg-effect {
         position: absolute;
-        top: -20px; right: -20px;
-        font-size: 8rem;
+        top: -15px; right: -15px;
+        font-size: 6rem; /* Smaller decorative element */
         color: var(--accent-primary);
         opacity: 0.05;
         transform: rotate(15deg);
@@ -67,18 +67,18 @@
     .avatar-wrapper {
         position: relative;
         display: inline-block;
-        margin-bottom: 15px;
+        margin-bottom: 10px; /* Reduced from 15px */
         z-index: 1;
     }
 
     .user-avatar-lg {
-        width: 100px; height: 100px;
+        width: 85px; height: 85px; /* Reduced from 100px */
         border-radius: 50%;
         object-fit: cover;
-        border: 4px solid var(--bg-main);
+        border: 3px solid var(--bg-main);
         background-color: var(--bg-body);
         display: flex; align-items: center; justify-content: center;
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: var(--text-muted);
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
@@ -86,55 +86,56 @@
     .league-badge-sm {
         position: absolute;
         bottom: 0; right: 0;
-        width: 32px; height: 32px;
+        width: 28px; height: 28px; /* Reduced from 32px */
         background: var(--bg-main);
         border-radius: 50%;
         box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         display: flex; align-items: center; justify-content: center;
-        font-size: 1rem;
+        font-size: 0.9rem;
         border: 2px solid var(--accent-primary);
     }
 
     .profile-name {
         font-weight: 800;
-        font-size: 1.5rem;
-        margin-bottom: 5px;
+        font-size: 1.3rem; /* Reduced from 1.5rem */
+        margin-bottom: 2px;
         position: relative; z-index: 1;
+        line-height: 1.2;
     }
 
     .profile-meta {
-        font-size: 0.9rem;
+        font-size: 0.85rem; /* Reduced from 0.9rem */
         color: var(--text-muted);
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         position: relative; z-index: 1;
     }
 
     .stats-row-header {
         display: flex;
         justify-content: center;
-        gap: 20px;
+        gap: 15px; /* Reduced from 20px */
         position: relative; z-index: 1;
     }
 
     .stat-pill {
         background: rgba(255, 107, 129, 0.1); /* Light Pink tint */
         color: var(--accent-primary);
-        padding: 8px 16px;
+        padding: 6px 14px; /* Reduced padding */
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         display: flex; align-items: center;
     }
-    .stat-pill i { margin-right: 6px; }
+    .stat-pill i { margin-right: 5px; font-size: 0.9rem; }
 
 
-    /* 2. Weekly Report (Sakura Gradient Card) */
+    /* 2. Weekly Report (Compact) */
     .report-card {
         background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-        border-radius: 24px;
-        padding: 25px;
+        border-radius: 20px;
+        padding: 20px; /* Reduced from 25px */
         color: white;
-        margin-bottom: 25px;
+        margin-bottom: 20px;
         box-shadow: 0 8px 20px rgba(255, 107, 129, 0.3);
         position: relative;
         overflow: hidden;
@@ -142,47 +143,55 @@
 
     .report-title {
         font-weight: 800;
-        font-size: 1.1rem;
-        margin-bottom: 20px;
+        font-size: 1rem; /* Reduced from 1.1rem */
+        margin-bottom: 15px;
         display: flex; justify-content: space-between; align-items: center;
         z-index: 2; position: relative;
     }
     .report-date {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         background: rgba(255,255,255,0.2);
-        padding: 4px 10px;
-        border-radius: 10px;
+        padding: 3px 8px;
+        border-radius: 8px;
         font-weight: 600;
     }
 
     .stats-grid-sakura {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 10px; /* Reduced from 15px */
         z-index: 2; position: relative;
     }
 
     .stat-box-sakura {
         background: rgba(255,255,255,0.15);
         backdrop-filter: blur(5px);
-        border-radius: 16px;
-        padding: 15px;
+        border-radius: 14px;
+        padding: 12px; /* Reduced from 15px */
         text-align: left;
+        position: relative;
+        min-height: 70px; /* Fixed height for consistency */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .stat-val-sakura {
-        font-size: 1.4rem;
+        font-size: 1.2rem; /* Reduced from 1.4rem */
         font-weight: 800;
-        margin-bottom: 2px;
+        line-height: 1;
+        margin-bottom: 4px;
     }
     .stat-lbl-sakura {
-        font-size: 0.8rem;
+        font-size: 0.75rem; /* Reduced from 0.8rem */
         opacity: 0.9;
         font-weight: 600;
+        line-height: 1.1;
     }
     .stat-icon-sakura {
-        float: right;
-        font-size: 1.2rem;
+        position: absolute;
+        top: 10px; right: 10px;
+        font-size: 1.1rem; /* Reduced from 1.2rem */
         opacity: 0.8;
     }
 
@@ -190,8 +199,8 @@
     /* 3. Section Headers (Minimal) */
     .section-header {
         font-weight: 800;
-        font-size: 1.1rem;
-        margin-bottom: 15px;
+        font-size: 1rem;
+        margin-bottom: 10px;
         color: var(--text-main);
         display: flex; align-items: center;
         padding-left: 5px;
@@ -199,9 +208,9 @@
     .section-header::before {
         content: '';
         display: inline-block;
-        width: 4px; height: 18px;
+        width: 3px; height: 16px; /* Slightly thinner */
         background-color: var(--accent-primary);
-        margin-right: 10px;
+        margin-right: 8px;
         border-radius: 2px;
     }
 
@@ -209,39 +218,39 @@
     /* 4. Achievements (Clean Horizontal Scroll) */
     .achievements-wrapper {
         background: var(--card-bg);
-        border-radius: 24px;
-        padding: 20px;
-        margin-bottom: 30px;
+        border-radius: 20px;
+        padding: 15px; /* Reduced padding */
+        margin-bottom: 25px;
         box-shadow: 0 4px 15px var(--accent-shadow);
     }
 
     .achievements-scroll {
         display: flex;
         overflow-x: auto;
-        gap: 15px;
+        gap: 12px; /* Reduced gap */
         padding-bottom: 5px;
         scrollbar-width: none;
     }
     .achievements-scroll::-webkit-scrollbar { display: none; }
 
     .badge-item {
-        min-width: 80px;
+        min-width: 70px; /* Reduced width */
         text-align: center;
     }
 
     .badge-circle {
-        width: 64px; height: 64px;
+        width: 56px; height: 56px; /* Reduced from 64px */
         border-radius: 50%;
         background-color: var(--bg-body);
         display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 8px auto;
+        margin: 0 auto 6px auto;
         border: 2px solid transparent;
         position: relative;
         transition: transform 0.2s;
     }
     .badge-item:active .badge-circle { transform: scale(0.95); }
 
-    .badge-img { width: 36px; height: 36px; object-fit: contain; }
+    .badge-img { width: 32px; height: 32px; object-fit: contain; }
 
     /* Earned Badge */
     .badge-earned .badge-circle {
@@ -256,20 +265,24 @@
     }
     .lock-icon {
         position: absolute; bottom: -2px; right: -2px;
-        width: 20px; height: 20px;
+        width: 18px; height: 18px;
         background: var(--text-muted);
         color: white;
         border-radius: 50%;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         display: flex; align-items: center; justify-content: center;
         border: 2px solid var(--card-bg);
     }
 
     .badge-name {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        line-height: 1.2;
+        line-height: 1.1;
         color: var(--text-main);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 70px;
     }
 
 
@@ -277,14 +290,14 @@
     .profile-grid-menu {
         display: grid;
         grid-template-columns: repeat(2, 1fr); /* 2 Columns */
-        gap: 15px;
-        margin-bottom: 30px;
+        gap: 12px; /* Reduced gap */
+        margin-bottom: 25px;
     }
 
     .grid-action-btn {
         background: var(--card-bg);
-        border-radius: 20px;
-        padding: 20px;
+        border-radius: 16px;
+        padding: 15px; /* Reduced padding */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -293,18 +306,18 @@
         color: var(--text-main);
         box-shadow: 0 4px 15px var(--accent-shadow);
         transition: transform 0.2s;
-        height: 120px;
+        height: 100px; /* Reduced height from 120px */
         border: 1px solid var(--border-color);
     }
     .grid-action-btn:active { transform: scale(0.96); }
 
     .grid-icon-box {
-        width: 50px; height: 50px;
+        width: 42px; height: 42px; /* Reduced from 50px */
         background-color: var(--bg-body);
-        border-radius: 16px;
+        border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 10px;
+        font-size: 1.3rem;
+        margin-bottom: 8px;
         color: var(--accent-primary);
         transition: background-color 0.2s;
     }
@@ -315,11 +328,11 @@
 
     .grid-label {
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .grid-sub {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         color: var(--text-muted);
         margin-top: 2px;
     }
@@ -328,26 +341,26 @@
     /* 6. Settings List (Optional - Below grid) */
     .settings-list {
         background: var(--card-bg);
-        border-radius: 20px;
+        border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 4px 15px var(--accent-shadow);
     }
     .settings-item {
         display: flex;
         align-items: center;
-        padding: 15px 20px;
+        padding: 12px 15px; /* Reduced padding */
         text-decoration: none;
         color: var(--text-main);
         border-bottom: 1px solid var(--border-color);
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
     .settings-item:last-child { border-bottom: none; }
     .settings-item i {
-        margin-right: 15px;
-        font-size: 1.2rem;
+        margin-right: 12px;
+        font-size: 1.1rem;
         color: var(--text-muted);
-        width: 24px; text-align: center;
+        width: 20px; text-align: center;
     }
     .settings-item:hover { background-color: var(--bg-body); }
     .settings-item.text-danger { color: #dc3545; }
