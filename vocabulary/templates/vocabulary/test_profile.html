@@ -4,315 +4,364 @@
 {% block content %}
 
 <style>
-    /* New "Clean Dashboard" Theme */
+    /* SAKURA UI - PROFILE (Matches home.html) */
+    :root {
+        /* Inheriting from base/home style logic */
+        --bg-body: #f8f9fa; /* Light mode default */
+        --bg-main: #ffffff;
+        --card-bg: #ffffff;
+        --text-main: #2c3e50;
+        --text-muted: #6c757d;
+        --border-color: rgba(0,0,0,0.05);
+        --accent-primary: #ff6b81;
+        --accent-secondary: #ff8fab;
+        --accent-shadow: rgba(255, 107, 129, 0.25);
+    }
+
+    /* Dark Mode (applied via body class) */
+    body.dark-mode {
+        --bg-body: #000000;
+        --bg-main: #121212;
+        --card-bg: #1e1e1e;
+        --text-main: #ffffff;
+        --text-muted: #adb5bd;
+        --border-color: rgba(255,255,255,0.05);
+        --accent-shadow: rgba(0,0,0,0.3);
+    }
+
     body {
-        background-color: #f8f9fa; /* Light Gray Background */
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        padding-bottom: 90px; /* Space for bottom nav */
     }
 
     .profile-container {
-        padding-top: 20px;
-        padding-bottom: 90px;
+        padding: 20px 20px 40px 20px;
         max-width: 800px;
         margin: 0 auto;
     }
 
-    /* 1. Profile Header */
-    .profile-header {
+    /* 1. Profile Header (Sakura Style) */
+    .profile-header-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 30px 20px;
         text-align: center;
         margin-bottom: 25px;
+        box-shadow: 0 4px 15px var(--accent-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Sakura Petal Background Effect (Subtle) */
+    .sakura-bg-effect {
+        position: absolute;
+        top: -20px; right: -20px;
+        font-size: 8rem;
+        color: var(--accent-primary);
+        opacity: 0.05;
+        transform: rotate(15deg);
+        z-index: 0;
     }
 
     .avatar-wrapper {
         position: relative;
         display: inline-block;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        z-index: 1;
     }
 
     .user-avatar-lg {
-        width: 100px;
-        height: 100px;
+        width: 100px; height: 100px;
         border-radius: 50%;
         object-fit: cover;
-        border: 4px solid white;
-        background-color: #e9ecef;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border: 4px solid var(--bg-main);
+        background-color: var(--bg-body);
+        display: flex; align-items: center; justify-content: center;
         font-size: 3rem;
-        color: #adb5bd;
+        color: var(--text-muted);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .league-badge-sm {
         position: absolute;
         bottom: 0; right: 0;
         width: 32px; height: 32px;
-        background: white;
+        background: var(--bg-main);
         border-radius: 50%;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         display: flex; align-items: center; justify-content: center;
         font-size: 1rem;
+        border: 2px solid var(--accent-primary);
     }
 
     .profile-name {
         font-weight: 800;
-        font-size: 1.4rem;
-        color: #343a40;
-        margin-bottom: 2px;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        position: relative; z-index: 1;
     }
 
-    .profile-status {
+    .profile-meta {
         font-size: 0.9rem;
-        color: #6c757d;
+        color: var(--text-muted);
         margin-bottom: 15px;
+        position: relative; z-index: 1;
     }
 
-    .coin-pill {
-        display: inline-flex;
-        align-items: center;
-        background-color: #fff3cd; /* Light Yellow */
-        color: #856404;
-        padding: 5px 15px;
+    .stats-row-header {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        position: relative; z-index: 1;
+    }
+
+    .stat-pill {
+        background: rgba(255, 107, 129, 0.1); /* Light Pink tint */
+        color: var(--accent-primary);
+        padding: 8px 16px;
         border-radius: 50px;
         font-weight: 700;
         font-size: 0.9rem;
-    }
-    .coin-pill i { margin-right: 5px; color: #ffc107; }
-
-
-    /* 2. Weekly Report Card (Purple Gradient) */
-    .report-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Purple/Blue Gradient */
-        border-radius: 20px;
-        padding: 20px;
-        color: white;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 25px rgba(118, 75, 162, 0.3);
-    }
-
-    .report-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    .report-title {
-        font-weight: 700;
-        font-size: 1rem;
         display: flex; align-items: center;
     }
-    .report-title i { margin-right: 8px; font-size: 1.1rem; }
+    .stat-pill i { margin-right: 6px; }
 
-    .date-pill {
-        background: rgba(255,255,255,0.2);
-        padding: 4px 12px;
-        border-radius: 12px;
+
+    /* 2. Weekly Report (Sakura Gradient Card) */
+    .report-card {
+        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        border-radius: 24px;
+        padding: 25px;
+        color: white;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 20px rgba(255, 107, 129, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-title {
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        display: flex; justify-content: space-between; align-items: center;
+        z-index: 2; position: relative;
+    }
+    .report-date {
         font-size: 0.75rem;
+        background: rgba(255,255,255,0.2);
+        padding: 4px 10px;
+        border-radius: 10px;
         font-weight: 600;
     }
 
-    .stats-row {
-        display: flex;
-        justify-content: space-between;
+    .stats-grid-sakura {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        z-index: 2; position: relative;
     }
 
-    .stat-item {
-        text-align: center;
-        flex: 1;
-        background: rgba(255,255,255,0.1); /* Semi-transparent box */
-        border-radius: 12px;
-        padding: 10px 5px;
-        margin: 0 4px;
+    .stat-box-sakura {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(5px);
+        border-radius: 16px;
+        padding: 15px;
+        text-align: left;
     }
-    .stat-item:first-child { margin-left: 0; }
-    .stat-item:last-child { margin-right: 0; }
 
-    .stat-val {
+    .stat-val-sakura {
+        font-size: 1.4rem;
         font-weight: 800;
-        font-size: 1.2rem;
         margin-bottom: 2px;
     }
-    .stat-lbl {
-        font-size: 0.7rem;
-        opacity: 0.85;
-    }
-
-
-    /* 3. White Cards (Common) */
-    .content-card {
-        background: white;
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-        border: none;
-        display: block;
-        text-decoration: none;
-        color: inherit;
-        transition: transform 0.2s;
-    }
-    .content-card:hover { transform: translateY(-2px); }
-
-    .card-header-flex {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-    .card-title {
-        font-weight: 700;
-        color: #343a40;
-        display: flex; align-items: center;
-    }
-    .card-title-icon {
-        width: 32px; height: 32px;
-        border-radius: 50%;
-        background-color: #e0f7fa; /* Light Cyan */
-        color: #00bcd4;
-        display: flex; align-items: center; justify-content: center;
-        margin-right: 10px;
-        font-size: 1rem;
-    }
-    .card-count {
-        font-size: 0.9rem;
-        color: #6c757d;
+    .stat-lbl-sakura {
+        font-size: 0.8rem;
+        opacity: 0.9;
         font-weight: 600;
     }
+    .stat-icon-sakura {
+        float: right;
+        font-size: 1.2rem;
+        opacity: 0.8;
+    }
 
 
-    /* 4. Achievements List (Horizontal Scroll) */
+    /* 3. Section Headers (Minimal) */
+    .section-header {
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        color: var(--text-main);
+        display: flex; align-items: center;
+        padding-left: 5px;
+    }
+    .section-header::before {
+        content: '';
+        display: inline-block;
+        width: 4px; height: 18px;
+        background-color: var(--accent-primary);
+        margin-right: 10px;
+        border-radius: 2px;
+    }
+
+
+    /* 4. Achievements (Clean Horizontal Scroll) */
+    .achievements-wrapper {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px var(--accent-shadow);
+    }
+
     .achievements-scroll {
         display: flex;
         overflow-x: auto;
         gap: 15px;
-        padding-bottom: 10px; /* Space for scrollbar if any */
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE */
+        padding-bottom: 5px;
+        scrollbar-width: none;
     }
     .achievements-scroll::-webkit-scrollbar { display: none; }
 
-    .badge-wrap {
+    .badge-item {
         min-width: 80px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         text-align: center;
     }
 
-    .badge-icon-circle {
-        width: 60px; height: 60px;
+    .badge-circle {
+        width: 64px; height: 64px;
         border-radius: 50%;
-        background-color: #f8f9fa;
+        background-color: var(--bg-body);
         display: flex; align-items: center; justify-content: center;
-        margin-bottom: 8px;
+        margin: 0 auto 8px auto;
         border: 2px solid transparent;
         position: relative;
+        transition: transform 0.2s;
     }
-    .badge-img-sm { width: 35px; height: 35px; object-fit: contain; }
+    .badge-item:active .badge-circle { transform: scale(0.95); }
 
-    .badge-wrap.locked .badge-icon-circle { opacity: 0.6; filter: grayscale(100%); border-color: #dee2e6; }
-    .badge-wrap.earned .badge-icon-circle { border-color: #ffc107; background-color: #fff9db; }
+    .badge-img { width: 36px; height: 36px; object-fit: contain; }
 
-    .badge-lock-icon {
-        position: absolute; top: 0; right: 0;
-        background: #adb5bd; color: white;
-        width: 20px; height: 20px; border-radius: 50%;
-        font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
-        border: 2px solid white;
+    /* Earned Badge */
+    .badge-earned .badge-circle {
+        border-color: #ffd700;
+        background: linear-gradient(135deg, #fff9c4 0%, #ffffff 100%);
+    }
+    /* Locked Badge */
+    .badge-locked .badge-circle {
+        opacity: 0.6;
+        filter: grayscale(100%);
+        border-color: var(--border-color);
+    }
+    .lock-icon {
+        position: absolute; bottom: -2px; right: -2px;
+        width: 20px; height: 20px;
+        background: var(--text-muted);
+        color: white;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid var(--card-bg);
     }
 
-    .badge-lbl {
+    .badge-name {
         font-size: 0.75rem;
         font-weight: 700;
-        color: #343a40;
         line-height: 1.2;
-    }
-    .badge-sub {
-        font-size: 0.65rem;
-        color: #adb5bd;
+        color: var(--text-main);
     }
 
 
-    /* 5. My Vocabulary Link */
-    .vocab-card {
-        display: flex;
-        align-items: center;
-        padding: 15px 20px;
-    }
-    .vocab-icon {
-        width: 40px; height: 40px;
-        background-color: #ffebee; /* Light Red */
-        color: #ef5350;
-        border-radius: 12px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem;
-        margin-right: 15px;
-    }
-    .vocab-text {
-        font-weight: 700;
-        color: #343a40;
-        flex-grow: 1;
-    }
-
-
-    /* 6. Bottom Action Grid */
-    .action-grid {
+    /* 5. Minimalist Grid Menu (Matches home.html) */
+    .profile-grid-menu {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
+        grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+        gap: 15px;
         margin-bottom: 30px;
     }
 
-    .action-btn {
-        background: white;
+    .grid-action-btn {
+        background: var(--card-bg);
         border-radius: 20px;
-        padding: 15px 5px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         text-decoration: none;
-        color: #343a40;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        height: 100px; /* Square-ish */
+        color: var(--text-main);
+        box-shadow: 0 4px 15px var(--accent-shadow);
         transition: transform 0.2s;
+        height: 120px;
+        border: 1px solid var(--border-color);
     }
-    .action-btn:active { transform: scale(0.95); }
+    .grid-action-btn:active { transform: scale(0.96); }
 
-    .action-icon {
-        width: 40px; height: 40px;
-        border-radius: 50%;
+    .grid-icon-box {
+        width: 50px; height: 50px;
+        background-color: var(--bg-body);
+        border-radius: 16px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem;
-        margin-bottom: 8px;
-    }
-    .bg-dark-icon { background-color: #343a40; color: white; } /* Rejim */
-    .bg-new-icon { background-color: #fff3cd; color: #ffc107; } /* Yangi so'z */
-    .bg-league-icon { background-color: #e0f2f1; color: #009688; } /* Leagues */
-    .bg-help-icon { background-color: #f1f3f5; color: #adb5bd; } /* Yordam */
-
-    .action-lbl {
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: #343a40;
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: var(--accent-primary);
+        transition: background-color 0.2s;
     }
 
+    .grid-action-btn:hover .grid-icon-box {
+        background-color: rgba(255, 107, 129, 0.1);
+    }
 
-    /* 7. Logout Link */
-    .logout-link {
-        display: block;
-        text-align: center;
-        color: #dc3545; /* Red */
+    .grid-label {
         font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .grid-sub {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+
+    /* 6. Settings List (Optional - Below grid) */
+    .settings-list {
+        background: var(--card-bg);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px var(--accent-shadow);
+    }
+    .settings-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
         text-decoration: none;
+        color: var(--text-main);
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
         font-size: 0.95rem;
-        margin-bottom: 20px;
     }
-    .logout-link i { margin-right: 5px; }
+    .settings-item:last-child { border-bottom: none; }
+    .settings-item i {
+        margin-right: 15px;
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        width: 24px; text-align: center;
+    }
+    .settings-item:hover { background-color: var(--bg-body); }
+    .settings-item.text-danger { color: #dc3545; }
+    .settings-item.text-danger i { color: #dc3545; }
+
 
 </style>
 
 <div class="container profile-container">
 
-    <!-- 1. Header -->
-    <div class="profile-header">
+    <!-- 1. Profile Header -->
+    <div class="profile-header-card">
+        <i class="bi bi-flower1 sakura-bg-effect"></i> <!-- Decorative -->
+
         <div class="avatar-wrapper">
             {% if user.profile.avatar %}
                 <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="user-avatar-lg">
@@ -320,155 +369,159 @@
                 <div class="user-avatar-lg"><i class="bi bi-person-fill"></i></div>
             {% endif %}
 
-            <div class="league-badge-sm">
+            <div class="league-badge-sm" title="{{ user.profile.league }}">
                 {% if user.profile.league == 'Bronze' %}🥉{% elif user.profile.league == 'Silver' %}🥈{% elif user.profile.league == 'Gold' %}🥇{% else %}🏆{% endif %}
             </div>
         </div>
 
         <div class="profile-name">{{ user.first_name|default:user.username }}</div>
-        <div class="profile-status">{{ user.profile.league }} League Student</div>
+        <div class="profile-meta">@{{ user.username }} | {{ user.profile.league }} Ligasi</div>
 
-        <div class="coin-pill">
-            <i class="bi bi-coin"></i> {{ user.profile.coins }} Coins
+        <div class="stats-row-header">
+            <div class="stat-pill">
+                <i class="bi bi-coin"></i> {{ user.profile.coins }}
+            </div>
+            <div class="stat-pill" style="color: #ff9f43; background: rgba(255, 159, 67, 0.1);">
+                <i class="bi bi-fire"></i> {{ user.profile.streak }}
+            </div>
         </div>
     </div>
 
-    <!-- 2. Weekly Report (Purple Card) -->
+    <!-- 2. Weekly Report (Sakura Gradient) -->
     <div class="report-card">
-        <div class="report-header">
-            <div class="report-title">
-                <i class="bi bi-calendar-check"></i> Haftalik hisobot
-            </div>
-            <!-- Dynamic Date: using logic or static for now -->
-            <div class="date-pill">
-                {% now "d M" %} - {% now "d M" %}
-            </div>
+        <i class="bi bi-graph-up-arrow" style="position: absolute; right: -10px; bottom: -20px; font-size: 6rem; opacity: 0.1; transform: rotate(-10deg);"></i>
+
+        <div class="report-title">
+            <span><i class="bi bi-calendar2-week me-2"></i> Haftalik hisobot</span>
+            <div class="report-date">{% now "d M" %} - {% now "d M" %}</div>
         </div>
 
-        <div class="stats-row">
-            <div class="stat-item">
-                <div class="stat-val">{{ weekly_stats.words_learned }}</div>
-                <div class="stat-lbl">Yangi so'z</div>
+        <div class="stats-grid-sakura">
+            <!-- New Words -->
+            <div class="stat-box-sakura">
+                <i class="bi bi-book stat-icon-sakura"></i>
+                <div class="stat-val-sakura">{{ weekly_stats.words_learned }}</div>
+                <div class="stat-lbl-sakura">Yangi so'z</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-val">{{ weekly_stats.games_played }}</div>
-                <div class="stat-lbl">O'yinlar</div>
+            <!-- Games Played -->
+            <div class="stat-box-sakura">
+                <i class="bi bi-controller stat-icon-sakura"></i>
+                <div class="stat-val-sakura">{{ weekly_stats.games_played }}</div>
+                <div class="stat-lbl-sakura">O'yinlar</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-val">
+            <!-- Accuracy -->
+            <div class="stat-box-sakura">
+                <i class="bi bi-bullseye stat-icon-sakura"></i>
+                <div class="stat-val-sakura">
                     {% if weekly_stats.total_questions > 0 %}
                         {% widthratio weekly_stats.correct_answers weekly_stats.total_questions 100 %}%
                     {% else %}
                         0%
                     {% endif %}
                 </div>
-                <div class="stat-lbl">Aniqlik</div>
+                <div class="stat-lbl-sakura">Aniqlik</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-val">{{ weekly_stats.coins_earned }}</div>
-                <div class="stat-lbl">Coinlar</div>
+            <!-- XP -->
+            <div class="stat-box-sakura">
+                <i class="bi bi-lightning-fill stat-icon-sakura"></i>
+                <div class="stat-val-sakura">{{ weekly_stats.xp_earned }}</div>
+                <div class="stat-lbl-sakura">XP to'plandi</div>
             </div>
         </div>
     </div>
 
     <!-- 3. Achievements -->
-    <div class="content-card">
-        <div class="card-header-flex">
-            <div class="card-title">
-                <div class="card-title-icon"><i class="bi bi-award-fill"></i></div>
-                Yutuqlar
-            </div>
-            <div class="card-count">{{ badges_display|length }}</div>
-        </div>
-
+    <div class="section-header">Yutuqlar</div>
+    <div class="achievements-wrapper">
         <div class="achievements-scroll">
             {% for item in badges_display %}
-                <div class="badge-wrap {% if item.is_earned %}earned{% else %}locked{% endif %}">
-                    <div class="badge-icon-circle">
+                <div class="badge-item {% if item.is_earned %}badge-earned{% else %}badge-locked{% endif %}">
+                    <div class="badge-circle">
                         {% if item.badge.icon %}
-                            <img src="{{ item.badge.icon.url }}" class="badge-img-sm">
+                            <img src="{{ item.badge.icon.url }}" class="badge-img">
                         {% else %}
-                            <i class="bi bi-trophy-fill text-muted"></i>
+                            <i class="bi bi-trophy-fill text-warning fs-4"></i>
                         {% endif %}
 
                         {% if not item.is_earned %}
-                            <div class="badge-lock-icon"><i class="bi bi-lock-fill"></i></div>
+                            <div class="lock-icon"><i class="bi bi-lock-fill"></i></div>
                         {% endif %}
                     </div>
-                    <div class="badge-lbl">{{ item.badge.name }}</div>
-                    <div class="badge-sub">{% if item.is_earned %}Ochilgan{% else %}Qulflangan{% endif %}</div>
+                    <div class="badge-name">{{ item.badge.name }}</div>
                 </div>
             {% endfor %}
         </div>
     </div>
 
-    <!-- 4. My Vocabulary Link -->
-    <a href="{% url 'my_vocabulary' %}" class="content-card vocab-card">
-        <div class="vocab-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
-        <div class="vocab-text">Mening Lug'atim</div>
-        <i class="bi bi-chevron-right text-muted"></i>
-    </a>
+    <!-- 4. Action Grid (Home Style) -->
+    <div class="section-header">Menyu</div>
+    <div class="profile-grid-menu">
 
-    <!-- 5. Action Grid -->
-    <div class="action-grid">
-        <!-- Rejim (Theme Toggle) - Functional via JS -->
-        <a href="#" class="action-btn" id="profile-theme-toggle">
-            <div class="action-icon bg-dark-icon"><i class="bi bi-moon-fill"></i></div>
-            <div class="action-lbl">Rejim</div>
+        <!-- My Vocabulary -->
+        <a href="{% url 'my_vocabulary' %}" class="grid-action-btn">
+            <div class="grid-icon-box">
+                <i class="bi bi-journal-text"></i>
+            </div>
+            <div class="grid-label">Mening Lug'atim</div>
+            <div class="grid-sub">Barcha so'zlar</div>
         </a>
 
-        <!-- Yangi So'z (Add Word) -->
-        <a href="{% url 'add_word' %}" class="action-btn">
-            <div class="action-icon bg-new-icon"><i class="bi bi-stars"></i></div>
-            <div class="action-lbl">Yangi so'z</div>
+        <!-- Add Word -->
+        <a href="{% url 'add_word' %}" class="grid-action-btn">
+            <div class="grid-icon-box">
+                <i class="bi bi-plus-lg"></i>
+            </div>
+            <div class="grid-label">So'z qo'shish</div>
+            <div class="grid-sub">Yangi so'z</div>
         </a>
 
-        <!-- Leagues -->
-        <a href="{% url 'leagues' %}" class="action-btn">
-            <div class="action-icon bg-league-icon"><i class="bi bi-trophy"></i></div>
-            <div class="action-lbl">Leagues</div>
+        <!-- Theme Toggle -->
+        <a href="#" class="grid-action-btn" id="theme-toggle-btn">
+            <div class="grid-icon-box">
+                <i class="bi bi-palette"></i>
+            </div>
+            <div class="grid-label">Rejim</div>
+            <div class="grid-sub">Light / Dark</div>
         </a>
 
-        <!-- Yordam (Help - Placeholder) -->
-        <a href="#" class="action-btn" style="opacity: 0.6;">
-            <div class="action-icon bg-help-icon"><i class="bi bi-question-lg"></i></div>
-            <div class="action-lbl">Yordam</div>
+        <!-- Settings (Placeholder) -->
+        <a href="#" class="grid-action-btn">
+            <div class="grid-icon-box">
+                <i class="bi bi-gear"></i>
+            </div>
+            <div class="grid-label">Sozlamalar</div>
+            <div class="grid-sub">Profil tahriri</div>
         </a>
+
     </div>
 
-    <!-- 6. Logout -->
-    <a href="{% url 'logout' %}" class="logout-link">
-        <i class="bi bi-box-arrow-right"></i> Tizimdan chiqish
-    </a>
+    <!-- 5. Logout Link -->
+    <div class="settings-list mt-4">
+        <a href="{% url 'logout' %}" class="settings-item text-danger">
+            <i class="bi bi-box-arrow-right"></i> Tizimdan chiqish
+        </a>
+    </div>
 
 </div>
 
 <script>
-    // Simple theme toggle handler for the 'Rejim' button
-    document.getElementById('profile-theme-toggle').addEventListener('click', function(e) {
+    // Theme Toggle Logic
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    themeBtn.addEventListener('click', function(e) {
         e.preventDefault();
         document.body.classList.toggle('dark-mode');
 
-        // Update icon based on mode
-        const icon = this.querySelector('i');
+        // Save preference
         if (document.body.classList.contains('dark-mode')) {
-            icon.classList.remove('bi-moon-fill');
-            icon.classList.add('bi-sun-fill');
             localStorage.setItem('sakura_theme_vfinal', 'dark');
         } else {
-            icon.classList.remove('bi-sun-fill');
-            icon.classList.add('bi-moon-fill');
             localStorage.setItem('sakura_theme_vfinal', 'light');
         }
     });
 
-    // Initial check
+    // Check saved theme on load (if not handled by base.html)
     if (localStorage.getItem('sakura_theme_vfinal') === 'dark') {
-        const icon = document.querySelector('#profile-theme-toggle i');
-        if(icon) {
-            icon.classList.remove('bi-moon-fill');
-            icon.classList.add('bi-sun-fill');
-        }
+        document.body.classList.add('dark-mode');
     }
 </script>
 
