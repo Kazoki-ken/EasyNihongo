@@ -352,6 +352,17 @@
         margin-top: 2px;
     }
 
+    /* --- FIX: Icon Backgrounds in Dark Mode --- */
+    /* Ensure all icon boxes (except toggle, which has specific overrides) have a visible gray bg in dark mode */
+    body.dark-mode .grid-icon-box {
+        background-color: rgba(108, 117, 125, 0.1); /* Gray transparent bg for items without inline bg */
+    }
+
+    /* Specific overrides for buttons that might lose their color in dark mode if we aren't careful */
+    body.dark-mode .grid-action-btn .grid-icon-box {
+        /* Keep text color bright, ensure bg is visible */
+    }
+
 
     /* 6. Settings List (Optional - Below grid) */
     .settings-list {
@@ -491,25 +502,25 @@
     <div class="section-header">Menyu</div>
     <div class="profile-grid-menu">
 
-        <!-- My Vocabulary -->
+        <!-- My Vocabulary (Row 1) -->
         <a href="{% url 'my_vocabulary' %}" class="grid-action-btn">
-            <div class="grid-icon-box">
+            <div class="grid-icon-box" style="color: var(--accent-primary);">
                 <i class="bi bi-journal-text"></i>
             </div>
             <div class="grid-label">Mening Lug'atim</div>
             <div class="grid-sub">Barcha so'zlar</div>
         </a>
 
-        <!-- Add Word -->
+        <!-- Add Word (Row 1) -->
         <a href="{% url 'add_word' %}" class="grid-action-btn">
-            <div class="grid-icon-box">
+            <div class="grid-icon-box" style="color: var(--accent-primary);">
                 <i class="bi bi-plus-lg"></i>
             </div>
             <div class="grid-label">So'z qo'shish</div>
             <div class="grid-sub">Yangi so'z</div>
         </a>
 
-        <!-- Theme Toggle -->
+        <!-- Theme Toggle (Row 2) -->
         <a href="#" class="grid-action-btn" id="profile-theme-toggle">
             <div class="grid-icon-box">
                 <!-- Icon will be set by JS -->
@@ -519,7 +530,7 @@
             <div class="grid-sub">Light / Dark</div>
         </a>
 
-        <!-- Leagues (New Position) -->
+        <!-- Leagues (Row 2) -->
         <a href="{% url 'leagues' %}" class="grid-action-btn">
             <div class="grid-icon-box" style="color: #009688; background-color: rgba(0, 150, 136, 0.1);">
                 <i class="bi bi-trophy"></i>
@@ -528,7 +539,7 @@
             <div class="grid-sub">Top reyting</div>
         </a>
 
-        <!-- Yordam (Help - New) -->
+        <!-- Yordam (Row 3) -->
         <a href="https://t.me/Kazoki_K" class="grid-action-btn" target="_blank">
             <div class="grid-icon-box" style="color: #607d8b; background-color: rgba(96, 125, 139, 0.1);">
                 <i class="bi bi-question-lg"></i>
@@ -537,7 +548,7 @@
             <div class="grid-sub">Admin bilan aloqa</div>
         </a>
 
-        <!-- Settings (Moved) -->
+        <!-- Settings (Row 3) -->
         <a href="#" class="grid-action-btn">
             <div class="grid-icon-box" style="color: #6c757d; background-color: rgba(108, 117, 125, 0.1);">
                 <i class="bi bi-gear"></i>
