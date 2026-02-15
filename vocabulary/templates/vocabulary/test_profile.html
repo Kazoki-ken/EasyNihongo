@@ -327,7 +327,6 @@
     }
 
     /* THEME TOGGLE BUTTON STYLES (Dynamic) */
-    /* Using specific ID selector to override generic class */
     #profile-theme-toggle .grid-icon-box {
         color: #ff9f43; /* Sun color default */
         background-color: rgba(255, 159, 67, 0.1);
@@ -450,11 +449,11 @@
                 </div>
                 <div class="stat-lbl-sakura">Aniqlik</div>
             </div>
-            <!-- XP -->
+            <!-- Coin (Changed from XP) -->
             <div class="stat-box-sakura">
-                <i class="bi bi-lightning-fill stat-icon-sakura"></i>
-                <div class="stat-val-sakura">{{ weekly_stats.xp_earned }}</div>
-                <div class="stat-lbl-sakura">XP to'plandi</div>
+                <i class="bi bi-coin stat-icon-sakura"></i>
+                <div class="stat-val-sakura">{{ weekly_stats.coins_earned }}</div>
+                <div class="stat-lbl-sakura">Coin to'plandi</div>
             </div>
         </div>
     </div>
@@ -510,7 +509,7 @@
             <div class="grid-sub">Yangi so'z</div>
         </a>
 
-        <!-- Theme Toggle (FIXED: ID conflict resolved) -->
+        <!-- Theme Toggle -->
         <a href="#" class="grid-action-btn" id="profile-theme-toggle">
             <div class="grid-icon-box">
                 <!-- Icon will be set by JS -->
@@ -520,7 +519,25 @@
             <div class="grid-sub">Light / Dark</div>
         </a>
 
-        <!-- Settings (Placeholder) -->
+        <!-- Leagues (New Position) -->
+        <a href="{% url 'leagues' %}" class="grid-action-btn">
+            <div class="grid-icon-box" style="color: #009688; background-color: rgba(0, 150, 136, 0.1);">
+                <i class="bi bi-trophy"></i>
+            </div>
+            <div class="grid-label">Leagues</div>
+            <div class="grid-sub">Top reyting</div>
+        </a>
+
+        <!-- Yordam (Help - New) -->
+        <a href="https://t.me/Kazoki_K" class="grid-action-btn" target="_blank">
+            <div class="grid-icon-box" style="color: #607d8b; background-color: rgba(96, 125, 139, 0.1);">
+                <i class="bi bi-question-lg"></i>
+            </div>
+            <div class="grid-label">Yordam</div>
+            <div class="grid-sub">Admin bilan aloqa</div>
+        </a>
+
+        <!-- Settings (Moved) -->
         <a href="#" class="grid-action-btn">
             <div class="grid-icon-box" style="color: #6c757d; background-color: rgba(108, 117, 125, 0.1);">
                 <i class="bi bi-gear"></i>
@@ -542,7 +559,6 @@
 
 <script>
     // Theme Toggle Logic
-    // Using a unique ID 'profile-theme-toggle' to avoid conflicts with base.html
     const profileThemeBtn = document.getElementById('profile-theme-toggle');
     const profileThemeIcon = profileThemeBtn.querySelector('i');
     const STORAGE_KEY = 'sakura_theme_vfinal';
@@ -572,7 +588,6 @@
     });
 
     // Check saved theme on load
-    // We check immediately to prevent FOUC, although base.html might also do it
     const currentTheme = localStorage.getItem(STORAGE_KEY);
     if (currentTheme === 'dark') {
         document.body.classList.add('dark-mode');
