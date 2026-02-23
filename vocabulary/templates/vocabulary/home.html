@@ -521,52 +521,52 @@
                 <div class="grid-menu">
                     <div class="row row-cols-4 g-3">
                         <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-referral"><i class="bi bi-link-45deg"></i></div>
-                                <div class="grid-label">Referral</div>
+                            <a href="{% url 'dashboard' %}" class="grid-item">
+                                <div class="icon-box icon-referral"><i class="bi bi-book-fill"></i></div>
+                                <div class="grid-label">Lug'at</div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-podcast"><i class="bi bi-mic-fill"></i></div>
-                                <div class="grid-label">Level Podcast</div>
-                            </a>
-                        </div>
-                        <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-market"><i class="bi bi-cart-fill"></i></div>
-                                <div class="grid-label">Marketplace</div>
+                            <a href="{% url 'games_menu' %}" class="grid-item">
+                                <div class="icon-box icon-market"><i class="bi bi-controller"></i></div>
+                                <div class="grid-label">O'yinlar</div>
                             </a>
                         </div>
                         <div class="col">
                             <a href="{% url 'ai_chat' %}" class="grid-item">
-                                <div class="icon-box icon-bot"><i class="bi bi-chat-quote-fill"></i></div>
-                                <div class="grid-label">Alomat bot</div>
+                                <div class="icon-box icon-assist"><i class="bi bi-robot"></i></div>
+                                <div class="grid-label">AI Yordamchi</div>
+                            </a>
+                        </div>
+                        <div class="col">
+                            <a href="{% url 'alifbo' %}" class="grid-item">
+                                <div class="icon-box icon-trans"><i class="bi bi-type"></i></div>
+                                <div class="grid-label">Alifbo</div>
                             </a>
                         </div>
 
                         <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-assist"><i class="bi bi-headset"></i></div>
-                                <div class="grid-label">Speaking Assist...</div>
+                            <a href="{% url 'pomodoro' %}" class="grid-item">
+                                <div class="icon-box icon-podcast"><i class="bi bi-stopwatch"></i></div>
+                                <div class="grid-label">Pamidor</div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-trans"><i class="bi bi-translate"></i></div>
-                                <div class="grid-label">Translator</div>
+                            <a href="#" class="grid-item" onclick="return false;">
+                                <div class="icon-box icon-control"><i class="bi bi-hourglass"></i></div>
+                                <div class="grid-label">Tez orada</div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-control"><i class="bi bi-sliders"></i></div>
-                                <div class="grid-label">System Control</div>
+                            <a href="#" class="grid-item" onclick="return false;">
+                                <div class="icon-box icon-control"><i class="bi bi-hourglass"></i></div>
+                                <div class="grid-label">Tez orada</div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="#" class="grid-item">
-                                <div class="icon-box icon-exclusive"><i class="bi bi-gem"></i></div>
-                                <div class="grid-label">Exclusive</div>
+                            <a href="{% url 'premium' %}" class="grid-item">
+                                <div class="icon-box icon-bot"><i class="bi bi-gem"></i></div>
+                                <div class="grid-label">Premium</div>
                             </a>
                         </div>
                     </div>
