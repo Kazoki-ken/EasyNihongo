@@ -1266,6 +1266,18 @@ def ai_chat_view(request):
     global_api_key = config.gemini_api_key if config else ""
     return render(request, 'vocabulary/ai_chat.html', {'global_api_key': global_api_key})
 
+@login_required
+def alifbo_view(request):
+    return render(request, 'vocabulary/alifbo.html')
+
+@login_required
+def pomodoro_view(request):
+    return render(request, 'vocabulary/pomodoro.html')
+
+@login_required
+def premium_view(request):
+    return render(request, 'vocabulary/premium.html')
+
 
 @login_required
 def edge_tts_view(request):

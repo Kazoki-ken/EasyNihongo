@@ -51,5 +51,8 @@ urlpatterns = [
     path('upload-words/', views.upload_words, name='upload_words'),
     path('upload-book-words/', views.upload_book_words, name='upload_book_words'),
     path('ai-chat/', views.ai_chat_view, name='ai_chat'),
+    path('alifbo/', views.alifbo_view, name='alifbo'),
+    path('pomodoro/', views.pomodoro_view, name='pomodoro'),
+    path('premium/', views.premium_view, name='premium'),
     path('api/tts/', views.edge_tts_view, name='edge_tts_api'),
 ]
