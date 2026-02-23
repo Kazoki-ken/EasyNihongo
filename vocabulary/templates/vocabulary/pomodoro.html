@@ -5,39 +5,55 @@
     <!-- TIMER SECTION -->
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="card sakura-card p-4 text-center position-relative overflow-hidden">
+            <div class="card bg-dark-card p-4 text-center position-relative overflow-hidden shadow-lg border-0">
                 <!-- Modes (Tabs) -->
                 <div class="d-flex justify-content-center mb-4 gap-2">
-                    <button class="btn btn-sm btn-outline-danger active-mode" id="btn-focus" onclick="setMode('focus')">Focus</button>
-                    <button class="btn btn-sm btn-outline-secondary" id="btn-short" onclick="setMode('short')">Short Break</button>
-                    <button class="btn btn-sm btn-outline-secondary" id="btn-long" onclick="setMode('long')">Long Break</button>
+                    <button class="btn btn-sm mode-btn active-mode" id="btn-focus" onclick="setMode('focus')">Focus</button>
+                    <button class="btn btn-sm mode-btn" id="btn-short" onclick="setMode('short')">Short Break</button>
+                    <button class="btn btn-sm mode-btn" id="btn-long" onclick="setMode('long')">Long Break</button>
                 </div>
 
                 <!-- Circular Timer -->
-                <div class="position-relative d-inline-block mb-4" style="width: 220px; height: 220px;">
+                <div class="position-relative d-inline-block mb-4" style="width: 260px; height: 260px;">
                     <!-- SVG Circle -->
                     <svg class="w-100 h-100" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="sakuraGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:var(--accent-primary);stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:var(--accent-secondary);stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#20c997;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#a2f2d8;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#0d6efd;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#6ea8fe;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+
                         <!-- Background Circle -->
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="#eee" stroke-width="5"></circle>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border-color, rgba(255,255,255,0.1))" stroke-width="4"></circle>
                         <!-- Progress Circle -->
-                        <circle id="timer-progress" cx="50" cy="50" r="45" fill="none" stroke="#ff6b81" stroke-width="5"
+                        <circle id="timer-progress" cx="50" cy="50" r="45" fill="none" stroke="url(#sakuraGradient)" stroke-width="4"
                                 stroke-dasharray="283" stroke-dashoffset="0" transform="rotate(-90 50 50)"
+                                stroke-linecap="round"
                                 style="transition: stroke-dashoffset 1s linear;"></circle>
                     </svg>
 
                     <!-- Time Display -->
                     <div class="position-absolute top-50 start-50 translate-middle">
-                        <h1 class="display-3 fw-bold mb-0" id="timer-display" style="color: var(--text-main, #333);">25:00</h1>
-                        <small class="text-muted d-block mt-2" id="timer-status">DIQQAT</small>
+                        <h1 class="display-1 fw-bold mb-0" id="timer-display" style="color: var(--text-main); font-family: 'Nunito', sans-serif;">25:00</h1>
+                        <small class="text-muted d-block mt-1 fw-bold" id="timer-status" style="font-size: 0.9rem; letter-spacing: 1px;">DIQQAT</small>
                     </div>
                 </div>
 
                 <!-- Controls -->
                 <div class="d-flex justify-content-center gap-3 mb-3">
-                    <button class="btn btn-lg btn-danger px-4 rounded-pill shadow-sm" id="btn-start" onclick="toggleTimer()">
+                    <button class="btn btn-lg btn-gradient px-5 rounded-pill shadow-sm fw-bold" id="btn-start" onclick="toggleTimer()">
                         <i class="bi bi-play-fill me-1"></i> Boshlash
                     </button>
-                    <button class="btn btn-lg btn-outline-secondary px-3 rounded-circle" onclick="resetTimer()" title="Reset">
+                    <button class="btn btn-lg btn-outline-secondary px-3 rounded-circle" onclick="resetTimer()" title="Reset" style="border-color: var(--border-color); color: var(--text-muted);">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </button>
                 </div>
@@ -48,13 +64,13 @@
     <!-- TASKS SECTION -->
     <div class="row justify-content-center mt-4">
         <div class="col-md-6 col-lg-5">
-            <div class="card sakura-card p-3">
-                <h5 class="fw-bold mb-3"><i class="bi bi-list-check me-2 text-danger"></i>Bugungi Vazifalar</h5>
+            <div class="card bg-dark-card p-3 border-0 shadow-sm">
+                <h5 class="fw-bold mb-3" style="color: var(--text-main);"><i class="bi bi-list-check me-2 text-sakura"></i>Bugungi Vazifalar</h5>
 
                 <!-- Input -->
                 <div class="input-group mb-3">
-                    <input type="text" id="task-input" class="form-control border-end-0" placeholder="Yangi vazifa qo'shish..." onkeypress="handleEnter(event)">
-                    <button class="btn btn-outline-danger border-start-0" type="button" onclick="addTask()">
+                    <input type="text" id="task-input" class="form-control border-end-0 custom-input" placeholder="Yangi vazifa qo'shish..." onkeypress="handleEnter(event)">
+                    <button class="btn btn-outline-secondary border-start-0" type="button" onclick="addTask()" style="border-color: var(--border-color); color: var(--accent-primary);">
                         <i class="bi bi-plus-lg"></i>
                     </button>
                 </div>
@@ -62,7 +78,7 @@
                 <!-- List -->
                 <ul class="list-group list-group-flush" id="task-list">
                     <!-- Tasks will be injected here via JS -->
-                    <li class="list-group-item text-muted text-center py-3 empty-state">
+                    <li class="list-group-item bg-transparent text-muted text-center py-3 empty-state border-0">
                         Hozircha vazifalar yo'q
                     </li>
                 </ul>
@@ -72,20 +88,109 @@
 </div>
 
 <style>
-    .active-mode {
-        background-color: #ff6b81 !important;
-        color: white !important;
-        border-color: #ff6b81 !important;
-    }
-    .task-done span {
-        text-decoration: line-through;
-        color: #adb5bd;
+    /* Custom Styles based on Home.html Theme */
+    :root {
+        --bg-body: #000000;
+        --bg-main: #121212;
+        --card-bg: #1e1e1e;
+        --text-main: #ffffff;
+        --text-muted: #adb5bd;
+        --border-color: rgba(255,255,255,0.1);
+        --accent-primary: #ff6b81;
+        --accent-secondary: #ff8fab;
     }
 
-    /* Dark Mode Support via Base Variables */
-    body.dark-mode .empty-state { color: #6c757d !important; }
-    body.dark-mode #timer-display { color: #fff !important; }
-    body.dark-mode circle[stroke="#eee"] { stroke: #333; }
+    body {
+        background-color: var(--bg-main) !important;
+        color: var(--text-main) !important;
+    }
+
+    .bg-dark-card {
+        background-color: var(--card-bg);
+        border-radius: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    .text-sakura {
+        color: var(--accent-primary);
+    }
+
+    /* Mode Buttons */
+    .mode-btn {
+        background-color: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .mode-btn:hover {
+        background-color: rgba(255,255,255,0.05);
+        color: var(--text-main);
+    }
+
+    .mode-btn.active-mode {
+        background-color: rgba(255, 107, 129, 0.15); /* Transparent Pink */
+        color: var(--accent-primary);
+        border-color: var(--accent-primary);
+    }
+
+    /* Gradient Start Button */
+    .btn-gradient {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 107, 129, 0.4) !important;
+        color: white;
+    }
+
+    .btn-gradient:active {
+        transform: scale(0.98);
+    }
+
+    /* Input Field */
+    .custom-input {
+        background-color: rgba(255,255,255,0.05);
+        border-color: var(--border-color);
+        color: var(--text-main);
+        border-radius: 12px 0 0 12px !important;
+    }
+
+    .custom-input::placeholder {
+        color: var(--text-muted);
+        opacity: 0.7;
+    }
+
+    .custom-input:focus {
+        background-color: rgba(255,255,255,0.08);
+        border-color: var(--accent-primary);
+        color: var(--text-main);
+        box-shadow: none;
+    }
+
+    /* Task List Items */
+    .list-group-item {
+        background-color: transparent;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+
+    .task-done span {
+        text-decoration: line-through;
+        color: var(--text-muted);
+        opacity: 0.6;
+    }
+
+    .task-done i.bi-check-circle-fill {
+        color: var(--accent-primary) !important;
+    }
 </style>
 
 <script>
@@ -95,6 +200,7 @@
     let totalTime = 25 * 60;
     let isRunning = false;
     let currentMode = 'focus'; // focus, short, long
+    let audioCtx; // AudioContext for sound
 
     const timerDisplay = document.getElementById('timer-display');
     const timerStatus = document.getElementById('timer-status');
@@ -118,6 +224,14 @@
     }
 
     function toggleTimer() {
+        // Initialize AudioContext on first user gesture
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
         if (isRunning) {
             pauseTimer();
         } else {
@@ -131,8 +245,6 @@
 
         // Update UI
         startBtn.innerHTML = '<i class="bi bi-pause-fill me-1"></i> To\'xtatish';
-        startBtn.classList.replace('btn-danger', 'btn-warning');
-        startBtn.classList.replace('text-white', 'text-dark');
 
         timerInterval = setInterval(() => {
             if (timeLeft > 0) {
@@ -151,8 +263,6 @@
 
         // Update UI
         startBtn.innerHTML = '<i class="bi bi-play-fill me-1"></i> Davom ettirish';
-        startBtn.classList.replace('btn-warning', 'btn-danger');
-        startBtn.classList.replace('text-dark', 'text-white');
     }
 
     function resetTimer() {
@@ -172,7 +282,6 @@
         playNotificationSound();
         startBtn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Qayta boshlash';
 
-        // Browser notification (optional)
         if (Notification.permission === "granted") {
             new Notification("Vaqt tugadi!", { body: currentMode === 'focus' ? "Tanaffus vaqti!" : "Ishga qaytish vaqti!" });
         } else if (Notification.permission !== "denied") {
@@ -184,20 +293,21 @@
         currentMode = mode;
 
         // Update Buttons
-        document.querySelectorAll('.btn-group button, .d-flex button').forEach(btn => btn.classList.remove('active-mode'));
+        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active-mode'));
 
         if (mode === 'focus') {
             document.getElementById('btn-focus').classList.add('active-mode');
             setTime(25, 'DIQQAT');
-            progressCircle.style.stroke = '#ff6b81'; // Pink
+            progressCircle.style.stroke = 'url(#sakuraGradient)';
+            // Update button styles if needed specific to mode? Keep consistent Pink for Focus.
         } else if (mode === 'short') {
             document.getElementById('btn-short').classList.add('active-mode');
             setTime(5, 'QISQA TANAFFUS');
-            progressCircle.style.stroke = '#20c997'; // Green/Teal
+            progressCircle.style.stroke = 'url(#tealGradient)';
         } else {
             document.getElementById('btn-long').classList.add('active-mode');
             setTime(15, 'UZUN TANAFFUS');
-            progressCircle.style.stroke = '#0d6efd'; // Blue
+            progressCircle.style.stroke = 'url(#blueGradient)';
         }
 
         pauseTimer();
@@ -212,20 +322,22 @@
     }
 
     function playNotificationSound() {
-        // Simple beep using Web Audio API or Audio object
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        if (!audioCtx) {
+             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
 
         oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        gainNode.connect(audioCtx.destination);
 
         oscillator.type = 'sine';
-        oscillator.frequency.value = 880; // A5
+        oscillator.frequency.value = 880;
         gainNode.gain.value = 0.1;
 
         oscillator.start();
-        setTimeout(() => oscillator.stop(), 500); // 0.5 sec beep
+        setTimeout(() => oscillator.stop(), 500);
     }
 
     // --- TASKS LOGIC (LocalStorage) ---
@@ -236,7 +348,7 @@
     function renderTasks() {
         taskList.innerHTML = '';
         if (tasks.length === 0) {
-            taskList.innerHTML = '<li class="list-group-item text-muted text-center py-3 empty-state">Hozircha vazifalar yo\'q</li>';
+            taskList.innerHTML = '<li class="list-group-item bg-transparent text-muted text-center py-3 empty-state border-0">Hozircha vazifalar yo\'q</li>';
             return;
         }
 
@@ -244,18 +356,18 @@
             const li = document.createElement('li');
             li.className = `list-group-item d-flex justify-content-between align-items-center ${task.done ? 'task-done' : ''}`;
 
-            // Safe DOM creation to prevent XSS
+            // Safe DOM creation
             const div = document.createElement('div');
             div.className = "d-flex align-items-center";
             div.style.cursor = "pointer";
             div.onclick = () => toggleTask(index);
 
             const icon = document.createElement('i');
-            icon.className = `bi ${task.done ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted'} me-3 fs-5`;
+            icon.className = `bi ${task.done ? 'bi-check-circle-fill' : 'bi-circle text-muted'} me-3 fs-5`;
 
             const span = document.createElement('span');
             span.className = "fw-bold";
-            span.textContent = task.text; // Safe assignment
+            span.textContent = task.text;
 
             div.appendChild(icon);
             div.appendChild(span);
@@ -301,11 +413,9 @@
         if (e.key === 'Enter') addTask();
     }
 
-    // Init
     updateDisplay();
     renderTasks();
 
-    // Request Notification Permission on load
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
         Notification.requestPermission();
     }
