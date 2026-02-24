@@ -13,10 +13,29 @@
         <div class="card-body">
             <h5 class="card-title mb-3" style="color: #ff8fab;">Sozlamalar</h5>
 
-            <!-- Row Selection -->
-            <label class="form-label text-muted small fw-bold">Qatorlarni tanlang:</label>
-            <div class="d-flex flex-wrap gap-2 mb-4" id="row-selectors">
-                <!-- Will be populated by JS -->
+            <!-- Character Selection (Accordion for space saving) -->
+            <div class="accordion accordion-flush mb-4" id="charAccordion">
+                <div class="accordion-item border-0">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button collapsed rounded-3 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="background-color: #fff5f7; color: #ff6b81;">
+                            <i class="bi bi-grid-3x3-gap-fill me-2"></i> Harflarni tanlash (<span id="selected-count">0</span>)
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#charAccordion">
+                        <div class="accordion-body px-0">
+                            <!-- Helper buttons -->
+                            <div class="d-flex justify-content-end gap-2 mb-3 px-2">
+                                <button id="btn-clear-all" class="btn btn-sm btn-outline-secondary">Tozalash</button>
+                                <button id="btn-select-all" class="btn btn-sm btn-outline-primary">Hammasi</button>
+                            </div>
+
+                            <!-- Rows Container -->
+                            <div id="char-grid" class="d-flex flex-column gap-3">
+                                <!-- Will be populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Length Slider -->
@@ -26,9 +45,14 @@
     </div>
 
     <!-- Display Card -->
-    <div class="card shadow border-0 mb-4 text-center py-5" style="border-radius: 20px; background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%);">
+    <div class="card shadow border-0 mb-4 text-center py-5 position-relative" style="border-radius: 20px; background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%);">
+        <!-- Swap Button (Top Right) -->
+        <button id="btn-swap" class="btn btn-sm btn-light position-absolute top-0 end-0 m-3 shadow-sm rounded-circle" style="width: 40px; height: 40px; color: #ff6b81; border: 1px solid #ffebf0;" title="Almashtirish">
+            <i class="bi bi-arrow-repeat fs-5"></i>
+        </button>
+
         <div class="card-body">
-            <!-- Random Word -->
+            <!-- Random Word (Question) -->
             <div id="word-display" class="display-1 fw-bold mb-3" style="color: #333; min-height: 80px;">
                 ...
             </div>
@@ -46,172 +70,228 @@
     <!-- Controls -->
     <div class="row g-3">
         <div class="col-6">
-            <button id="btn-show" class="btn w-100 py-3 fw-bold shadow-sm" style="border: 2px solid #ff6b81; color: #ff6b81; background: white; border-radius: 12px;">
-                <i class="bi bi-eye me-2"></i>Ko'rish
+            <button id="btn-next" class="btn w-100 py-3 fw-bold shadow-sm text-white" style="background: linear-gradient(45deg, #ff6b81, #ff8fab); border: none; border-radius: 12px;">
+                Keyingisi<i class="bi bi-arrow-right ms-2"></i>
             </button>
         </div>
         <div class="col-6">
-            <button id="btn-next" class="btn w-100 py-3 fw-bold shadow-sm text-white" style="background: linear-gradient(45deg, #ff6b81, #ff8fab); border: none; border-radius: 12px;">
-                Keyingisi<i class="bi bi-arrow-right ms-2"></i>
+            <button id="btn-show" class="btn w-100 py-3 fw-bold shadow-sm" style="border: 2px solid #ff6b81; color: #ff6b81; background: white; border-radius: 12px;">
+                <i class="bi bi-eye me-2"></i>Ko'rish
             </button>
         </div>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Data Structure (Hiragana Mapping)
-    const hiraganaMap = {
-        'a':  [
-            {h:'あ', r:'a'}, {h:'い', r:'i'}, {h:'う', r:'u'}, {h:'え', r:'e'}, {h:'お', r:'o'}
-        ],
-        'ka': [
-            {h:'か', r:'ka'}, {h:'き', r:'ki'}, {h:'く', r:'ku'}, {h:'け', r:'ke'}, {h:'こ', r:'ko'}
-        ],
-        'sa': [
-            {h:'さ', r:'sa'}, {h:'し', r:'shi'}, {h:'す', r:'su'}, {h:'せ', r:'se'}, {h:'そ', r:'so'}
-        ],
-        'ta': [
-            {h:'た', r:'ta'}, {h:'ち', r:'chi'}, {h:'つ', r:'tsu'}, {h:'て', r:'te'}, {h:'と', r:'to'}
-        ],
-        'na': [
-            {h:'な', r:'na'}, {h:'に', r:'ni'}, {h:'ぬ', r:'nu'}, {h:'ね', r:'ne'}, {h:'の', r:'no'}
-        ],
-        'ha': [
-            {h:'は', r:'ha'}, {h:'ひ', r:'hi'}, {h:'ふ', r:'fu'}, {h:'へ', r:'he'}, {h:'ほ', r:'ho'}
-        ],
-        'ma': [
-            {h:'ま', r:'ma'}, {h:'み', r:'mi'}, {h:'む', r:'mu'}, {h:'め', r:'me'}, {h:'も', r:'mo'}
-        ],
-        'ya': [
-            {h:'や', r:'ya'}, {h:'ゆ', r:'yu'}, {h:'よ', r:'yo'}
-        ],
-        'ra': [
-            {h:'ら', r:'ra'}, {h:'り', r:'ri'}, {h:'る', r:'ru'}, {h:'れ', r:'re'}, {h:'ろ', r:'ro'}
-        ],
-        'wa': [
-            {h:'わ', r:'wa'}, {h:'を', r:'wo'}, {h:'ん', r:'n'}
-        ]
-    };
+    document.addEventListener('DOMContentLoaded', function() {
+        // Global Data
+        const hiraganaData = [
+            { row: 'Unlilar', chars: [ {h:'あ', r:'a'}, {h:'い', r:'i'}, {h:'う', r:'u'}, {h:'え', r:'e'}, {h:'お', r:'o'} ] },
+            { row: 'K-qator', chars: [ {h:'か', r:'ka'}, {h:'き', r:'ki'}, {h:'く', r:'ku'}, {h:'け', r:'ke'}, {h:'こ', r:'ko'} ] },
+            { row: 'S-qator', chars: [ {h:'さ', r:'sa'}, {h:'し', r:'shi'}, {h:'す', r:'su'}, {h:'せ', r:'se'}, {h:'そ', r:'so'} ] },
+            { row: 'T-qator', chars: [ {h:'た', r:'ta'}, {h:'ち', r:'chi'}, {h:'つ', r:'tsu'}, {h:'て', r:'te'}, {h:'と', r:'to'} ] },
+            { row: 'N-qator', chars: [ {h:'な', r:'na'}, {h:'に', r:'ni'}, {h:'ぬ', r:'nu'}, {h:'ね', r:'ne'}, {h:'の', r:'no'} ] },
+            { row: 'H-qator', chars: [ {h:'は', r:'ha'}, {h:'ひ', r:'hi'}, {h:'ふ', r:'fu'}, {h:'へ', r:'he'}, {h:'ほ', r:'ho'} ] },
+            { row: 'M-qator', chars: [ {h:'ま', r:'ma'}, {h:'み', r:'mi'}, {h:'む', r:'mu'}, {h:'め', r:'me'}, {h:'も', r:'mo'} ] },
+            { row: 'Y-qator', chars: [ {h:'や', r:'ya'}, {h:'ゆ', r:'yu'}, {h:'よ', r:'yo'} ] },
+            { row: 'R-qator', chars: [ {h:'ら', r:'ra'}, {h:'り', r:'ri'}, {h:'る', r:'ru'}, {h:'れ', r:'re'}, {h:'ろ', r:'ro'} ] },
+            { row: 'W/N',    chars: [ {h:'わ', r:'wa'}, {h:'を', r:'wo'}, {h:'ん', r:'n'} ] }
+        ];
 
-    // State
-    // Default selection: 'a' and 'ka' as requested by user example
-    let activeRows = new Set(['a', 'ka']);
+        // State Variables
+        let activeChars = new Set();
+        let isSwapped = false;
+        let currentWord = [];
 
-    // DOM Elements
-    const rowSelectorsContainer = document.getElementById('row-selectors');
-    const lengthSlider = document.getElementById('length-slider');
-    const lengthVal = document.getElementById('length-val');
-    const wordDisplay = document.getElementById('word-display');
-    const answerDisplay = document.getElementById('answer-display');
-    const btnShow = document.getElementById('btn-show');
-    const btnNext = document.getElementById('btn-next');
+        // DOM Elements
+        const charGrid = document.getElementById('char-grid');
+        const lengthSlider = document.getElementById('length-slider');
+        const lengthVal = document.getElementById('length-val');
+        const wordDisplay = document.getElementById('word-display');
+        const answerDisplay = document.getElementById('answer-display');
+        const btnShow = document.getElementById('btn-show');
+        const btnNext = document.getElementById('btn-next');
+        const btnSwap = document.getElementById('btn-swap');
+        const selectedCountSpan = document.getElementById('selected-count');
+        const btnClearAll = document.getElementById('btn-clear-all');
+        const btnSelectAll = document.getElementById('btn-select-all');
 
-    // 2. Initialize UI
-    function init() {
-        // Create Row Buttons
-        Object.keys(hiraganaMap).forEach(key => {
-            const btn = document.createElement('button');
-            // Check if active by default
-            const isActive = activeRows.has(key);
+        // Initialization Logic
+        function init() {
+            // Default active: first two rows
+            hiraganaData[0].chars.forEach(c => activeChars.add(JSON.stringify(c)));
+            hiraganaData[1].chars.forEach(c => activeChars.add(JSON.stringify(c)));
 
-            btn.className = `btn btn-sm fw-bold px-3 py-2 rounded-pill ${isActive ? 'text-white' : 'text-muted'}`;
-            btn.style.border = isActive ? 'none' : '1px solid #ddd';
-            btn.style.background = isActive ? '#ff6b81' : 'white';
-            btn.textContent = key.toUpperCase(); // "A", "KA", "SA"...
+            renderGrid();
+            updateSelectedCount();
+            generateWord();
 
-            btn.onclick = () => toggleRow(key, btn);
-            rowSelectorsContainer.appendChild(btn);
-        });
+            // Event Listeners
+            lengthSlider.addEventListener('input', (e) => {
+                lengthVal.textContent = e.target.value;
+            });
 
-        // Generate first word
-        generateWord();
-    }
+            btnShow.addEventListener('click', () => {
+                answerDisplay.style.visibility = 'visible';
+            });
 
-    // 3. Toggle Logic
-    function toggleRow(key, btn) {
-        if (activeRows.has(key)) {
-            // Cannot deselect if it's the last one
-            if (activeRows.size <= 1) return;
-            activeRows.delete(key);
-            // Update visual to inactive
-            btn.style.background = 'white';
-            btn.style.color = '#6c757d'; // text-muted
-            btn.style.border = '1px solid #ddd';
-            btn.classList.remove('text-white');
-        } else {
-            activeRows.add(key);
-            // Update visual to active
-            btn.style.background = '#ff6b81';
-            btn.style.color = 'white';
-            btn.style.border = 'none';
-            btn.classList.add('text-white');
+            btnNext.addEventListener('click', () => {
+                generateWord();
+            });
+
+            btnSwap.addEventListener('click', () => {
+                isSwapped = !isSwapped;
+
+                // Visual update for swap button
+                if (isSwapped) {
+                    btnSwap.style.backgroundColor = '#ffebf0';
+                    btnSwap.style.color = '#d63384';
+                } else {
+                    btnSwap.style.backgroundColor = 'white';
+                    btnSwap.style.color = '#ff6b81';
+                }
+
+                // If word is already generated, update it
+                updateDisplay();
+                // Hide answer on swap to avoid confusion
+                answerDisplay.style.visibility = 'hidden';
+            });
+
+            if(btnClearAll) btnClearAll.addEventListener('click', () => {
+                activeChars.clear();
+                // We need to re-render grid because buttons need to update their state
+                renderGrid();
+                updateSelectedCount();
+            });
+
+            if(btnSelectAll) btnSelectAll.addEventListener('click', () => {
+                hiraganaData.forEach(g => g.chars.forEach(c => activeChars.add(JSON.stringify(c))));
+                renderGrid();
+                updateSelectedCount();
+            });
         }
-    }
 
-    // 4. Generate Word Logic
-    function generateWord() {
-        const length = parseInt(lengthSlider.value);
-        let pool = [];
+        function renderGrid() {
+            charGrid.innerHTML = '';
+            hiraganaData.forEach((group) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'px-2';
 
-        // Build pool from active rows
-        activeRows.forEach(key => {
-            if (hiraganaMap[key]) {
-                pool = pool.concat(hiraganaMap[key]);
+                const label = document.createElement('div');
+                label.className = 'text-muted small fw-bold mb-1';
+                label.textContent = group.row;
+                rowDiv.appendChild(label);
+
+                const btnsDiv = document.createElement('div');
+                btnsDiv.className = 'd-flex flex-wrap gap-2';
+
+                group.chars.forEach(char => {
+                    const charStr = JSON.stringify(char);
+                    const isActive = activeChars.has(charStr);
+
+                    const btn = document.createElement('button');
+                    // Add Bootstrap classes + inline styles for specific look
+                    btn.className = 'btn btn-sm fw-bold px-2 py-1 shadow-sm';
+                    btn.style.borderRadius = '8px';
+                    btn.style.minWidth = '40px';
+
+                    if (isActive) {
+                        btn.style.backgroundColor = '#ff6b81';
+                        btn.style.borderColor = '#ff6b81';
+                        btn.style.color = 'white';
+                    } else {
+                        btn.style.backgroundColor = 'white';
+                        btn.style.borderColor = '#e0e0e0';
+                        btn.style.color = '#6c757d';
+                    }
+
+                    btn.textContent = char.h;
+
+                    btn.onclick = () => {
+                        // Toggle Logic
+                        if (activeChars.has(charStr)) {
+                            activeChars.delete(charStr);
+                            // Optimistic update for speed
+                            btn.style.backgroundColor = 'white';
+                            btn.style.borderColor = '#e0e0e0';
+                            btn.style.color = '#6c757d';
+                        } else {
+                            activeChars.add(charStr);
+                            btn.style.backgroundColor = '#ff6b81';
+                            btn.style.borderColor = '#ff6b81';
+                            btn.style.color = 'white';
+                        }
+                        updateSelectedCount();
+                    };
+                    btnsDiv.appendChild(btn);
+                });
+
+                rowDiv.appendChild(btnsDiv);
+                charGrid.appendChild(rowDiv);
+            });
+        }
+
+        function updateSelectedCount() {
+            if(selectedCountSpan) selectedCountSpan.textContent = activeChars.size;
+        }
+
+        function generateWord() {
+            const length = parseInt(lengthSlider.value);
+
+            if (activeChars.size === 0) {
+                wordDisplay.textContent = "Tanlang!";
+                wordDisplay.style.fontSize = "2rem";
+                answerDisplay.textContent = "";
+                return;
+            } else {
+                wordDisplay.style.fontSize = "";
             }
-        });
 
-        if (pool.length === 0) {
-            wordDisplay.textContent = "Tanlang!";
-            return;
+            const pool = Array.from(activeChars).map(s => JSON.parse(s));
+            currentWord = [];
+
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                currentWord.push(pool[randomIndex]);
+            }
+
+            updateDisplay();
+            answerDisplay.style.visibility = 'hidden';
         }
 
-        let wordH = "";
-        let wordR = "";
+        function updateDisplay() {
+            if (currentWord.length === 0) return;
 
-        for (let i = 0; i < length; i++) {
-            const randomIndex = Math.floor(Math.random() * pool.length);
-            const item = pool[randomIndex];
-            wordH += item.h;
-            wordR += item.r;
+            let questionText = "";
+            let answerText = "";
+
+            if (!isSwapped) {
+                // Mode A: Hiragana Question
+                questionText = currentWord.map(c => c.h).join('');
+                answerText = currentWord.map(c => c.r).join('');
+            } else {
+                // Mode B: Romaji Question
+                questionText = currentWord.map(c => c.r).join('');
+                answerText = currentWord.map(c => c.h).join('');
+            }
+
+            wordDisplay.textContent = questionText;
+            answerDisplay.textContent = answerText;
         }
 
-        // Update DOM
-        wordDisplay.textContent = wordH;
-        answerDisplay.textContent = wordR;
-
-        // Hide answer
-        answerDisplay.style.visibility = 'hidden';
-    }
-
-    // 5. Event Listeners
-    lengthSlider.addEventListener('input', (e) => {
-        lengthVal.textContent = e.target.value;
-        // Optionally auto-regenerate on slide end, but user might want to confirm length first.
-        // Let's just update the number display for now.
+        // Run Init
+        init();
     });
-
-    btnShow.addEventListener('click', () => {
-        answerDisplay.style.visibility = 'visible';
-    });
-
-    btnNext.addEventListener('click', () => {
-        generateWord();
-    });
-
-    // Start
-    init();
-});
 </script>
 
-<!-- Mobile specific style adjustments -->
 <style>
     @media (max-width: 576px) {
         #word-display {
-            font-size: 3.5rem; /* Larger on mobile for visibility */
+            font-size: 3rem;
+            word-break: break-all;
         }
         .container {
-            padding-bottom: 80px; /* Space for bottom nav if present */
+            padding-bottom: 80px;
         }
     }
 </style>
