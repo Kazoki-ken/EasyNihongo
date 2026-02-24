@@ -33,7 +33,7 @@
                         </defs>
 
                         <!-- Background Circle -->
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border-color, rgba(255,255,255,0.1))" stroke-width="4"></circle>
+                        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--circle-bg)" stroke-width="4"></circle>
                         <!-- Progress Circle -->
                         <circle id="timer-progress" cx="50" cy="50" r="45" fill="none" stroke="url(#sakuraGradient)" stroke-width="4"
                                 stroke-dasharray="283" stroke-dashoffset="0" transform="rotate(-90 50 50)"
@@ -88,27 +88,75 @@
 </div>
 
 <style>
-    /* Custom Styles based on Home.html Theme */
+    /* Theme Variables */
     :root {
+        /* Default: Dark Mode */
         --bg-body: #000000;
         --bg-main: #121212;
         --card-bg: #1e1e1e;
         --text-main: #ffffff;
         --text-muted: #adb5bd;
         --border-color: rgba(255,255,255,0.1);
+        --circle-bg: rgba(255,255,255,0.1);
+        --input-bg: rgba(255,255,255,0.05);
+        --input-focus-bg: rgba(255,255,255,0.08);
+
         --accent-primary: #ff6b81;
         --accent-secondary: #ff8fab;
     }
 
-    body {
+    /* Light Mode Override (triggered by body.light-mode) */
+    body.light-mode {
+        --bg-body: #f8f9fa;
+        --bg-main: #ffffff;
+        --card-bg: #ffffff;
+        --text-main: #212529;
+        --text-muted: #6c757d;
+        --border-color: rgba(0,0,0,0.1);
+        --circle-bg: rgba(0,0,0,0.05);
+        --input-bg: #f8f9fa;
+        --input-focus-bg: #ffffff;
+    }
+
+    /* Force Light Mode Background Explicitly */
+    body.light-mode,
+    body.light-mode main,
+    body.light-mode .container,
+    body.light-mode .app-header {
+        background-color: #ffffff !important;
+        color: #212529 !important;
+    }
+
+    /* Ensure card text is correct in light mode (Explicit Override) */
+    body.light-mode .bg-dark-card {
+        background-color: #ffffff !important;
+        border-color: rgba(0,0,0,0.1) !important;
+        color: #212529 !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05) !important;
+    }
+
+    body.light-mode h5 {
+        color: #212529 !important;
+    }
+
+    /* Override base.html styles to use our variables */
+    body, main {
         background-color: var(--bg-main) !important;
         color: var(--text-main) !important;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .bg-dark-card {
         background-color: var(--card-bg);
         border-radius: 24px;
         border: 1px solid var(--border-color);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    /* Ensure card text is correct in light mode */
+    body.light-mode .bg-dark-card {
+        background-color: #ffffff !important;
+        border-color: rgba(0,0,0,0.1) !important;
     }
 
     .text-sakura {
@@ -127,7 +175,7 @@
     }
 
     .mode-btn:hover {
-        background-color: rgba(255,255,255,0.05);
+        background-color: var(--circle-bg);
         color: var(--text-main);
     }
 
@@ -157,7 +205,7 @@
 
     /* Input Field */
     .custom-input {
-        background-color: rgba(255,255,255,0.05);
+        background-color: var(--input-bg);
         border-color: var(--border-color);
         color: var(--text-main);
         border-radius: 12px 0 0 12px !important;
@@ -169,7 +217,7 @@
     }
 
     .custom-input:focus {
-        background-color: rgba(255,255,255,0.08);
+        background-color: var(--input-focus-bg);
         border-color: var(--accent-primary);
         color: var(--text-main);
         box-shadow: none;
@@ -412,6 +460,32 @@
     function handleEnter(e) {
         if (e.key === 'Enter') addTask();
     }
+
+    // --- THEME SYNC LOGIC ---
+    // Ensure this page respects the global theme preference immediately
+    (function() {
+        const STORAGE_KEY = 'sakura_theme_vfinal';
+        const savedTheme = localStorage.getItem(STORAGE_KEY);
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-mode');
+            // Force HTML background to prevent dark edges
+            document.documentElement.style.backgroundColor = '#ffffff';
+        } else {
+            document.body.classList.remove('light-mode');
+            document.documentElement.style.backgroundColor = '';
+        }
+
+        // Listen for changes from other tabs/pages (e.g. if toggled in home)
+        window.addEventListener('storage', (event) => {
+            if (event.key === STORAGE_KEY) {
+                if (event.newValue === 'light') {
+                    document.body.classList.add('light-mode');
+                } else {
+                    document.body.classList.remove('light-mode');
+                }
+            }
+        });
+    })();
 
     updateDisplay();
     renderTasks();
