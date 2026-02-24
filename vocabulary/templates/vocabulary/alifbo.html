@@ -84,7 +84,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Global Data
+        // Global Data with "Empty" placeholders (null)
         const hiraganaData = [
             { row: 'Unlilar', chars: [ {h:'あ', r:'a'}, {h:'い', r:'i'}, {h:'う', r:'u'}, {h:'え', r:'e'}, {h:'お', r:'o'} ] },
             { row: 'K-qator', chars: [ {h:'か', r:'ka'}, {h:'き', r:'ki'}, {h:'く', r:'ku'}, {h:'け', r:'ke'}, {h:'こ', r:'ko'} ] },
@@ -93,9 +93,17 @@
             { row: 'N-qator', chars: [ {h:'な', r:'na'}, {h:'に', r:'ni'}, {h:'ぬ', r:'nu'}, {h:'ね', r:'ne'}, {h:'の', r:'no'} ] },
             { row: 'H-qator', chars: [ {h:'は', r:'ha'}, {h:'ひ', r:'hi'}, {h:'ふ', r:'fu'}, {h:'へ', r:'he'}, {h:'ほ', r:'ho'} ] },
             { row: 'M-qator', chars: [ {h:'ま', r:'ma'}, {h:'み', r:'mi'}, {h:'む', r:'mu'}, {h:'め', r:'me'}, {h:'も', r:'mo'} ] },
-            { row: 'Y-qator', chars: [ {h:'や', r:'ya'}, {h:'ゆ', r:'yu'}, {h:'よ', r:'yo'} ] },
+
+            // Y-qator: ya, (empty), yu, (empty), yo
+            { row: 'Y-qator', chars: [ {h:'や', r:'ya'}, null, {h:'ゆ', r:'yu'}, null, {h:'よ', r:'yo'} ] },
+
             { row: 'R-qator', chars: [ {h:'ら', r:'ra'}, {h:'り', r:'ri'}, {h:'る', r:'ru'}, {h:'れ', r:'re'}, {h:'ろ', r:'ro'} ] },
-            { row: 'W/N',    chars: [ {h:'わ', r:'wa'}, {h:'を', r:'wo'}, {h:'ん', r:'n'} ] }
+
+            // W-qator: wa, (empty), (empty), (empty), wo
+            { row: 'W-qator', chars: [ {h:'わ', r:'wa'}, null, null, null, {h:'を', r:'wo'} ] },
+
+            // N separate
+            { row: 'N',       chars: [ {h:'ん', r:'n'} ] }
         ];
 
         // State Variables
@@ -119,8 +127,8 @@
         // Initialization Logic
         function init() {
             // Default active: first two rows
-            hiraganaData[0].chars.forEach(c => activeChars.add(JSON.stringify(c)));
-            hiraganaData[1].chars.forEach(c => activeChars.add(JSON.stringify(c)));
+            hiraganaData[0].chars.forEach(c => { if(c) activeChars.add(JSON.stringify(c)); });
+            hiraganaData[1].chars.forEach(c => { if(c) activeChars.add(JSON.stringify(c)); });
 
             renderGrid();
             updateSelectedCount();
@@ -151,21 +159,18 @@
                     btnSwap.style.color = '#ff6b81';
                 }
 
-                // If word is already generated, update it
                 updateDisplay();
-                // Hide answer on swap to avoid confusion
                 answerDisplay.style.visibility = 'hidden';
             });
 
             if(btnClearAll) btnClearAll.addEventListener('click', () => {
                 activeChars.clear();
-                // We need to re-render grid because buttons need to update their state
                 renderGrid();
                 updateSelectedCount();
             });
 
             if(btnSelectAll) btnSelectAll.addEventListener('click', () => {
-                hiraganaData.forEach(g => g.chars.forEach(c => activeChars.add(JSON.stringify(c))));
+                hiraganaData.forEach(g => g.chars.forEach(c => { if(c) activeChars.add(JSON.stringify(c)); }));
                 renderGrid();
                 updateSelectedCount();
             });
@@ -186,6 +191,17 @@
                 btnsDiv.className = 'd-flex flex-wrap gap-2';
 
                 group.chars.forEach(char => {
+                    // Check if placeholder (null)
+                    if (char === null) {
+                        const placeholder = document.createElement('div');
+                        // Match button dimensions approx
+                        placeholder.style.width = '40px';
+                        placeholder.style.height = '31px';
+                        placeholder.className = 'd-inline-block';
+                        btnsDiv.appendChild(placeholder);
+                        return;
+                    }
+
                     const charStr = JSON.stringify(char);
                     const isActive = activeChars.has(charStr);
 
@@ -211,7 +227,6 @@
                         // Toggle Logic
                         if (activeChars.has(charStr)) {
                             activeChars.delete(charStr);
-                            // Optimistic update for speed
                             btn.style.backgroundColor = 'white';
                             btn.style.borderColor = '#e0e0e0';
                             btn.style.color = '#6c757d';
