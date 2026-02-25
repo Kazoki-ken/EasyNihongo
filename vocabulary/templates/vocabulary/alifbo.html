@@ -39,8 +39,16 @@
             </div>
 
             <!-- Length Slider -->
-            <label class="form-label text-muted small fw-bold">So'z uzunligi: <span id="length-val" style="color: #ff6b81; font-weight: bold;">4</span></label>
-            <input type="range" class="form-range" min="1" max="10" step="1" id="length-slider" value="4" style="accent-color: #ff6b81;">
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">So'z uzunligi: <span id="length-val" style="color: #ff6b81; font-weight: bold;">4</span></label>
+                <input type="range" class="form-range" min="1" max="10" step="1" id="length-slider" value="4" style="accent-color: #ff6b81;">
+            </div>
+
+            <!-- Auto Interval Slider -->
+            <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">Avto Soniya: <span id="interval-val" style="color: #ff6b81; font-weight: bold;">3</span>s</label>
+                <input type="range" class="form-range" min="1" max="10" step="1" id="interval-slider" value="3" style="accent-color: #ff6b81;">
+            </div>
         </div>
     </div>
 
@@ -79,6 +87,12 @@
                 <i class="bi bi-eye me-2"></i>Ko'rish
             </button>
         </div>
+        <!-- Auto Button -->
+        <div class="col-12">
+            <button id="btn-auto" class="btn w-100 py-3 fw-bold shadow-sm" style="border: 2px solid #20c997; color: #20c997; background: white; border-radius: 12px;">
+                <i class="bi bi-play-circle me-2"></i>Avto
+            </button>
+        </div>
     </div>
 </div>
 
@@ -93,16 +107,9 @@
             { row: 'N-qator', chars: [ {h:'な', r:'na'}, {h:'に', r:'ni'}, {h:'ぬ', r:'nu'}, {h:'ね', r:'ne'}, {h:'の', r:'no'} ] },
             { row: 'H-qator', chars: [ {h:'は', r:'ha'}, {h:'ひ', r:'hi'}, {h:'ふ', r:'fu'}, {h:'へ', r:'he'}, {h:'ほ', r:'ho'} ] },
             { row: 'M-qator', chars: [ {h:'ま', r:'ma'}, {h:'み', r:'mi'}, {h:'む', r:'mu'}, {h:'め', r:'me'}, {h:'も', r:'mo'} ] },
-
-            // Y-qator: ya, (empty), yu, (empty), yo
             { row: 'Y-qator', chars: [ {h:'や', r:'ya'}, null, {h:'ゆ', r:'yu'}, null, {h:'よ', r:'yo'} ] },
-
             { row: 'R-qator', chars: [ {h:'ら', r:'ra'}, {h:'り', r:'ri'}, {h:'る', r:'ru'}, {h:'れ', r:'re'}, {h:'ろ', r:'ro'} ] },
-
-            // W-qator: wa, (empty), (empty), (empty), wo
             { row: 'W-qator', chars: [ {h:'わ', r:'wa'}, null, null, null, {h:'を', r:'wo'} ] },
-
-            // N separate
             { row: 'N',       chars: [ {h:'ん', r:'n'} ] }
         ];
 
@@ -110,16 +117,21 @@
         let activeChars = new Set();
         let isSwapped = false;
         let currentWord = [];
+        let isAutoRunning = false;
+        let autoStepTimeoutId = null;
 
         // DOM Elements
         const charGrid = document.getElementById('char-grid');
         const lengthSlider = document.getElementById('length-slider');
         const lengthVal = document.getElementById('length-val');
+        const intervalSlider = document.getElementById('interval-slider');
+        const intervalVal = document.getElementById('interval-val');
         const wordDisplay = document.getElementById('word-display');
         const answerDisplay = document.getElementById('answer-display');
         const btnShow = document.getElementById('btn-show');
         const btnNext = document.getElementById('btn-next');
         const btnSwap = document.getElementById('btn-swap');
+        const btnAuto = document.getElementById('btn-auto');
         const selectedCountSpan = document.getElementById('selected-count');
         const btnClearAll = document.getElementById('btn-clear-all');
         const btnSelectAll = document.getElementById('btn-select-all');
@@ -139,18 +151,22 @@
                 lengthVal.textContent = e.target.value;
             });
 
+            intervalSlider.addEventListener('input', (e) => {
+                intervalVal.textContent = e.target.value;
+            });
+
             btnShow.addEventListener('click', () => {
+                if (isAutoRunning) return; // Disable manual in auto mode
                 answerDisplay.style.visibility = 'visible';
             });
 
             btnNext.addEventListener('click', () => {
+                if (isAutoRunning) return; // Disable manual in auto mode
                 generateWord();
             });
 
             btnSwap.addEventListener('click', () => {
                 isSwapped = !isSwapped;
-
-                // Visual update for swap button
                 if (isSwapped) {
                     btnSwap.style.backgroundColor = '#ffebf0';
                     btnSwap.style.color = '#d63384';
@@ -158,18 +174,21 @@
                     btnSwap.style.backgroundColor = 'white';
                     btnSwap.style.color = '#ff6b81';
                 }
-
                 updateDisplay();
                 answerDisplay.style.visibility = 'hidden';
             });
 
+            btnAuto.addEventListener('click', toggleAutoMode);
+
             if(btnClearAll) btnClearAll.addEventListener('click', () => {
+                if (isAutoRunning) return;
                 activeChars.clear();
                 renderGrid();
                 updateSelectedCount();
             });
 
             if(btnSelectAll) btnSelectAll.addEventListener('click', () => {
+                if (isAutoRunning) return;
                 hiraganaData.forEach(g => g.chars.forEach(c => { if(c) activeChars.add(JSON.stringify(c)); }));
                 renderGrid();
                 updateSelectedCount();
@@ -191,10 +210,8 @@
                 btnsDiv.className = 'd-flex flex-wrap gap-2';
 
                 group.chars.forEach(char => {
-                    // Check if placeholder (null)
                     if (char === null) {
                         const placeholder = document.createElement('div');
-                        // Match button dimensions approx
                         placeholder.style.width = '40px';
                         placeholder.style.height = '31px';
                         placeholder.className = 'd-inline-block';
@@ -206,7 +223,6 @@
                     const isActive = activeChars.has(charStr);
 
                     const btn = document.createElement('button');
-                    // Add Bootstrap classes + inline styles for specific look
                     btn.className = 'btn btn-sm fw-bold px-2 py-1 shadow-sm';
                     btn.style.borderRadius = '8px';
                     btn.style.minWidth = '40px';
@@ -224,7 +240,8 @@
                     btn.textContent = char.h;
 
                     btn.onclick = () => {
-                        // Toggle Logic
+                        if (isAutoRunning) return;
+
                         if (activeChars.has(charStr)) {
                             activeChars.delete(charStr);
                             btn.style.backgroundColor = 'white';
@@ -281,17 +298,87 @@
             let answerText = "";
 
             if (!isSwapped) {
-                // Mode A: Hiragana Question
                 questionText = currentWord.map(c => c.h).join('');
                 answerText = currentWord.map(c => c.r).join('');
             } else {
-                // Mode B: Romaji Question
                 questionText = currentWord.map(c => c.r).join('');
                 answerText = currentWord.map(c => c.h).join('');
             }
 
             wordDisplay.textContent = questionText;
             answerDisplay.textContent = answerText;
+        }
+
+        // --- Auto Mode Logic ---
+
+        function toggleAutoMode() {
+            if (isAutoRunning) {
+                stopAutoMode();
+            } else {
+                startAutoMode();
+            }
+        }
+
+        function startAutoMode() {
+            if (activeChars.size === 0) {
+                alert("Iltimos, avval harflarni tanlang!");
+                return;
+            }
+
+            isAutoRunning = true;
+            btnAuto.innerHTML = '<i class="bi bi-stop-circle me-2"></i>To\'xtatish';
+            btnAuto.style.backgroundColor = '#20c997'; // Solid Green
+            btnAuto.style.color = 'white';
+
+            // Disable manual controls visually
+            btnNext.disabled = true;
+            btnShow.disabled = true;
+            lengthSlider.disabled = true;
+            intervalSlider.disabled = true;
+
+            runAutoStep();
+        }
+
+        function stopAutoMode() {
+            isAutoRunning = false;
+            if (autoStepTimeoutId) clearTimeout(autoStepTimeoutId);
+
+            btnAuto.innerHTML = '<i class="bi bi-play-circle me-2"></i>Avto';
+            btnAuto.style.backgroundColor = 'white';
+            btnAuto.style.color = '#20c997';
+
+            // Enable manual controls
+            btnNext.disabled = false;
+            btnShow.disabled = false;
+            lengthSlider.disabled = false;
+            intervalSlider.disabled = false;
+        }
+
+        function runAutoStep() {
+            if (!isAutoRunning) return;
+
+            // 1. Generate New Word
+            generateWord();
+
+            // 2. Wait X seconds (Interval)
+            const intervalSec = parseInt(intervalSlider.value);
+
+            autoStepTimeoutId = setTimeout(() => {
+                if (!isAutoRunning) return;
+
+                // 3. Show Answer
+                answerDisplay.style.visibility = 'visible';
+
+                // 4. Wait fixed 1.5 seconds
+                autoStepTimeoutId = setTimeout(() => {
+                    if (!isAutoRunning) return;
+
+                    // 5. Repeat
+                    runAutoStep();
+
+                }, 1500); // Fixed 1.5s delay after answer
+
+            }, intervalSec * 1000);
         }
 
         // Run Init
