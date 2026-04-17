@@ -10,3 +10,6 @@ six==1.17.0
 sqlparse==0.5.5
 tzdata==2025.3
 edge-tts==7.2.7
+dj-database-url==3.1.2
+psycopg2-binary==2.9.11
+python-dotenv==1.2.2

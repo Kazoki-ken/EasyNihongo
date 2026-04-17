@@ -1,4 +1,5 @@
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -53,11 +54,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project_name.wsgi.application'
 
 # Database
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', 'sqlite:///db.sqlite3'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 # Password validation
@@ -121,6 +128,7 @@ CSRF_TRUSTED_ORIGINS = [
 # # project_name/settings.py faylining eng boshiga qo'shing (agar mavjud bo'lmasa):
 #
 # # from pathlib import Path
+
 #
 # # # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # # BASE_DIR = Path(__file__).resolve().parent.parent
@@ -252,6 +260,7 @@ CSRF_TRUSTED_ORIGINS = [
 # # # Yuqoridagi kodni qo'yishdan oldin, fayl boshida "BASE_DIR" ni o'rnatish kerak.
 # # # Agar mavjud bo'lmasa, uni qo'shing (o'rnini almashtirmang):
 # # from pathlib import Path
+
 # # # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # # BASE_DIR = Path(__file__).resolve().parent.parent
 #
