@@ -561,9 +561,12 @@
 
     <!-- 5. Logout Link -->
     <div class="settings-list mt-4">
-        <a href="{% url 'logout' %}" class="settings-item text-danger">
-            <i class="bi bi-box-arrow-right"></i> Tizimdan chiqish
-        </a>
+        <form action="{% url 'logout' %}" method="post" class="m-0 p-0">
+            {% csrf_token %}
+            <button type="submit" class="settings-item text-danger" style="background: none; border: none; width: 100%; text-align: left; padding: 15px; border-radius: 12px; cursor: pointer;">
+                <i class="bi bi-box-arrow-right"></i> Tizimdan chiqish
+            </button>
+        </form>
     </div>
 
 </div>
